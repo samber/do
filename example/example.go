@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"log"
 
 	"github.com/samber/do"
 )
@@ -93,5 +94,8 @@ func main() {
 
 	fmt.Println(do.HealthCheck[Engine](injector))
 
-	injector.Shutdown()
+	err := injector.Shutdown()
+	if err != nil {
+		log.Fatal(err.Error())
+	}
 }
