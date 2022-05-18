@@ -16,7 +16,7 @@ This library implements the Dependency Injection design pattern. It may replace 
 - [samber/lo](https://github.com/samber/lo): A Lodash-style Go library based on Go 1.18+ Generics
 - [samber/mo](https://github.com/samber/mo): Monads based on Go 1.18+ Generics
 
-### Why this name?
+***Why this name?***
 
 I love **short name** for such utility library. This name is the sum of `DI` and `Go` and no Go package currently uses this name.
 
