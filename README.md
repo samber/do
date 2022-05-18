@@ -7,7 +7,7 @@
 [![GoDoc](https://godoc.org/github.com/samber/do?status.svg)](https://pkg.go.dev/github.com/samber/do)
 [![Go report](https://goreportcard.com/badge/github.com/samber/do)](https://goreportcard.com/report/github.com/samber/do)
 
-**✨ A dependency injection toolkit based on Go 1.18+ Generics.**
+**⚙️ A dependency injection toolkit based on Go 1.18+ Generics.**
 
 This library implements the Dependency Injection design pattern. It may replace the `uber/dig` fantastic package in simple Go projects. `samber/do` uses Go 1.18+ generics instead of reflection and therefore is typesafe.
 
