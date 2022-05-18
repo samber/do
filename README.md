@@ -100,20 +100,20 @@ func (c *CarService) Shutdown() error {
 func main() {
     injector := do.New()
 
-	// provides CarService
+    // provides CarService
     do.Provide(injector, NewCarService)
 
-	// provides EngineService 
-	do.Provide(injector, NewEngineService)
+    // provides EngineService 
+    do.Provide(injector, NewEngineService)
 
-	car := do.MustInvoke[*CarService](injector)
-	car.Start()
+    car := do.MustInvoke[*CarService](injector)
+    car.Start()
     // prints "car starting"
 
-	do.HealthCheck[EngineService](injector)
+    do.HealthCheck[EngineService](injector)
     // returns "engine broken"
 
-	injector.Shutdown()
+    injector.Shutdown()
     // prints "car stopped"
 }
 ```
