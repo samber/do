@@ -2,10 +2,10 @@
 # do - Dependency Injection
 
 [![tag](https://img.shields.io/github/tag/samber/do.svg)](https://github.com/samber/do/releases)
-[![codecov](https://codecov.io/gh/samber/do/branch/master/graph/badge.svg)](https://codecov.io/gh/samber/do)
-![Build Status](https://github.com/samber/do/actions/workflows/go.yml/badge.svg)
 [![GoDoc](https://godoc.org/github.com/samber/do?status.svg)](https://pkg.go.dev/github.com/samber/do)
+![Build Status](https://github.com/samber/do/actions/workflows/go.yml/badge.svg)
 [![Go report](https://goreportcard.com/badge/github.com/samber/do)](https://goreportcard.com/report/github.com/samber/do)
+[![codecov](https://codecov.io/gh/samber/do/branch/master/graph/badge.svg)](https://codecov.io/gh/samber/do)
 
 **⚙️ A dependency injection toolkit based on Go 1.18+ Generics.**
 
@@ -14,7 +14,7 @@ This library implements the Dependency Injection design pattern. It may replace 
 **See also:**
 
 - [samber/lo](https://github.com/samber/lo): A Lodash-style Go library based on Go 1.18+ Generics
-- [samber/mo](https://github.com/samber/mo): Monads based on Go 1.18+ Generics
+- [samber/mo](https://github.com/samber/mo): Monads based on Go 1.18+ Generics (Option, Result, Either...)
 
 **Why this name?**
 
