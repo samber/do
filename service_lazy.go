@@ -1,6 +1,8 @@
 package do
 
-import "sync"
+import (
+	"sync"
+)
 
 type Provider[T any] func(*Injector) (T, error)
 

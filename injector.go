@@ -6,6 +6,28 @@ import (
 	"sync"
 )
 
+func New() *Injector {
+	return NewWithOpts(&InjectorOpts{})
+}
+
+type InjectorOpts struct {
+	HookAfterRegistration func(injector *Injector, serviceName string)
+	HookAfterShutdown     func(injector *Injector, serviceName string)
+}
+
+func NewWithOpts(opts *InjectorOpts) *Injector {
+	return &Injector{
+		mu:       sync.RWMutex{},
+		services: make(map[string]any),
+
+		orderedInvocation:      map[string]int{},
+		orderedInvocationIndex: 0,
+
+		hookAfterRegistration: opts.HookAfterShutdown,
+		hookAfterShutdown:     opts.HookAfterShutdown,
+	}
+}
+
 type Injector struct {
 	mu       sync.RWMutex
 	services map[string]any
@@ -13,16 +35,36 @@ type Injector struct {
 	// It should be a graph instead of simple ordered list.
 	orderedInvocation      map[string]int // map is faster than slice
 	orderedInvocationIndex int
+
+	hookAfterRegistration func(injector *Injector, serviceName string)
+	hookAfterShutdown     func(injector *Injector, serviceName string)
 }
 
-func New() *Injector {
-	return &Injector{
-		mu:       sync.RWMutex{},
-		services: make(map[string]any),
+func (i *Injector) ListProvidedServices() []string {
+	names := []string{}
 
-		orderedInvocation:      map[string]int{},
-		orderedInvocationIndex: 0,
+	i.mu.RLock()
+	defer i.mu.RUnlock()
+
+	for name := range i.services {
+		names = append(names, name)
 	}
+
+	return names
+}
+
+func (i *Injector) ListInvokedServices() []string {
+	names := []string{}
+
+	i.mu.RLock()
+	defer i.mu.RUnlock()
+
+	for name := range i.orderedInvocation {
+		names = append(names, name)
+
+	}
+
+	return names
 }
 
 func (i *Injector) HealthCheck() map[string]error {
@@ -33,7 +75,7 @@ func (i *Injector) HealthCheck() map[string]error {
 	results := map[string]error{}
 
 	for _, name := range names {
-		results[name] = i.shutdownImplem(name)
+		results[name] = i.healthcheckImplem(name)
 	}
 
 	return results
@@ -103,6 +145,8 @@ func (i *Injector) shutdownImplem(name string) error {
 	delete(i.services, name)
 	delete(i.orderedInvocation, name)
 
+	i.onServiceShutdown(name)
+
 	return nil
 }
 
@@ -119,6 +163,9 @@ func (i *Injector) set(name string, service any) {
 	defer i.mu.Unlock()
 
 	i.services[name] = service
+
+	// defering hook call will unlock mutex
+	defer i.onServiceRegistration(name)
 }
 
 func (i *Injector) remove(name string) {
@@ -128,12 +175,12 @@ func (i *Injector) remove(name string) {
 	delete(i.services, name)
 }
 
-func (i *Injector) forEach(cb func(s any)) {
+func (i *Injector) forEach(cb func(name string, service any)) {
 	i.mu.Lock()
 	defer i.mu.Unlock()
 
-	for _, s := range i.services {
-		cb(s)
+	for name, service := range i.services {
+		cb(name, service)
 	}
 }
 
@@ -155,5 +202,17 @@ func (i *Injector) onServiceInvoke(name string) {
 	if _, ok := i.orderedInvocation[name]; !ok {
 		i.orderedInvocation[name] = i.orderedInvocationIndex
 		i.orderedInvocationIndex++
+	}
+}
+
+func (i *Injector) onServiceRegistration(name string) {
+	if i.hookAfterRegistration != nil {
+		i.hookAfterRegistration(i, name)
+	}
+}
+
+func (i *Injector) onServiceShutdown(name string) {
+	if i.hookAfterShutdown != nil {
+		i.hookAfterShutdown(i, name)
 	}
 }

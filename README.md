@@ -180,6 +180,24 @@ do.Invoke(injector, ...)
 injector.Shutdown()
 ```
 
+List services:
+
+```go
+type DBService struct {
+    db *sql.DB
+}
+
+injector := do.New()
+
+do.Provide(injector, ...)
+println(do.ListProvidedServices())
+// output: []string{"*DBService"}
+
+do.Invoke(injector, ...)
+println(do.ListInvokedServices())
+// output: []string{"*DBService"}
+```
+
 ### Service registration
 
 Services can be registered in multiple way:
@@ -333,6 +351,23 @@ Unloads named service or panics if service was not registered:
 ```go
 config := do.MustInvokeNamed[Config](injector, "configuration")
 do.MustShutdownNamed(injector, "configuration")
+```
+
+### Hooks
+
+3 lifecycle hooks are available in Injectors:
+- After registration
+- After shutdown
+
+```go
+injector := NewWithOpts(&InjectorOpts{
+    HookAfterRegistration: func(injector *do.Injector, serviceName string) {
+        fmt.Printf("Service registered: %s\n", serviceName)
+    },
+    HookAfterShutdown: func(injector *do.Injector, serviceName string) {
+        fmt.Printf("Service stopped: %s\n", serviceName)
+    },
+})
 ```
 
 ## 🛩 Benchmark

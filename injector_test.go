@@ -8,7 +8,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestContainerNew(t *testing.T) {
+func TestInjectorNew(t *testing.T) {
 	is := assert.New(t)
 
 	i := New()
@@ -16,7 +16,115 @@ func TestContainerNew(t *testing.T) {
 	is.Empty(i.services)
 }
 
-func TestContainerGet(t *testing.T) {
+func TestInjectorNewWithOpts(t *testing.T) {
+	is := assert.New(t)
+
+	count := 0
+
+	i := NewWithOpts(&InjectorOpts{
+		HookAfterRegistration: func(injector *Injector, serviceName string) {
+			is.Equal("foobar", serviceName)
+			count++
+		},
+		HookAfterShutdown: func(injector *Injector, serviceName string) {
+			is.Equal("foobar", serviceName)
+			count++
+		},
+	})
+
+	ProvideNamedValue(i, "foobar", 42)
+
+	is.NotPanics(func() {
+		MustInvokeNamed[int](i, "foobar")
+	})
+
+	i.Shutdown()
+
+	is.Equal(2, count)
+}
+
+func TestInjectorListProvidedServices(t *testing.T) {
+	is := assert.New(t)
+
+	i := New()
+
+	is.NotPanics(func() {
+		ProvideValue[int](i, 42)
+		ProvideValue[float64](i, 21)
+	})
+
+	is.NotPanics(func() {
+		services := i.ListProvidedServices()
+		is.ElementsMatch([]string{"int", "float64"}, services)
+	})
+}
+
+func TestInjectorListInvokedServices(t *testing.T) {
+	is := assert.New(t)
+
+	i := New()
+
+	is.NotPanics(func() {
+		ProvideValue[int](i, 42)
+		ProvideValue[float64](i, 21)
+		MustInvoke[int](i)
+	})
+
+	is.NotPanics(func() {
+		services := i.ListInvokedServices()
+		is.Equal([]string{"int"}, services)
+	})
+}
+
+type testHealthCheck struct {
+	foobar string
+}
+
+func (t *testHealthCheck) HealthCheck() error {
+	return fmt.Errorf("broken")
+}
+
+func TestInjectorHealthCheck(t *testing.T) {
+	is := assert.New(t)
+
+	i := New()
+
+	is.NotPanics(func() {
+		ProvideValue[int](i, 42)
+		ProvideNamed(i, "testHealthCheck", func(i *Injector) (*testHealthCheck, error) {
+			return &testHealthCheck{}, nil
+		})
+	})
+
+	// before invocation
+	is.NotPanics(func() {
+		got := i.HealthCheck()
+		expected := map[string]error{
+			"int":             nil,
+			"testHealthCheck": nil,
+		}
+
+		is.Equal(expected, got)
+	})
+
+	is.NotPanics(func() {
+		MustInvokeNamed[int](i, "int")
+		MustInvokeNamed[*testHealthCheck](i, "testHealthCheck")
+	})
+
+	// after invocation
+	is.NotPanics(func() {
+		got := i.HealthCheck()
+		expected := map[string]error{
+			"int":             nil,
+			"testHealthCheck": fmt.Errorf("broken"),
+		}
+
+		is.Equal(expected, got)
+	})
+}
+
+func TestInjectorGet(t *testing.T) {
 	is := assert.New(t)
 
 	i := New()
@@ -50,7 +158,7 @@ func TestContainerGet(t *testing.T) {
 	}
 }
 
-func TestContainerSet(t *testing.T) {
+func TestInjectorSet(t *testing.T) {
 	is := assert.New(t)
 
 	i := New()
@@ -81,7 +189,7 @@ func TestContainerSet(t *testing.T) {
 	is.True(reflect.DeepEqual(service2, s2))
 }
 
-func TestContainerRemove(t *testing.T) {
+func TestInjectorRemove(t *testing.T) {
 	is := assert.New(t)
 
 	i := New()
@@ -97,7 +205,7 @@ func TestContainerRemove(t *testing.T) {
 	is.Len(i.services, 0)
 }
 
-func TestContainerServiceNotFound(t *testing.T) {
+func TestInjectorServiceNotFound(t *testing.T) {
 	is := assert.New(t)
 
 	i := New()
@@ -116,11 +224,13 @@ func TestContainerServiceNotFound(t *testing.T) {
 	i.set("bar", service2)
 	is.Len(i.services, 2)
 
-	expected := fmt.Errorf("DI: could not find service `hello`, available services: `foo`, `bar`")
-	is.Equal(expected, i.serviceNotFound("hello"))
+	err := i.serviceNotFound("hello")
+	is.ErrorContains(err, "DI: could not find service `hello`, available services:")
+	is.ErrorContains(err, "`foo`")
+	is.ErrorContains(err, "`bar`")
 }
 
-func TestContainerOnServiceInvoke(t *testing.T) {
+func TestInjectorOnServiceInvoke(t *testing.T) {
 	is := assert.New(t)
 
 	i := New()
