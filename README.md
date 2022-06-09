@@ -103,7 +103,7 @@ func main() {
     // provides CarService
     do.Provide(injector, NewCarService)
 
-    // provides EngineService 
+    // provides EngineService
     do.Provide(injector, NewEngineService)
 
     car := do.MustInvoke[*CarService](injector)
@@ -360,7 +360,7 @@ do.MustShutdownNamed(injector, "configuration")
 - After shutdown
 
 ```go
-injector := NewWithOpts(&InjectorOpts{
+injector := do.NewWithOpts(&InjectorOpts{
     HookAfterRegistration: func(injector *do.Injector, serviceName string) {
         fmt.Printf("Service registered: %s\n", serviceName)
     },
