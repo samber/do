@@ -360,7 +360,7 @@ do.MustShutdownNamed(injector, "configuration")
 - After shutdown
 
 ```go
-injector := do.NewWithOpts(&InjectorOpts{
+injector := do.NewWithOpts(&do.InjectorOpts{
     HookAfterRegistration: func(injector *do.Injector, serviceName string) {
         fmt.Printf("Service registered: %s\n", serviceName)
     },
