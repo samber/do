@@ -9,7 +9,7 @@ import (
 func TestGenerateServiceName(t *testing.T) {
 	is := assert.New(t)
 
-	type test struct{}
+	type test struct{} //nolint:unused
 
 	name := generateServiceName[test]()
 	is.Equal("do.test", name)
