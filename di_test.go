@@ -31,9 +31,7 @@ func TestDefaultInjector(t *testing.T) {
 func TestProvide(t *testing.T) {
 	is := assert.New(t)
 
-	type test struct {
-		foobar string
-	}
+	type test struct{}
 
 	i := New()
 
@@ -45,9 +43,11 @@ func TestProvide(t *testing.T) {
 		return test{}, fmt.Errorf("error")
 	})
 
-	// will erase previous
-	Provide(i, func(i *Injector) (test, error) {
-		return test{}, fmt.Errorf("error")
+	is.Panics(func() {
+		// try to erase previous instance
+		Provide(i, func(i *Injector) (test, error) {
+			return test{}, fmt.Errorf("error")
+		})
 	})
 
 	is.Len(i.services, 2)
@@ -332,5 +332,39 @@ func TestMustShutdownNamed(t *testing.T) {
 
 	is.Panics(func() {
 		MustShutdownNamed(i, "foobar")
+	})
+}
+
+func TestDoubleInjection(t *testing.T) {
+	is := assert.New(t)
+
+	type test struct{}
+
+	i := New()
+
+	is.NotPanics(func() {
+		Provide(i, func(i *Injector) (*test, error) {
+			return &test{}, nil
+		})
+	})
+
+	is.PanicsWithError("DI: service `*do.test` has already been declared", func() {
+		Provide(i, func(i *Injector) (*test, error) {
+			return &test{}, nil
+		})
+	})
+
+	is.PanicsWithError("DI: service `*do.test` has already been declared", func() {
+		ProvideValue(i, &test{})
+	})
+
+	is.PanicsWithError("DI: service `*do.test` has already been declared", func() {
+		ProvideNamed(i, "*do.test", func(i *Injector) (*test, error) {
+			return &test{}, nil
+		})
+	})
+
+	is.PanicsWithError("DI: service `*do.test` has already been declared", func() {
+		ProvideNamedValue(i, "*do.test", &test{})
 	})
 }
