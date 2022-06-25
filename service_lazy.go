@@ -99,3 +99,13 @@ func (s *ServiceLazy[T]) shutdown() error {
 
 	return nil
 }
+
+func (s *ServiceLazy[T]) clone() any {
+	// reset `build` flag and instance
+	return &ServiceLazy[T]{
+		name: s.name,
+
+		built:    false,
+		provider: s.provider,
+	}
+}

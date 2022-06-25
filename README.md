@@ -31,7 +31,7 @@ I love **short name** for such utility library. This name is the sum of `DI` and
 - Eagerly or lazily loaded services
 - Dependency graph resolution
 - Default injector
-- Container cloning
+- Injector cloning
 - Service override
 
 🚀 Services are loaded in invocation order.
@@ -356,6 +356,20 @@ config := do.MustInvokeNamed[Config](injector, "configuration")
 do.MustShutdownNamed(injector, "configuration")
 ```
 
+### Service override
+
+By default, providing a service twice will panic. Service can be replaced at runtime using `do.Replace****` helpers.
+
+```go
+do.Provide[Vehicle](injector, func (i *do.Injector) (Vehicle, error) {
+    return &CarImplem{}, nil
+})
+
+do.Override[Vehicle](injector, func (i *do.Injector) (Vehicle, error) {
+    return &BusImplem{}, nil
+})
+```
+
 ### Hooks
 
 3 lifecycle hooks are available in Injectors:
@@ -371,6 +385,38 @@ injector := do.NewWithOpts(&do.InjectorOpts{
         fmt.Printf("Service stopped: %s\n", serviceName)
     },
 })
+```
+
+### Cloning injector
+
+Cloned injector have same service registrations as it's parent, but it doesn't share invoked service state.
+
+Clones are useful for unit testing by replacing some services to mocks.
+
+```go
+var injector *do.Injector;
+
+func init() {
+    do.Provide[Service](injector, func (i *do.Injector) (Service, error) {
+        return &RealService{}, nil
+    })
+    do.Provide[*App](injector, func (i *do.Injector) (*App, error) {
+        return &App{i.MustInvoke[Service](i)}, nil
+    })
+}
+
+func TestService(t *testing.T) {
+    i := injector.Clone()
+    defer i.Shutdown()
+
+    // replace Service to MockService
+    do.Override[Service](i, func (i *do.Injector) (Service, error) {
+        return &MockService{}, nil
+    }))
+
+    app := do.Invoke[*App](i)
+    // do unit testing with mocked service
+}
 ```
 
 ## 🛩 Benchmark

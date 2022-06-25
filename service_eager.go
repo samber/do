@@ -37,3 +37,7 @@ func (s *ServiceEager[T]) shutdown() error {
 
 	return nil
 }
+
+func (s *ServiceEager[T]) clone() any {
+	return s
+}

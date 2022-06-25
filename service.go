@@ -9,6 +9,7 @@ type Service[T any] interface {
 	getInstance(*Injector) (T, error)
 	healthcheck() error
 	shutdown() error
+	clone() any
 }
 
 type healthcheckableService interface {
@@ -38,4 +39,8 @@ type Healthcheckable interface {
 
 type Shutdownable interface {
 	Shutdown() error
+}
+
+type cloneableService interface {
+	clone() any
 }

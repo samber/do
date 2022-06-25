@@ -278,3 +278,39 @@ func TestInjectorOnServiceInvoke(t *testing.T) {
 	is.Equal(1, i.orderedInvocation["bar"])
 	is.Equal(2, i.orderedInvocationIndex)
 }
+
+func TestInjectorClone(t *testing.T) {
+	is := assert.New(t)
+
+	count := 0
+
+	// setup original container
+	i1 := New()
+	ProvideNamed(i1, "foobar", func(_ *Injector) (int, error) {
+		count++
+		return 42, nil
+	})
+	is.NotPanics(func() {
+		value := MustInvokeNamed[int](i1, "foobar")
+		is.Equal(42, value)
+	})
+	is.Equal(1, count)
+
+	// clone container
+	i2 := i1.Clone()
+	// invoked instance is not reused
+	s1, err := InvokeNamed[int](i2, "foobar")
+	is.NoError(err)
+	is.Equal(42, s1)
+	is.Equal(2, count)
+
+	// service can be overriden
+	OverrideNamed(i2, "foobar", func(_ *Injector) (int, error) {
+		count++
+		return 6 * 9, nil
+	})
+	s2, err := InvokeNamed[int](i2, "foobar")
+	is.NoError(err)
+	is.Equal(54, s2)
+	is.Equal(3, count)
+}

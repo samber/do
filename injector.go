@@ -234,3 +234,27 @@ func (i *Injector) onServiceShutdown(name string) {
 		i.hookAfterShutdown(i, name)
 	}
 }
+
+// Clone clones injector with provided services but not with invoked instances.
+func (i *Injector) Clone() *Injector {
+	return i.CloneWithOpts(&InjectorOpts{})
+}
+
+// CloneWithOpts clones injector with provided services but not with invoked instances, with options.
+func (i *Injector) CloneWithOpts(opts *InjectorOpts) *Injector {
+	clone := NewWithOpts(opts)
+
+	i.mu.RLock()
+	defer i.mu.RUnlock()
+
+	for name, serviceAny := range i.services {
+		if service, ok := serviceAny.(cloneableService); ok {
+			clone.services[name] = service.clone()
+		} else {
+			clone.services[name] = service
+		}
+		defer clone.onServiceRegistration(name)
+	}
+
+	return clone
+}
