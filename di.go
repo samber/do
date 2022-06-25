@@ -1,37 +1,49 @@
 package do
 
-var DefaultInjector = New()
-
-func getInjectorOrDefault(i *Injector) *Injector {
-	if i != nil {
-		return i
-	}
-
-	return DefaultInjector
-}
+import "fmt"
 
 func Provide[T any](i *Injector, provider Provider[T]) {
 	name := generateServiceName[T]()
 
+	_i := getInjectorOrDefault(i)
+	if _i.exists(name) {
+		panic(fmt.Errorf("DI: service `%s` has already been declared", name))
+	}
+
 	service := newServiceLazy(name, provider)
-	getInjectorOrDefault(i).set(name, service)
+	_i.set(name, service)
 }
 
 func ProvideNamed[T any](i *Injector, name string, provider Provider[T]) {
+	_i := getInjectorOrDefault(i)
+	if _i.exists(name) {
+		panic(fmt.Errorf("DI: service `%s` has already been declared", name))
+	}
+
 	service := newServiceLazy(name, provider)
-	getInjectorOrDefault(i).set(name, service)
+	_i.set(name, service)
 }
 
 func ProvideValue[T any](i *Injector, value T) {
 	name := generateServiceName[T]()
 
+	_i := getInjectorOrDefault(i)
+	if _i.exists(name) {
+		panic(fmt.Errorf("DI: service `%s` has already been declared", name))
+	}
+
 	service := newServiceEager(name, value)
-	getInjectorOrDefault(i).set(name, service)
+	_i.set(name, service)
 }
 
 func ProvideNamedValue[T any](i *Injector, name string, value T) {
+	_i := getInjectorOrDefault(i)
+	if _i.exists(name) {
+		panic(fmt.Errorf("DI: service `%s` has already been declared", name))
+	}
+
 	service := newServiceEager(name, value)
-	getInjectorOrDefault(i).set(name, service)
+	_i.set(name, service)
 }
 
 func Invoke[T any](i *Injector) (T, error) {

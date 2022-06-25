@@ -6,6 +6,16 @@ import (
 	"sync"
 )
 
+var DefaultInjector = New()
+
+func getInjectorOrDefault(i *Injector) *Injector {
+	if i != nil {
+		return i
+	}
+
+	return DefaultInjector
+}
+
 func New() *Injector {
 	return NewWithOpts(&InjectorOpts{})
 }
@@ -148,6 +158,14 @@ func (i *Injector) shutdownImplem(name string) error {
 	i.onServiceShutdown(name)
 
 	return nil
+}
+
+func (i *Injector) exists(name string) bool {
+	i.mu.RLock()
+	defer i.mu.RUnlock()
+
+	_, ok := i.services[name]
+	return ok
 }
 
 func (i *Injector) get(name string) (any, bool) {
