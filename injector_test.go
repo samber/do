@@ -78,7 +78,6 @@ func TestInjectorListInvokedServices(t *testing.T) {
 }
 
 type testHealthCheck struct {
-	foobar string
 }
 
 func (t *testHealthCheck) HealthCheck() error {
@@ -123,6 +122,21 @@ func TestInjectorHealthCheck(t *testing.T) {
 
 		is.Equal(expected, got)
 	})
+}
+
+func TestInjectorExists(t *testing.T) {
+	is := assert.New(t)
+
+	i := New()
+
+	service := &ServiceEager[int]{
+		name:     "foobar",
+		instance: 42,
+	}
+	i.services["foobar"] = service
+
+	is.True(i.exists("foobar"))
+	is.False(i.exists("foobaz"))
 }
 
 func TestInjectorGet(t *testing.T) {
@@ -204,6 +218,27 @@ func TestInjectorRemove(t *testing.T) {
 	is.Len(i.services, 1)
 	i.remove("foobar")
 	is.Len(i.services, 0)
+}
+
+func TestInjectorForEach(t *testing.T) {
+	is := assert.New(t)
+
+	i := New()
+
+	service := &ServiceEager[int]{
+		name:     "foobar",
+		instance: 42,
+	}
+	i.set("foobar", service)
+
+	count := 0
+
+	i.forEach(func(name string, service any) {
+		is.Equal("foobar", name)
+		count++
+	})
+
+	is.Equal(1, count)
 }
 
 func TestInjectorServiceNotFound(t *testing.T) {

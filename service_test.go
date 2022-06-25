@@ -9,9 +9,7 @@ import (
 func TestGenerateServiceName(t *testing.T) {
 	is := assert.New(t)
 
-	type test struct {
-		foobar string
-	}
+	type test struct{}
 
 	name := generateServiceName[test]()
 	is.Equal("do.test", name)
