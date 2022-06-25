@@ -368,3 +368,36 @@ func TestDoubleInjection(t *testing.T) {
 		ProvideNamedValue(i, "*do.test", &test{})
 	})
 }
+
+func TestOverride(t *testing.T) {
+	is := assert.New(t)
+
+	type test struct {
+		foobar int
+	}
+
+	i := New()
+
+	is.NotPanics(func() {
+		Provide(i, func(i *Injector) (*test, error) {
+			return &test{42}, nil
+		})
+		is.Equal(42, MustInvoke[*test](i).foobar)
+
+		Override(i, func(i *Injector) (*test, error) {
+			return &test{1}, nil
+		})
+		is.Equal(1, MustInvoke[*test](i).foobar)
+
+		OverrideNamed(i, "*do.test", func(i *Injector) (*test, error) {
+			return &test{2}, nil
+		})
+		is.Equal(2, MustInvoke[*test](i).foobar)
+
+		OverrideValue(i, &test{3})
+		is.Equal(3, MustInvoke[*test](i).foobar)
+
+		OverrideNamedValue(i, "*do.test", &test{4})
+		is.Equal(4, MustInvoke[*test](i).foobar)
+	})
+}
