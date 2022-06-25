@@ -248,7 +248,7 @@ func (i *Injector) CloneWithOpts(opts *InjectorOpts) *Injector {
 	defer i.mu.RUnlock()
 
 	for name, serviceAny := range i.services {
-		if service, ok := serviceAny.(cloeneableService); ok {
+		if service, ok := serviceAny.(cloneableService); ok {
 			clone.services[name] = service.clone()
 		} else {
 			clone.services[name] = service

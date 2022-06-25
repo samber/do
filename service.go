@@ -41,6 +41,6 @@ type Shutdownable interface {
 	Shutdown() error
 }
 
-type cloeneableService interface {
+type cloneableService interface {
 	clone() any
 }

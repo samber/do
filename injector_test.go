@@ -290,7 +290,10 @@ func TestInjectorClone(t *testing.T) {
 		count++
 		return 42, nil
 	})
-	MustInvokeNamed[int](i1, "foobar")
+	is.NotPanics(func() {
+		value := MustInvokeNamed[int](i1, "foobar")
+		is.Equal(42, value)
+	})
 	is.Equal(1, count)
 
 	// clone container
@@ -302,7 +305,7 @@ func TestInjectorClone(t *testing.T) {
 	is.Equal(2, count)
 
 	// service can be overriden
-	ProvideNamed(i2, "foobar", func(_ *Injector) (int, error) {
+	OverrideNamed(i2, "foobar", func(_ *Injector) (int, error) {
 		count++
 		return 6 * 9, nil
 	})
