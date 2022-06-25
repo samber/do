@@ -46,6 +46,38 @@ func ProvideNamedValue[T any](i *Injector, name string, value T) {
 	_i.set(name, service)
 }
 
+func Override[T any](i *Injector, provider Provider[T]) {
+	name := generateServiceName[T]()
+
+	_i := getInjectorOrDefault(i)
+
+	service := newServiceLazy(name, provider)
+	_i.set(name, service)
+}
+
+func OverrideNamed[T any](i *Injector, name string, provider Provider[T]) {
+	_i := getInjectorOrDefault(i)
+
+	service := newServiceLazy(name, provider)
+	_i.set(name, service)
+}
+
+func OverrideValue[T any](i *Injector, value T) {
+	name := generateServiceName[T]()
+
+	_i := getInjectorOrDefault(i)
+
+	service := newServiceEager(name, value)
+	_i.set(name, service)
+}
+
+func OverrideNamedValue[T any](i *Injector, name string, value T) {
+	_i := getInjectorOrDefault(i)
+
+	service := newServiceEager(name, value)
+	_i.set(name, service)
+}
+
 func Invoke[T any](i *Injector) (T, error) {
 	name := generateServiceName[T]()
 	return InvokeNamed[T](i, name)

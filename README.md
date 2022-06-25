@@ -26,10 +26,13 @@ I love **short name** for such utility library. This name is the sum of `DI` and
 - Service invocation
 - Service health check
 - Service shutdown
+- Service lifecycle hooks
 - Named or anonymous services
 - Eagerly or lazily loaded services
 - Dependency graph resolution
 - Default injector
+- Container cloning
+- Service override
 
 🚀 Services are loaded in invocation order.
 
