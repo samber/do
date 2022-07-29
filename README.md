@@ -227,7 +227,7 @@ do.Provide[DBService](injector, func(i *Injector) (*DBService, error) {
 })
 ```
 
-Anonymous service, loaded lazily:
+Named service, loaded lazily:
 
 ```go
 type DBService struct {
