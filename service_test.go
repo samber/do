@@ -9,14 +9,31 @@ import (
 func TestGenerateServiceName(t *testing.T) {
 	is := assert.New(t)
 
-	type test struct{} //nolint:unused
+	type testStruct struct{} //nolint:unused
 
-	name := generateServiceName[test]()
-	is.Equal("do.test", name)
+	type testInterface interface{} //nolint:unused
 
-	name = generateServiceName[*test]()
-	is.Equal("*do.test", name)
+	name := generateServiceName[testStruct]()
+	is.Equal("github.com/samber/do.testStruct", name)
+
+	name = generateServiceName[*testStruct]()
+	is.Equal("github.com/samber/do.*testStruct", name)
+
+	name = generateServiceName[***testStruct]()
+	is.Equal("github.com/samber/do.***testStruct", name)
+
+	name = generateServiceName[testInterface]()
+	is.Equal("github.com/samber/do.*testInterface", name)
+
+	name = generateServiceName[*testInterface]()
+	is.Equal("github.com/samber/do.*testInterface", name)
+
+	name = generateServiceName[***testInterface]()
+	is.Equal("github.com/samber/do.***testInterface", name)
 
 	name = generateServiceName[int]()
 	is.Equal("int", name)
+
+	name = generateServiceName[*int]()
+	is.Equal("*int", name)
 }
