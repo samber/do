@@ -372,7 +372,7 @@ do.Override[Vehicle](injector, func (i *do.Injector) (Vehicle, error) {
 
 ### Hooks
 
-3 lifecycle hooks are available in Injectors:
+2 lifecycle hooks are available in Injectors:
 - After registration
 - After shutdown
 
