@@ -27,7 +27,7 @@ func generateServiceName[T any]() string {
 	star := 0
 
 	if typeOfT == nil {
-		typeOfT = reflect.TypeOf(new(T))
+		typeOfT = reflect.TypeOf(&t)
 	}
 
 	for {
