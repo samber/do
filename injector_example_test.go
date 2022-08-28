@@ -34,7 +34,7 @@ func ExampleNew() {
 	// <nil>
 }
 
-func ExampleNew_Default() {
+func ExampleDefaultInjector() {
 	ProvideNamedValue(nil, "PG_URI", "postgres://user:pass@host:5432/db")
 	uri, err := InvokeNamed[string](nil, "PG_URI")
 

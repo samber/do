@@ -12,10 +12,12 @@ func newServiceEager[T any](name string, instance T) Service[T] {
 	}
 }
 
+//nolint:unused
 func (s *ServiceEager[T]) getName() string {
 	return s.name
 }
 
+//nolint:unused
 func (s *ServiceEager[T]) getInstance(i *Injector) (T, error) {
 	return s.instance, nil
 }

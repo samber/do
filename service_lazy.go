@@ -25,10 +25,12 @@ func newServiceLazy[T any](name string, provider Provider[T]) Service[T] {
 	}
 }
 
+//nolint:unused
 func (s *ServiceLazy[T]) getName() string {
 	return s.name
 }
 
+//nolint:unused
 func (s *ServiceLazy[T]) getInstance(i *Injector) (T, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -43,6 +45,7 @@ func (s *ServiceLazy[T]) getInstance(i *Injector) (T, error) {
 	return s.instance, nil
 }
 
+//nolint:unused
 func (s *ServiceLazy[T]) build(i *Injector) (err error) {
 	defer func() {
 		if r := recover(); r != nil {
