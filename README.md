@@ -424,6 +424,10 @@ injector := do.NewWithOpts(&do.InjectorOpts{
     HookAfterShutdown: func(injector *do.Injector, serviceName string) {
         fmt.Printf("Service stopped: %s\n", serviceName)
     },
+
+    Logf: func(format string, args ...any) {
+        log.Printf(format, args)
+    }
 })
 ```
 

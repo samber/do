@@ -1,6 +1,8 @@
 package do
 
-import "fmt"
+import (
+	"fmt"
+)
 
 func Provide[T any](i *Injector, provider Provider[T]) {
 	name := generateServiceName[T]()
@@ -12,6 +14,8 @@ func Provide[T any](i *Injector, provider Provider[T]) {
 
 	service := newServiceLazy(name, provider)
 	_i.set(name, service)
+
+	_i.logf("service %s injected", name)
 }
 
 func ProvideNamed[T any](i *Injector, name string, provider Provider[T]) {
@@ -22,6 +26,8 @@ func ProvideNamed[T any](i *Injector, name string, provider Provider[T]) {
 
 	service := newServiceLazy(name, provider)
 	_i.set(name, service)
+
+	_i.logf("service %s injected", name)
 }
 
 func ProvideValue[T any](i *Injector, value T) {
@@ -34,6 +40,8 @@ func ProvideValue[T any](i *Injector, value T) {
 
 	service := newServiceEager(name, value)
 	_i.set(name, service)
+
+	_i.logf("service %s injected", name)
 }
 
 func ProvideNamedValue[T any](i *Injector, name string, value T) {
@@ -44,6 +52,8 @@ func ProvideNamedValue[T any](i *Injector, name string, value T) {
 
 	service := newServiceEager(name, value)
 	_i.set(name, service)
+
+	_i.logf("service %s injected", name)
 }
 
 func Override[T any](i *Injector, provider Provider[T]) {
@@ -53,6 +63,8 @@ func Override[T any](i *Injector, provider Provider[T]) {
 
 	service := newServiceLazy(name, provider)
 	_i.set(name, service)
+
+	_i.logf("service %s overridden", name)
 }
 
 func OverrideNamed[T any](i *Injector, name string, provider Provider[T]) {
@@ -60,6 +72,8 @@ func OverrideNamed[T any](i *Injector, name string, provider Provider[T]) {
 
 	service := newServiceLazy(name, provider)
 	_i.set(name, service)
+
+	_i.logf("service %s overridden", name)
 }
 
 func OverrideValue[T any](i *Injector, value T) {
@@ -69,6 +83,8 @@ func OverrideValue[T any](i *Injector, value T) {
 
 	service := newServiceEager(name, value)
 	_i.set(name, service)
+
+	_i.logf("service %s overridden", name)
 }
 
 func OverrideNamedValue[T any](i *Injector, name string, value T) {
@@ -76,6 +92,8 @@ func OverrideNamedValue[T any](i *Injector, name string, value T) {
 
 	service := newServiceEager(name, value)
 	_i.set(name, service)
+
+	_i.logf("service %s overridden", name)
 }
 
 func Invoke[T any](i *Injector) (T, error) {
@@ -90,22 +108,26 @@ func MustInvoke[T any](i *Injector) T {
 }
 
 func InvokeNamed[T any](i *Injector, name string) (T, error) {
-	serviceAny, ok := getInjectorOrDefault(i).get(name)
+	_i := getInjectorOrDefault(i)
+
+	serviceAny, ok := _i.get(name)
 	if !ok {
-		return empty[T](), getInjectorOrDefault(i).serviceNotFound(name)
+		return empty[T](), _i.serviceNotFound(name)
 	}
 
 	service, ok := serviceAny.(Service[T])
 	if !ok {
-		return empty[T](), getInjectorOrDefault(i).serviceNotFound(name)
+		return empty[T](), _i.serviceNotFound(name)
 	}
 
-	instance, err := service.getInstance(i)
+	instance, err := service.getInstance(_i)
 	if err != nil {
 		return empty[T](), err
 	}
 
-	getInjectorOrDefault(i).onServiceInvoke(name)
+	_i.onServiceInvoke(name)
+
+	_i.logf("service %s invoked", name)
 
 	return instance, err
 }

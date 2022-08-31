@@ -23,9 +23,18 @@ func New() *Injector {
 type InjectorOpts struct {
 	HookAfterRegistration func(injector *Injector, serviceName string)
 	HookAfterShutdown     func(injector *Injector, serviceName string)
+
+	Logf func(format string, args ...any)
 }
 
 func NewWithOpts(opts *InjectorOpts) *Injector {
+	logf := opts.Logf
+	if logf == nil {
+		logf = func(format string, args ...any) {}
+	}
+
+	logf("injector created")
+
 	return &Injector{
 		mu:       sync.RWMutex{},
 		services: make(map[string]any),
@@ -35,6 +44,8 @@ func NewWithOpts(opts *InjectorOpts) *Injector {
 
 		hookAfterRegistration: opts.HookAfterShutdown,
 		hookAfterShutdown:     opts.HookAfterShutdown,
+
+		logf: logf,
 	}
 }
 
@@ -48,6 +59,8 @@ type Injector struct {
 
 	hookAfterRegistration func(injector *Injector, serviceName string)
 	hookAfterShutdown     func(injector *Injector, serviceName string)
+
+	logf func(format string, args ...any)
 }
 
 func (i *Injector) ListProvidedServices() []string {
@@ -59,6 +72,8 @@ func (i *Injector) ListProvidedServices() []string {
 	for name := range i.services {
 		names = append(names, name)
 	}
+
+	i.logf("exported list of services: %v", names)
 
 	return names
 }
@@ -74,6 +89,8 @@ func (i *Injector) ListInvokedServices() []string {
 
 	}
 
+	i.logf("exported list of invoked services: %v", names)
+
 	return names
 }
 
@@ -82,11 +99,15 @@ func (i *Injector) HealthCheck() map[string]error {
 	names := keys(i.services)
 	i.mu.RUnlock()
 
+	i.logf("requested healthcheck")
+
 	results := map[string]error{}
 
 	for _, name := range names {
 		results[name] = i.healthcheckImplem(name)
 	}
+
+	i.logf("got healthcheck results: %v", results)
 
 	return results
 }
@@ -95,6 +116,8 @@ func (i *Injector) Shutdown() error {
 	i.mu.RLock()
 	invocations := invertMap(i.orderedInvocation)
 	i.mu.RUnlock()
+
+	i.logf("requested shutdown")
 
 	for index := i.orderedInvocationIndex; index >= 0; index-- {
 		name, ok := invocations[index]
@@ -107,6 +130,8 @@ func (i *Injector) Shutdown() error {
 			return err
 		}
 	}
+
+	i.logf("shutdowned services")
 
 	return nil
 }
@@ -124,6 +149,8 @@ func (i *Injector) healthcheckImplem(name string) error {
 
 	service, ok := serviceAny.(healthcheckableService)
 	if ok {
+		i.logf("requested healthcheck for service %s", name)
+
 		err := service.healthcheck()
 		if err != nil {
 			return err
@@ -146,6 +173,8 @@ func (i *Injector) shutdownImplem(name string) error {
 
 	service, ok := serviceAny.(shutdownableService)
 	if ok {
+		i.logf("requested shutdown for service %s", name)
+
 		err := service.shutdown()
 		if err != nil {
 			return err
@@ -255,6 +284,8 @@ func (i *Injector) CloneWithOpts(opts *InjectorOpts) *Injector {
 		}
 		defer clone.onServiceRegistration(name)
 	}
+
+	i.logf("injector cloned")
 
 	return clone
 }
