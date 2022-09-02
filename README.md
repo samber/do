@@ -426,7 +426,7 @@ injector := do.NewWithOpts(&do.InjectorOpts{
     },
 
     Logf: func(format string, args ...any) {
-        log.Printf(format, args)
+        log.Printf(format, args...)
     }
 })
 ```
