@@ -79,6 +79,7 @@ func main() {
     do.HealthCheck[EngineService](injector)
     // returns "engine broken"
 
+    // injector.ShutdownOnSIGTERM()    // will block until receiving sigterm signal
     injector.Shutdown()
     // prints "car stopped"
 }
@@ -135,6 +136,7 @@ Injector:
   - [injector.CloneWithOpts](https://pkg.go.dev/github.com/samber/do#injector.CloneWithOpts)
   - [injector.HealthCheck](https://pkg.go.dev/github.com/samber/do#injector.HealthCheck)
   - [injector.Shutdown](https://pkg.go.dev/github.com/samber/do#injector.Shutdown)
+  - [injector.ShutdownOnSIGTERM](https://pkg.go.dev/github.com/samber/do#injector.ShutdownOnSIGTERM)
   - [injector.ListProvidedServices](https://pkg.go.dev/github.com/samber/do#injector.ListProvidedServices)
   - [injector.ListInvokedServices](https://pkg.go.dev/github.com/samber/do#injector.ListInvokedServices)
 - [do.HealthCheck](https://pkg.go.dev/github.com/samber/do#HealthCheck)

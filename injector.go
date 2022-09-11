@@ -2,8 +2,11 @@ package do
 
 import (
 	"fmt"
+	"os"
+	"os/signal"
 	"strings"
 	"sync"
+	"syscall"
 )
 
 var DefaultInjector = New()
@@ -134,6 +137,20 @@ func (i *Injector) Shutdown() error {
 	i.logf("shutdowned services")
 
 	return nil
+}
+
+// ShutdownOnSIGTERM listens for sigterm signal in order to graceful stop service.
+// It will block until receiving a sigterm signal.
+func (i *Injector) ShutdownOnSIGTERM() error {
+	ch := make(chan os.Signal, 1)
+
+	signal.Notify(ch, syscall.SIGTERM)
+
+	<-ch
+	signal.Stop(ch)
+	close(ch)
+
+	return i.Shutdown()
 }
 
 func (i *Injector) healthcheckImplem(name string) error {
