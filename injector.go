@@ -45,7 +45,7 @@ func NewWithOpts(opts *InjectorOpts) *Injector {
 		orderedInvocation:      map[string]int{},
 		orderedInvocationIndex: 0,
 
-		hookAfterRegistration: opts.HookAfterShutdown,
+		hookAfterRegistration: opts.HookAfterRegistration,
 		hookAfterShutdown:     opts.HookAfterShutdown,
 
 		logf: logf,

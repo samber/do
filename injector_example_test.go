@@ -52,7 +52,10 @@ func ExampleNewWithOpts() {
 		},
 	})
 
-	ProvideNamedValue(injector, "PG_URI", "postgres://user:pass@host:5432/db")
+	ProvideNamed(injector, "PG_URI", func(i *Injector) (string, error) {
+		return "postgres://user:pass@host:5432/db", nil
+	})
+	MustInvokeNamed[string](injector, "PG_URI")
 	_ = injector.Shutdown()
 
 	// Output:
