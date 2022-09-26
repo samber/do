@@ -400,7 +400,7 @@ do.MustShutdownNamed(injector, "configuration")
 
 ### Service override
 
-By default, providing a service twice will panic. Service can be replaced at runtime using `do.Replace****` helpers.
+By default, providing a service twice will panic. Service can be replaced at runtime using `do.Override` helper.
 
 ```go
 do.Provide[Vehicle](injector, func (i *do.Injector) (Vehicle, error) {
