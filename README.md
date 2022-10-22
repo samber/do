@@ -429,7 +429,7 @@ injector := do.NewWithOpts(&do.InjectorOpts{
 
     Logf: func(format string, args ...any) {
         log.Printf(format, args...)
-    }
+    },
 })
 ```
 
@@ -497,9 +497,9 @@ make test
 make watch-test
 ```
 
-## 👤 Authors
+## 👤 Contributors
 
-- Samuel Berthe
+![Contributors](https://contrib.rocks/image?repo=samber/do)
 
 ## 💫 Show your support
 
