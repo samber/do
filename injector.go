@@ -1,6 +1,7 @@
 package do
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"os/signal"
@@ -150,6 +151,13 @@ func (i *Injector) ShutdownOnSIGTERM() error {
 	signal.Stop(ch)
 	close(ch)
 
+	return i.Shutdown()
+}
+
+// ShutdownOnCtx listens for the context.Done channel closing to graceful-stop service.
+// It will block until receiving a context.Done channel closing.
+func (i *Injector) ShutdownOnCtx(ctx context.Context) error {
+	<-ctx.Done()
 	return i.Shutdown()
 }
 

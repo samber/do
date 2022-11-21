@@ -1,8 +1,11 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"log"
+	"os"
+	"os/signal"
 
 	"github.com/samber/do"
 )
@@ -96,6 +99,13 @@ func main() {
 
 	err := injector.Shutdown()
 	if err != nil {
+		log.Fatal(err.Error())
+	}
+
+	// shutdown using a context example (Ctrl/Cmd+C) example
+	ctx, cancelFunc := signal.NotifyContext(context.Background(), os.Interrupt)
+	defer cancelFunc()
+	if err := injector.ShutdownOnCtx(ctx); err != nil {
 		log.Fatal(err.Error())
 	}
 }
