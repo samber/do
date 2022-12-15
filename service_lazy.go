@@ -84,17 +84,20 @@ func (s *ServiceLazy[T]) healthcheck() error {
 	return nil
 }
 
-func (s *ServiceLazy[T]) shutdown() error {
+func (s *ServiceLazy[T]) shutdown() (err error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
 	if !s.built {
-		return nil
+		return
 	}
 
 	instance, ok := any(s.instance).(Shutdownable)
 	if ok {
-		return instance.Shutdown()
+		err = instance.Shutdown()
+		if err != nil {
+			return err
+		}
 	}
 
 	s.built = false
@@ -102,6 +105,7 @@ func (s *ServiceLazy[T]) shutdown() error {
 
 	return nil
 }
+
 
 func (s *ServiceLazy[T]) clone() any {
 	// reset `build` flag and instance

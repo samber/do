@@ -88,3 +88,27 @@ func TestServiceLazyInstance(t *testing.T) {
 		is.Equal(expected, err5)
 	})
 }
+
+func TestServiceLazyInstanceShutDown(t *testing.T) {
+	is := assert.New(t)
+
+	type test struct {
+		idx int
+	}
+	index := 1
+	provider1 := func(i *Injector) (*test, error) {
+		index++
+		return &test{index}, nil
+	}
+
+	i := New()
+
+	service := newServiceLazy("foobar", provider1)
+	instance1, err := service.getInstance(i)
+	is.Nil(err)
+	service.shutdown()
+	instance2, err := service.getInstance(i)
+	is.Nil(err)
+	is.NotEqual(instance1.idx, instance2.idx)
+	is.Equal(instance1.idx+1, instance2.idx)
+}
