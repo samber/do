@@ -4,7 +4,7 @@
 [![tag](https://img.shields.io/github/tag/samber/do.svg)](https://github.com/samber/do/releases)
 ![Go Version](https://img.shields.io/badge/Go-%3E%3D%201.18-%23007d9c)
 [![GoDoc](https://godoc.org/github.com/samber/do?status.svg)](https://pkg.go.dev/github.com/samber/do)
-![Build Status](https://github.com/samber/do/actions/workflows/go.yml/badge.svg)
+![Build Status](https://github.com/samber/do/actions/workflows/test.yml/badge.svg)
 [![Go report](https://goreportcard.com/badge/github.com/samber/do)](https://goreportcard.com/report/github.com/samber/do)
 [![Coverage](https://img.shields.io/codecov/c/github/samber/do)](https://codecov.io/gh/samber/do)
 [![License](https://img.shields.io/github/license/samber/do)](./LICENSE)
