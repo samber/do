@@ -9,6 +9,7 @@
 [![Coverage](https://img.shields.io/codecov/c/github/samber/do)](https://codecov.io/gh/samber/do)
 [![License](https://img.shields.io/github/license/samber/do)](./LICENSE)
 
+
 **⚙️ A dependency injection toolkit based on Go 1.18+ Generics.**
 
 This library implements the Dependency Injection design pattern. It may replace the `uber/dig` fantastic package in simple Go projects. `samber/do` uses Go 1.18+ generics instead of reflection and therefore is typesafe.
