@@ -84,17 +84,17 @@ func (s *ServiceLazy[T]) healthcheck() error {
 	return nil
 }
 
-func (s *ServiceLazy[T]) shutdown() (err error) {
+func (s *ServiceLazy[T]) shutdown() error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
 	if !s.built {
-		return
+		return nil
 	}
 
 	instance, ok := any(s.instance).(Shutdownable)
 	if ok {
-		err = instance.Shutdown()
+		err := instance.Shutdown()
 		if err != nil {
 			return err
 		}
