@@ -2,10 +2,12 @@
 # do - Dependency Injection
 
 [![tag](https://img.shields.io/github/tag/samber/do.svg)](https://github.com/samber/do/releases)
+![Go Version](https://img.shields.io/badge/Go-%3E%3D%201.18-%23007d9c)
 [![GoDoc](https://godoc.org/github.com/samber/do?status.svg)](https://pkg.go.dev/github.com/samber/do)
 ![Build Status](https://github.com/samber/do/actions/workflows/go.yml/badge.svg)
 [![Go report](https://goreportcard.com/badge/github.com/samber/do)](https://goreportcard.com/report/github.com/samber/do)
-[![codecov](https://codecov.io/gh/samber/do/branch/master/graph/badge.svg)](https://codecov.io/gh/samber/do)
+[![Coverage](https://img.shields.io/codecov/c/github/samber/do)](https://codecov.io/gh/samber/do)
+[![License](https://img.shields.io/github/license/samber/do)](./LICENSE)
 
 **⚙️ A dependency injection toolkit based on Go 1.18+ Generics.**
 
@@ -429,7 +431,7 @@ injector := do.NewWithOpts(&do.InjectorOpts{
 
     Logf: func(format string, args ...any) {
         log.Printf(format, args...)
-    }
+    },
 })
 ```
 
@@ -497,9 +499,9 @@ make test
 make watch-test
 ```
 
-## 👤 Authors
+## 👤 Contributors
 
-- Samuel Berthe
+![Contributors](https://contrib.rocks/image?repo=samber/do)
 
 ## 💫 Show your support
 
