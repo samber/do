@@ -94,7 +94,10 @@ func (s *ServiceLazy[T]) shutdown() error {
 
 	instance, ok := any(s.instance).(Shutdownable)
 	if ok {
-		return instance.Shutdown()
+		err := instance.Shutdown()
+		if err != nil {
+			return err
+		}
 	}
 
 	s.built = false
