@@ -141,23 +141,16 @@ func (i *Injector) Shutdown() error {
 // ShutdownOnSIGTERM listens for sigterm signal in order to graceful stop service.
 // It will block until receiving a sigterm signal.
 func (i *Injector) ShutdownOnSIGTERM() error {
-	ch := make(chan os.Signal, 1)
-
-	signal.Notify(ch, syscall.SIGTERM)
-
-	<-ch
-	signal.Stop(ch)
-	close(ch)
-
-	return i.Shutdown()
+	return i.ShutdownOnSignals(syscall.SIGTERM)
 }
 
 // ShutdownOnSignals listens for signals defined in signals parameter in order to graceful stop service.
 // It will block until receiving any of these signal.
 // If no signal is provided in signals parameter, ShutdownOnSIGTERM will be called.
 func (i *Injector) ShutdownOnSignals(signals ...os.Signal) error {
+	// Make sure there is at least syscall.SIGTERM as a signal
 	if len(signals) < 1 {
-		return i.ShutdownOnSIGTERM()
+		signals = append(signals, syscall.SIGTERM)
 	}
 	ch := make(chan os.Signal, len(signals))
 
