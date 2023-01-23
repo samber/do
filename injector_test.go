@@ -299,7 +299,7 @@ func TestInjectorCloneEager(t *testing.T) {
 	is.NoError(err)
 	is.Equal(42, s1)
 
-	// service can be overriden
+	// service can be overridden
 	OverrideNamed(i2, "foobar", func(_ *Injector) (int, error) {
 		count++
 		return 6 * 9, nil
@@ -335,7 +335,7 @@ func TestInjectorCloneLazy(t *testing.T) {
 	is.Equal(42, s1)
 	is.Equal(2, count)
 
-	// service can be overriden
+	// service can be overridden
 	OverrideNamed(i2, "foobar", func(_ *Injector) (int, error) {
 		count++
 		return 6 * 9, nil

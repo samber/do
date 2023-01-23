@@ -89,7 +89,6 @@ func (i *Injector) ListInvokedServices() []string {
 
 	for name := range i.orderedInvocation {
 		names = append(names, name)
-
 	}
 
 	i.logf("exported list of invoked services: %v", names)
@@ -139,12 +138,17 @@ func (i *Injector) Shutdown() error {
 	return nil
 }
 
-// ShutdownOnSIGTERM listens for sigterm signal in order to graceful stop service.
-// It will block until receiving a sigterm signal.
-func (i *Injector) ShutdownOnSIGTERM() error {
-	ch := make(chan os.Signal, 1)
+// ShutdownOnSignals listens for signals defined in signals parameter in order to graceful stop service.
+// It will block until receiving any of these signal.
+// If no signal is provided in signals parameter, syscall.SIGTERM will be used as default.
+func (i *Injector) ShutdownOnSignals(signals ...os.Signal) error {
+	// Make sure there is at least syscall.SIGTERM as a signal
+	if len(signals) < 1 {
+		signals = append(signals, syscall.SIGTERM)
+	}
+	ch := make(chan os.Signal, len(signals))
 
-	signal.Notify(ch, syscall.SIGTERM)
+	signal.Notify(ch, signals...)
 
 	<-ch
 	signal.Stop(ch)
