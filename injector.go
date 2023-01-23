@@ -156,7 +156,6 @@ func (i *Injector) ShutdownOnSIGTERM() error {
 // It will block until receiving any of these signal.
 // If no signal is provided in signals parameter, ShutdownOnSIGTERM will be called.
 func (i *Injector) ShutdownOnSignals(signals ...os.Signal) error {
-	// Make sure there is at least syscall.SIGTERM as a signal
 	if len(signals) < 1 {
 		return i.ShutdownOnSIGTERM()
 	}
