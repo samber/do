@@ -152,7 +152,7 @@ func (i *Injector) ShutdownOnSignals(signals ...os.Signal) error {
 	if len(signals) < 1 {
 		signals = append(signals, syscall.SIGTERM)
 	}
-	ch := make(chan os.Signal, len(signals))
+	ch := make(chan os.Signal, 1)
 
 	signal.Notify(ch, signals...)
 
