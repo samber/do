@@ -142,6 +142,7 @@ Injector:
   - [injector.HealthCheck](https://pkg.go.dev/github.com/samber/do#injector.HealthCheck)
   - [injector.Shutdown](https://pkg.go.dev/github.com/samber/do#injector.Shutdown)
   - [injector.ShutdownOnSIGTERM](https://pkg.go.dev/github.com/samber/do#injector.ShutdownOnSIGTERM)
+  - [injector.ShutdownOnSignals](https://pkg.go.dev/github.com/samber/do#injector.ShutdownOnSignals)
   - [injector.ListProvidedServices](https://pkg.go.dev/github.com/samber/do#injector.ListProvidedServices)
   - [injector.ListInvokedServices](https://pkg.go.dev/github.com/samber/do#injector.ListInvokedServices)
 - [do.HealthCheck](https://pkg.go.dev/github.com/samber/do#HealthCheck)
