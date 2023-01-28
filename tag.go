@@ -19,6 +19,12 @@ func MustInjectTag[T any](i *Injector, service T) T {
 	return v
 }
 
+func TagProvider[T any](t T) Provider[T] {
+	return func(i *Injector) (T, error) {
+		return InjectTag(i, t)
+	}
+}
+
 func populateServiceByTags[T any](i *Injector, service T) (T, error) {
 	// get the underlying value
 	value := reflect.ValueOf(service)

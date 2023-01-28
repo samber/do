@@ -51,4 +51,7 @@ func TestTag(t *testing.T) {
 
 	_, err = InjectTag(injector, &wrongType{})
 	is.EqualError(err, "DI: type mismatch. Expected 'string', got 'int'")
+
+	_, err = TagProvider(&test{})(injector)
+	is.Nil(err)
 }
