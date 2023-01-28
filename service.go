@@ -2,11 +2,13 @@ package do
 
 import (
 	"fmt"
+	"reflect"
 )
 
 type Service[T any] interface {
 	getName() string
 	getInstance(*Injector) (T, error)
+	// getInstanceAny(*Injector) (any, error)
 	healthcheck() error
 	shutdown() error
 	clone() any
@@ -20,9 +22,21 @@ type shutdownableService interface {
 	shutdown() error
 }
 
+type anyService interface {
+	getInstanceAny(*Injector) (any, error)
+}
+
+func getServiceNameFromStructField(field *reflect.StructField) string {
+	t := reflect.New(field.Type).Elem().Interface()
+	return getServiceNameFromValue(t)
+}
+
 func generateServiceName[T any]() string {
 	var t T
+	return getServiceNameFromValue(t)
+}
 
+func getServiceNameFromValue[T any](t T) string {
 	// struct
 	name := fmt.Sprintf("%T", t)
 	if name != "<nil>" {

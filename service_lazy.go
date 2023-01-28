@@ -46,6 +46,11 @@ func (s *ServiceLazy[T]) getInstance(i *Injector) (T, error) {
 }
 
 //nolint:unused
+func (s *ServiceLazy[T]) getInstanceAny(i *Injector) (any, error) {
+	return s.getInstance(i)
+}
+
+//nolint:unused
 func (s *ServiceLazy[T]) build(i *Injector) (err error) {
 	defer func() {
 		if r := recover(); r != nil {

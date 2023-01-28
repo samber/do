@@ -22,6 +22,10 @@ func (s *ServiceEager[T]) getInstance(i *Injector) (T, error) {
 	return s.instance, nil
 }
 
+func (s *ServiceEager[T]) getInstanceAny(i *Injector) (any, error) {
+	return s.getInstance(i)
+}
+
 func (s *ServiceEager[T]) healthcheck() error {
 	instance, ok := any(s.instance).(Healthcheckable)
 	if ok {
