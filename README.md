@@ -36,6 +36,8 @@ I love **short name** for such utility library. This name is the sum of `DI` and
 - Default injector
 - Injector cloning
 - Service override
+- Lightweight, no dependencies
+- No code generation
 
 🚀 Services are loaded in invocation order.
 
@@ -53,7 +55,7 @@ This library is v1 and follows SemVer strictly.
 
 No breaking changes will be made to exported APIs before v2.0.0.
 
-This library has no dependencies outside the Go standard library.
+This library has no dependencies except the Go std lib.
 
 ## 💡 Quick start
 

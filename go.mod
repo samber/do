@@ -2,6 +2,10 @@ module github.com/samber/do
 
 go 1.18
 
+//
+// Dependencies are excluded from releases. Please check CI.
+//
+
 require github.com/stretchr/testify v1.8.1
 
 require (

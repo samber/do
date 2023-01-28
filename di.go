@@ -108,6 +108,16 @@ func MustInvoke[T any](i *Injector) T {
 }
 
 func InvokeNamed[T any](i *Injector, name string) (T, error) {
+	return invokeImplem[T](i, name)
+}
+
+func MustInvokeNamed[T any](i *Injector, name string) T {
+	s, err := InvokeNamed[T](i, name)
+	must(err)
+	return s
+}
+
+func invokeImplem[T any](i *Injector, name string) (T, error) {
 	_i := getInjectorOrDefault(i)
 
 	serviceAny, ok := _i.get(name)
@@ -129,13 +139,7 @@ func InvokeNamed[T any](i *Injector, name string) (T, error) {
 
 	_i.logf("service %s invoked", name)
 
-	return instance, err
-}
-
-func MustInvokeNamed[T any](i *Injector, name string) T {
-	s, err := InvokeNamed[T](i, name)
-	must(err)
-	return s
+	return instance, nil
 }
 
 func HealthCheck[T any](i *Injector) error {
