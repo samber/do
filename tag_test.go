@@ -19,7 +19,7 @@ func TestTag(t *testing.T) {
 		foobar1 string `do:"baz"`
 		foobar2 foobar `do:""`
 		foobar3 *hello `do:""`
-		foobar4 *hello `do`
+		foobar4 *hello `do` //nolint:govet
 		foobar5 string
 	}
 
@@ -46,7 +46,7 @@ func TestTag(t *testing.T) {
 	is.Equal("", v.foobar5)
 
 	type wrongType struct {
-		foobar int `do:"baz"`
+		foobar int `do:"baz"` //nolint:unused
 	}
 
 	_, err = InjectTag(injector, &wrongType{})
