@@ -102,6 +102,12 @@ func Invoke[T any](i *Injector) (T, error) {
 }
 
 func MustInvoke[T any](i *Injector) T {
+	defer func() {
+		if err := recover(); err != nil {
+			must(fmt.Errorf("invoke service `%s` -> %v", generateServiceName[T](), err))
+		}
+	}()
+
 	s, err := Invoke[T](i)
 	must(err)
 	return s
@@ -112,6 +118,12 @@ func InvokeNamed[T any](i *Injector, name string) (T, error) {
 }
 
 func MustInvokeNamed[T any](i *Injector, name string) T {
+	defer func() {
+		if err := recover(); err != nil {
+			must(fmt.Errorf("invoke named service `%s` name `%s` -> %v", generateServiceName[T](), name, err))
+		}
+	}()
+
 	s, err := InvokeNamed[T](i, name)
 	must(err)
 	return s
