@@ -455,7 +455,7 @@ func init() {
         return &RealService{}, nil
     })
     do.Provide[*App](injector, func (i *do.Injector) (*App, error) {
-        return &App{i.MustInvoke[Service](i)}, nil
+        return &App{do.MustInvoke[Service](i)}, nil
     })
 }
 
