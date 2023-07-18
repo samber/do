@@ -237,7 +237,7 @@ If your component is `io.Closer` or having other cleanup method, you can use cus
 
 ```go
 injector := do.New()
-do.Provide(injector, func(i *do.Injector) {
+do.Provide(injector, func(i *do.Injector) (*sql.DB, error) {
     return sql.Open(...)
 }, do.WithShutdownFunc(func (db *sql.DB) error {
     return db.Close()
