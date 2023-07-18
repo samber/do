@@ -14,15 +14,21 @@ type ServiceLazy[T any] struct {
 	// lazy loading
 	built    bool
 	provider Provider[T]
+
+	shutdownFunc shutdownFunc[T]
 }
 
-func newServiceLazy[T any](name string, provider Provider[T]) Service[T] {
-	return &ServiceLazy[T]{
+func newServiceLazy[T any](name string, provider Provider[T], opts ...ServiceOpt[T]) Service[T] {
+	s := &ServiceLazy[T]{
 		name: name,
 
 		built:    false,
 		provider: provider,
 	}
+	for _, opt := range opts {
+		opt(s)
+	}
+	return s
 }
 
 //nolint:unused
@@ -84,6 +90,11 @@ func (s *ServiceLazy[T]) healthcheck() error {
 	return nil
 }
 
+//nolint:unused
+func (s *ServiceLazy[T]) setShutdownFunc(shutdownFunc shutdownFunc[T]) {
+	s.shutdownFunc = shutdownFunc
+}
+
 func (s *ServiceLazy[T]) shutdown() error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -92,8 +103,12 @@ func (s *ServiceLazy[T]) shutdown() error {
 		return nil
 	}
 
-	instance, ok := any(s.instance).(Shutdownable)
-	if ok {
+	if s.shutdownFunc != nil {
+		err := s.shutdownFunc(s.instance)
+		if err != nil {
+			return err
+		}
+	} else if instance, ok := any(s.instance).(Shutdownable); ok {
 		err := instance.Shutdown()
 		if err != nil {
 			return err

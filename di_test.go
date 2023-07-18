@@ -2,6 +2,7 @@ package do
 
 import (
 	"fmt"
+	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -333,6 +334,36 @@ func TestMustShutdownNamed(t *testing.T) {
 	is.Panics(func() {
 		MustShutdownNamed(i, "foobar")
 	})
+}
+
+func TestCustomShutdown(t *testing.T) {
+	is := assert.New(t)
+
+	i := New()
+
+	// register os.CreateTemp with a custom shutdown function
+	Provide(i, func(i *Injector) (*os.File, error) {
+		return os.CreateTemp("", "test")
+	}, WithShutdownFunc(func(f *os.File) error {
+		if err := os.Remove(f.Name()); err != nil {
+			return err
+		}
+		return f.Close()
+	}))
+
+	// Invoke creates temporary file
+	instance, err := Invoke[*os.File](i)
+	is.NotNil(instance)
+	is.Nil(err)
+
+	name := instance.Name()
+	is.FileExists(name)
+
+	// Shutdown removes temporary file
+	err = Shutdown[*os.File](i)
+	is.Nil(err)
+
+	is.NoFileExists(name)
 }
 
 func TestDoubleInjection(t *testing.T) {

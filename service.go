@@ -8,6 +8,7 @@ type Service[T any] interface {
 	getName() string
 	getInstance(*Injector) (T, error)
 	healthcheck() error
+	setShutdownFunc(shutdownFunc[T])
 	shutdown() error
 	clone() any
 }
@@ -19,6 +20,8 @@ type healthcheckableService interface {
 type shutdownableService interface {
 	shutdown() error
 }
+
+type shutdownFunc[T any] func(instance T) error
 
 func generateServiceName[T any]() string {
 	var t T

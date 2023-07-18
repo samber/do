@@ -3,13 +3,19 @@ package do
 type ServiceEager[T any] struct {
 	name     string
 	instance T
+
+	shutdownFunc shutdownFunc[T]
 }
 
-func newServiceEager[T any](name string, instance T) Service[T] {
-	return &ServiceEager[T]{
+func newServiceEager[T any](name string, instance T, opts ...ServiceOpt[T]) Service[T] {
+	s := &ServiceEager[T]{
 		name:     name,
 		instance: instance,
 	}
+	for _, opt := range opts {
+		opt(s)
+	}
+	return s
 }
 
 //nolint:unused
@@ -31,10 +37,22 @@ func (s *ServiceEager[T]) healthcheck() error {
 	return nil
 }
 
+//nolint:unused
+func (s *ServiceEager[T]) setShutdownFunc(shutdownFunc shutdownFunc[T]) {
+	s.shutdownFunc = shutdownFunc
+}
+
 func (s *ServiceEager[T]) shutdown() error {
-	instance, ok := any(s.instance).(Shutdownable)
-	if ok {
-		return instance.Shutdown()
+	if s.shutdownFunc != nil {
+		err := s.shutdownFunc(s.instance)
+		if err != nil {
+			return err
+		}
+	} else if instance, ok := any(s.instance).(Shutdownable); ok {
+		err := instance.Shutdown()
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil

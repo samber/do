@@ -233,6 +233,20 @@ do.Invoke(injector, ...)
 injector.Shutdown()
 ```
 
+If your component is `io.Closer` or having other cleanup method, you can use custom shutdown with `do.Provide(..., do.WithShutdown(func (i *Injector) error { ... }))`.
+
+```go
+injector := do.New()
+do.Provide(injector, func(i *do.Injector) {
+    return sql.Open(...)
+}, do.WithShutdownFunc(func (db *sql.DB) error {
+    return db.Close()
+}))
+
+do.Invoke[*sql.DB](injector)
+injector.Shutdown()
+```
+
 List services:
 
 ```go
