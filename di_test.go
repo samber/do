@@ -336,7 +336,7 @@ func TestMustShutdownNamed(t *testing.T) {
 	})
 }
 
-func TestCustomShutdown(t *testing.T) {
+func TestCustomShutdownLazy(t *testing.T) {
 	is := assert.New(t)
 
 	i := New()
@@ -345,6 +345,37 @@ func TestCustomShutdown(t *testing.T) {
 	Provide(i, func(i *Injector) (*os.File, error) {
 		return os.CreateTemp("", "test")
 	}, WithShutdownFunc(func(f *os.File) error {
+		if err := os.Remove(f.Name()); err != nil {
+			return err
+		}
+		return f.Close()
+	}))
+
+	// Invoke creates temporary file
+	instance, err := Invoke[*os.File](i)
+	is.NotNil(instance)
+	is.Nil(err)
+
+	name := instance.Name()
+	is.FileExists(name)
+
+	// Shutdown removes temporary file
+	err = Shutdown[*os.File](i)
+	is.Nil(err)
+
+	is.NoFileExists(name)
+}
+
+func TestCustomShutdownEager(t *testing.T) {
+	is := assert.New(t)
+
+	i := New()
+
+	f, err := os.CreateTemp("", "test")
+	is.Nil(err)
+
+	// register os.CreateTemp with a custom shutdown function
+	ProvideValue(i, f, WithShutdownFunc(func(f *os.File) error {
 		if err := os.Remove(f.Name()); err != nil {
 			return err
 		}
