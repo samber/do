@@ -67,14 +67,9 @@ type Injector struct {
 }
 
 func (i *Injector) ListProvidedServices() []string {
-	names := []string{}
-
 	i.mu.RLock()
-	defer i.mu.RUnlock()
-
-	for name := range i.services {
-		names = append(names, name)
-	}
+	names := keys(i.services)
+	i.mu.RUnlock()
 
 	i.logf("exported list of services: %v", names)
 
@@ -82,14 +77,9 @@ func (i *Injector) ListProvidedServices() []string {
 }
 
 func (i *Injector) ListInvokedServices() []string {
-	names := []string{}
-
 	i.mu.RLock()
-	defer i.mu.RUnlock()
-
-	for name := range i.orderedInvocation {
-		names = append(names, name)
-	}
+	names := keys(i.orderedInvocation)
+	i.mu.RUnlock()
 
 	i.logf("exported list of invoked services: %v", names)
 
