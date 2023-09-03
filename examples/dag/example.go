@@ -15,10 +15,7 @@ type Wheel struct {
 /**
  * Engine
  */
-type Engine struct{}
-
-func (e *Engine) HealthCheck() error {
-	return fmt.Errorf("engine broken")
+type Engine struct {
 }
 
 /**
@@ -45,8 +42,10 @@ func main() {
 	do.ProvideNamedValue(injector, "wheel-3", &Wheel{})
 	do.ProvideNamedValue(injector, "wheel-4", &Wheel{})
 
+	scope := injector.RootScope().Scope("child")
+
 	// provide car
-	do.Provide(injector, func(i do.Injector) (*Car, error) {
+	do.Provide(scope, func(i do.Injector) (*Car, error) {
 		car := Car{
 			Engine: do.MustInvoke[*Engine](i),
 			Wheels: []*Wheel{
@@ -65,12 +64,10 @@ func main() {
 		return &Engine{}, nil
 	})
 
-	// start car
-	car := do.MustInvoke[*Car](injector)
-	car.Start()
+	fmt.Println("root scope -->", injector.ID(), injector.ListProvidedServices())
+	fmt.Println("child scope -->", scope.ID(), scope.ListProvidedServices())
 
-	// check single service
-	fmt.Println(do.HealthCheck[*Engine](injector))
-	// check all services
-	fmt.Println(injector.HealthCheck())
+	// start car
+	car := do.MustInvoke[*Car](scope)
+	car.Start()
 }
