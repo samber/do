@@ -6,17 +6,25 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestGenerateServiceName(t *testing.T) {
+func TestInferServiceType(t *testing.T) {
 	is := assert.New(t)
 
-	type test struct{} //nolint:unused
+	svc1 := newServiceLazy[int]("foobar1", func(i Injector) (int, error) { return 42, nil })
+	svc2 := newServiceEager[int]("foobar2", 42)
+	svc3 := newServiceTransiant[int]("foobar3", func(i Injector) (int, error) { return 42, nil })
 
-	name := generateServiceName[test]()
-	is.Equal("do.test", name)
+	is.Equal(ServiceTypeLazy, inferServiceType(svc1))
+	is.Equal(ServiceTypeEager, inferServiceType(svc2))
+	is.Equal(ServiceTypeTransiant, inferServiceType(svc3))
+	is.Panics(func() {
+		is.Equal(ServiceTypeTransiant, inferServiceType[string](any(svc3).(Service[string])))
+	})
+}
 
-	name = generateServiceName[*test]()
-	is.Equal("*do.test", name)
+func TestInferServiceStacktrace(t *testing.T) {
+	// @TODO
+}
 
-	name = generateServiceName[int]()
-	is.Equal("int", name)
+func TestInferServiceInfo(t *testing.T) {
+	// @TODO
 }

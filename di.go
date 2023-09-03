@@ -4,141 +4,98 @@ import (
 	"fmt"
 )
 
-func Provide[T any](i *Injector, provider Provider[T]) {
-	name := generateServiceName[T]()
-
+func Provide[T any](i Injector, provider Provider[T]) {
+	name := inferServiceName[T]()
 	ProvideNamed[T](i, name, provider)
 }
 
-func ProvideNamed[T any](i *Injector, name string, provider Provider[T]) {
-	_i := getInjectorOrDefault(i)
-	if _i.exists(name) {
-		panic(fmt.Errorf("DI: service `%s` has already been declared", name))
-	}
-
-	service := newServiceLazy(name, provider)
-	_i.set(name, service)
-
-	_i.logf("service %s injected", name)
+func ProvideNamed[T any](i Injector, name string, provider Provider[T]) {
+	provide(i, name, provider, newServiceLazy[T])
 }
 
-func ProvideValue[T any](i *Injector, value T) {
-	name := generateServiceName[T]()
-
+func ProvideValue[T any](i Injector, value T) {
+	name := inferServiceName[T]()
 	ProvideNamedValue[T](i, name, value)
 }
 
-func ProvideNamedValue[T any](i *Injector, name string, value T) {
+func ProvideNamedValue[T any](i Injector, name string, value T) {
+	provide(i, name, value, newServiceEager[T])
+}
+
+func ProvideTransiant[T any](i Injector, provider Provider[T]) {
+	name := inferServiceName[T]()
+	ProvideNamedTransiant[T](i, name, provider)
+}
+
+func ProvideNamedTransiant[T any](i Injector, name string, provider Provider[T]) {
+	provide(i, name, provider, newServiceTransiant[T])
+}
+
+func provide[T any, A any](i Injector, name string, valueOrProvider A, serviceCtor func(string, A) Service[T]) {
 	_i := getInjectorOrDefault(i)
-	if _i.exists(name) {
+	if _i.serviceExist(name) {
 		panic(fmt.Errorf("DI: service `%s` has already been declared", name))
 	}
 
-	service := newServiceEager(name, value)
-	_i.set(name, service)
+	service := serviceCtor(name, valueOrProvider)
+	_i.serviceSet(name, service)
 
-	_i.logf("service %s injected", name)
+	_i.RootScope().opts.Logf("DI: service %s injected", name)
 }
 
-func Override[T any](i *Injector, provider Provider[T]) {
-	name := generateServiceName[T]()
-
+func Override[T any](i Injector, provider Provider[T]) {
+	name := inferServiceName[T]()
 	OverrideNamed[T](i, name, provider)
 }
 
-func OverrideNamed[T any](i *Injector, name string, provider Provider[T]) {
-	_i := getInjectorOrDefault(i)
-
-	service := newServiceLazy(name, provider)
-	_i.set(name, service)
-
-	_i.logf("service %s overridden", name)
+func OverrideNamed[T any](i Injector, name string, provider Provider[T]) {
+	override(i, name, provider, newServiceLazy[T])
 }
 
-func OverrideValue[T any](i *Injector, value T) {
-	name := generateServiceName[T]()
-
+func OverrideValue[T any](i Injector, value T) {
+	name := inferServiceName[T]()
 	OverrideNamedValue[T](i, name, value)
 }
 
-func OverrideNamedValue[T any](i *Injector, name string, value T) {
-	_i := getInjectorOrDefault(i)
-
-	service := newServiceEager(name, value)
-	_i.set(name, service)
-
-	_i.logf("service %s overridden", name)
+func OverrideNamedValue[T any](i Injector, name string, value T) {
+	override(i, name, value, newServiceEager[T])
 }
 
-func Invoke[T any](i *Injector) (T, error) {
-	name := generateServiceName[T]()
+func OverrideTransiant[T any](i Injector, provider Provider[T]) {
+	name := inferServiceName[T]()
+	OverrideNamed[T](i, name, provider)
+}
+
+func OverrideNamedTransiant[T any](i Injector, name string, provider Provider[T]) {
+	override(i, name, provider, newServiceTransiant[T])
+}
+
+func override[T any, A any](i Injector, name string, valueOrProvider A, serviceCtor func(string, A) Service[T]) {
+	_i := getInjectorOrDefault(i)
+
+	service := serviceCtor(name, valueOrProvider)
+	_i.serviceSet(name, service) // @TODO: should we unload/shutdown ?
+
+	_i.RootScope().opts.Logf("DI: service %s overridden", name)
+}
+
+func Invoke[T any](i Injector) (T, error) {
+	name := inferServiceName[T]()
 	return InvokeNamed[T](i, name)
 }
 
-func MustInvoke[T any](i *Injector) T {
+func MustInvoke[T any](i Injector) T {
 	s, err := Invoke[T](i)
-	must(err)
+	must0(err)
 	return s
 }
 
-func InvokeNamed[T any](i *Injector, name string) (T, error) {
-	return invokeImplem[T](i, name)
+func InvokeNamed[T any](i Injector, name string) (T, error) {
+	return invoke[T](i, name)
 }
 
-func MustInvokeNamed[T any](i *Injector, name string) T {
+func MustInvokeNamed[T any](i Injector, name string) T {
 	s, err := InvokeNamed[T](i, name)
-	must(err)
+	must0(err)
 	return s
-}
-
-func invokeImplem[T any](i *Injector, name string) (T, error) {
-	_i := getInjectorOrDefault(i)
-
-	serviceAny, ok := _i.get(name)
-	if !ok {
-		return empty[T](), _i.serviceNotFound(name)
-	}
-
-	service, ok := serviceAny.(Service[T])
-	if !ok {
-		return empty[T](), _i.serviceNotFound(name)
-	}
-
-	instance, err := service.getInstance(_i)
-	if err != nil {
-		return empty[T](), err
-	}
-
-	_i.onServiceInvoke(name)
-
-	_i.logf("service %s invoked", name)
-
-	return instance, nil
-}
-
-func HealthCheck[T any](i *Injector) error {
-	name := generateServiceName[T]()
-	return getInjectorOrDefault(i).healthcheckImplem(name)
-}
-
-func HealthCheckNamed(i *Injector, name string) error {
-	return getInjectorOrDefault(i).healthcheckImplem(name)
-}
-
-func Shutdown[T any](i *Injector) error {
-	name := generateServiceName[T]()
-	return getInjectorOrDefault(i).shutdownImplem(name)
-}
-
-func MustShutdown[T any](i *Injector) {
-	name := generateServiceName[T]()
-	must(getInjectorOrDefault(i).shutdownImplem(name))
-}
-
-func ShutdownNamed(i *Injector, name string) error {
-	return getInjectorOrDefault(i).shutdownImplem(name)
-}
-
-func MustShutdownNamed(i *Injector, name string) {
-	must(getInjectorOrDefault(i).shutdownImplem(name))
 }

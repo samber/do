@@ -41,7 +41,7 @@ func main() {
 	do.ProvideNamedValue(injector, "wheel-4", &Wheel{})
 
 	// provide car
-	do.Provide(injector, func(i *do.Injector) (*Car, error) {
+	do.Provide(injector, func(i do.Injector) (*Car, error) {
 		car := Car{
 			Engine: do.MustInvoke[*Engine](i),
 			Wheels: []*Wheel{
@@ -56,7 +56,7 @@ func main() {
 	})
 
 	// provide engine
-	do.Provide(injector, func(i *do.Injector) (*Engine, error) {
+	do.Provide(injector, func(i do.Injector) (*Engine, error) {
 		return &Engine{}, nil
 	})
 
