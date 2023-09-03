@@ -17,49 +17,8 @@ func (s *dbService) Shutdown() error {
 	return nil
 }
 
-func dbServiceProvider(i *Injector) (*dbService, error) {
+func dbServiceProvider(i Injector) (*dbService, error) {
 	return &dbService{db: nil}, nil
-}
-
-func ExampleNew() {
-	injector := New()
-
-	ProvideNamedValue(injector, "PG_URI", "postgres://user:pass@host:5432/db")
-	uri, err := InvokeNamed[string](injector, "PG_URI")
-
-	fmt.Println(uri)
-	fmt.Println(err)
-	// Output:
-	// postgres://user:pass@host:5432/db
-	// <nil>
-}
-
-func ExampleDefaultInjector() {
-	ProvideNamedValue(nil, "PG_URI", "postgres://user:pass@host:5432/db")
-	uri, err := InvokeNamed[string](nil, "PG_URI")
-
-	fmt.Println(uri)
-	fmt.Println(err)
-	// Output:
-	// postgres://user:pass@host:5432/db
-	// <nil>
-}
-
-func ExampleNewWithOpts() {
-	injector := NewWithOpts(&InjectorOpts{
-		HookAfterShutdown: func(injector *Injector, serviceName string) {
-			fmt.Printf("service shutdown: %s\n", serviceName)
-		},
-	})
-
-	ProvideNamed(injector, "PG_URI", func(i *Injector) (string, error) {
-		return "postgres://user:pass@host:5432/db", nil
-	})
-	MustInvokeNamed[string](injector, "PG_URI")
-	_ = injector.Shutdown()
-
-	// Output:
-	// service shutdown: PG_URI
 }
 
 func ExampleInjector_ListProvidedServices() {
@@ -80,7 +39,7 @@ func ExampleInjector_ListInvokedServices_invoked() {
 		foobar string
 	}
 
-	ProvideNamed(injector, "SERVICE_NAME", func(i *Injector) (test, error) {
+	ProvideNamed(injector, "SERVICE_NAME", func(i Injector) (test, error) {
 		return test{foobar: "foobar"}, nil
 	})
 	_, _ = InvokeNamed[test](injector, "SERVICE_NAME")
@@ -98,7 +57,7 @@ func ExampleInjector_ListInvokedServices_notInvoked() {
 		foobar string
 	}
 
-	ProvideNamed(injector, "SERVICE_NAME", func(i *Injector) (test, error) {
+	ProvideNamed(injector, "SERVICE_NAME", func(i Injector) (test, error) {
 		return test{foobar: "foobar"}, nil
 	})
 	services := injector.ListInvokedServices()

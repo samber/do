@@ -20,54 +20,53 @@ This library implements the Dependency Injection design pattern. It may replace 
 
 ![image](https://github.com/user-attachments/assets/81b91fa7-cdb4-4094-94ba-a0179abc6bf7)
 
-
 **Why this name?**
 
-I love **short name** for such a utility library. This name is the sum of `DI` and `Go` and no Go package currently uses this name.
+I love the **short name** for such a utility library. This name is the sum of `DI` and `Go` and no Go package currently uses this name.
 
-**⭕⭕⭕⭕⭕⭕ About v2 ⭕⭕⭕⭕⭕⭕**
+## 🔥 Migration from v1
 
-Check out the beta now!
-
-```bash
-go get -u github.com/samber/do/v2@v2.0.0-beta.7
-```
-
-Documentation: https://do.samber.dev/
-
-Please report bugs here: [#45](https://github.com/samber/do/pull/45).
+- `do.Injector` has been transformed into an interface. Replace `*do.Injector` by `do.Injector`.
 
 ## 💡 Features
 
-- Service registration
+- Service registration:
+  - Named services
+  - Anonymous services
 - Service invocation
-- Service health check
-- Service shutdown
-- Service lifecycle hooks
-- Named or anonymous services
-- Eagerly or lazily loaded services
-- Dependency graph resolution
-- Default injector
-- Injector cloning
-- Service override
+  - Eager loading
+  - Lazy loading
+- Service lifecycle:
+  - Health check
+  - Graceful unload (shutdown)
+  - Lifecycle hooks
+- Multi-level scopes (modules)
+  - Visibility control
+  - Dependency grouping
+- Injector:
+  - Dependency graph resolution and visualization
+  - Default injector
+  - Injector cloning
+  - Service override
 - Lightweight, no dependencies
 - No code generation
+- Typesafe API
 
 🚀 Services are loaded in invocation order.
 
-🕵️ Service health can be checked individually or globally. Services implementing `do.Healthcheckable` interface will be called via `do.HealthCheck[type]()` or `injector.HealthCheck()`.
+🕵️ Service health can be checked individually or globally. Services implementing `do.Healthchecker` interface will be called via `do.HealthCheck[type]()` or `injector.HealthCheck()`.
 
-🛑 Services can be shutdowned properly, in back-initialization order. Services implementing `do.Shutdownable` interface will be called via `do.Shutdown[type]()` or `injector.Shutdown()`.
+🛑 Services can be shutdowned properly, in back-initialization order. Services implementing `do.Shutdowner` interface will be called via `do.Shutdown[type]()` or `injector.Shutdown()`.
 
 ## 🚀 Install
 
 ```sh
-go get github.com/samber/do@v1
+go get github.com/samber/do@v2
 ```
 
-This library is v1 and follows SemVer strictly.
+This library is v2 and follows SemVer strictly.
 
-No breaking changes will be made to exported APIs before v2.0.0.
+No breaking changes will be made to exported APIs before v3.0.0.
 
 This library has no dependencies except the Go std lib.
 
@@ -111,20 +110,20 @@ Services:
 ```go
 type EngineService interface{}
 
-func NewEngineService(i *do.Injector) (EngineService, error) {
+func NewEngineService(i do.Injector) (EngineService, error) {
     return &engineServiceImplem{}, nil
 }
 
 type engineServiceImplem struct {}
 
-// [Optional] Implements do.Healthcheckable.
+// [Optional] Implements do.Healthchecker.
 func (c *engineServiceImplem) HealthCheck() error {
 	return fmt.Errorf("engine broken")
 }
 ```
 
 ```go
-func NewCarService(i *do.Injector) (*CarService, error) {
+func NewCarService(i do.Injector) (*CarService, error) {
     engine := do.MustInvoke[EngineService](i)
     car := CarService{Engine: engine}
     return &car, nil
@@ -138,7 +137,7 @@ func (c *CarService) Start() {
 	println("car starting")
 }
 
-// [Optional] Implements do.Shutdownable.
+// [Optional] Implements do.Shutdowner.
 func (c *CarService) Shutdown() error {
 	println("car stopped")
 	return nil
@@ -148,6 +147,8 @@ func (c *CarService) Shutdown() error {
 ## 🤠 Spec
 
 [GoDoc: https://godoc.org/github.com/samber/do](https://godoc.org/github.com/samber/do)
+
+Documentation: [https://do.samber.dev](https://do.samber.dev)
 
 Injector:
 
@@ -191,7 +192,7 @@ Service override:
 
 ### Injector (DI container)
 
-Build a container for your components. `Injector` is responsible for building services in the right order, and managing service lifecycle.
+Build a container for your components. `Injector` is responsible for building services in the right order and managing the service lifecycle.
 
 ```go
 injector := do.New()
@@ -207,28 +208,8 @@ do.Provide(nil, func (i *Injector) (int, error) {
 service := do.MustInvoke[int](nil)
 ```
 
-You can check health of services implementing `func HealthCheck() error`.
-
-```go
-type DBService struct {
-    db *sql.DB
-}
-
-func (s *DBService) HealthCheck() error {
-    return s.db.Ping()
-}
-
-injector := do.New()
-do.Provide(injector, ...)
-do.Invoke(injector, ...)
-
-statuses := injector.HealthCheck()
-// map[string]error{
-//   "*DBService": nil,
-// }
-```
-
-De-initialize all compoments properly. Services implementing `func Shutdown() error` will be called synchronously in back-initialization order.
+You can check the health of services by implementing `func HealthCheck`() error`.
+De-initialize all components properly. Services implementing `func Shutdown() error` will be called synchronously in back-initialization order.
 
 ```go
 type DBService struct {
@@ -267,7 +248,7 @@ println(do.ListInvokedServices())
 
 ### Service registration
 
-Services can be registered in multiple way:
+Services can be registered in multiple ways:
 
 - with implicit name (struct or interface name)
 - with explicit name
@@ -362,9 +343,9 @@ Loads named service or panics if service was not registered:
 config := do.MustInvokeNamed[Config](injector, "configuration")
 ```
 
-### Individual service healthcheck
+### Individual service health check
 
-Check health of anonymous service:
+Check the health of anonymous service:
 
 ```go
 type DBService struct {
@@ -375,7 +356,7 @@ dbService, err := do.Invoke[DBService](injector)
 err = do.HealthCheck[DBService](injector)
 ```
 
-Check health of named service:
+Check the health of the named service:
 
 ```go
 config, err := do.InvokeNamed[Config](injector, "configuration")
@@ -425,11 +406,11 @@ do.MustShutdownNamed(injector, "configuration")
 By default, providing a service twice will panic. Service can be replaced at runtime using `do.Override` helper.
 
 ```go
-do.Provide[Vehicle](injector, func (i *do.Injector) (Vehicle, error) {
+do.Provide[Vehicle](injector, func (i do.Injector) (Vehicle, error) {
     return &CarImplem{}, nil
 })
 
-do.Override[Vehicle](injector, func (i *do.Injector) (Vehicle, error) {
+do.Override[Vehicle](injector, func (i do.Injector) (Vehicle, error) {
     return &BusImplem{}, nil
 })
 ```
@@ -442,10 +423,10 @@ do.Override[Vehicle](injector, func (i *do.Injector) (Vehicle, error) {
 
 ```go
 injector := do.NewWithOpts(&do.InjectorOpts{
-    HookAfterRegistration: func(injector *do.Injector, serviceName string) {
+    HookAfterRegistration: func(injector do.Injector, serviceName string) {
         fmt.Printf("Service registered: %s\n", serviceName)
     },
-    HookAfterShutdown: func(injector *do.Injector, serviceName string) {
+    HookAfterShutdown: func(injector do.Injector, serviceName string) {
         fmt.Printf("Service stopped: %s\n", serviceName)
     },
 
@@ -457,18 +438,18 @@ injector := do.NewWithOpts(&do.InjectorOpts{
 
 ### Cloning injector
 
-Cloned injector have same service registrations as it's parent, but it doesn't share invoked service state.
+Cloned injector has the same service registrations as its parent, but it doesn't share the invoked service state.
 
-Clones are useful for unit testing by replacing some services to mocks.
+Clones are useful for unit testing by replacing some services with mocks.
 
 ```go
-var injector *do.Injector;
+var injector do.Injector;
 
 func init() {
-    do.Provide[Service](injector, func (i *do.Injector) (Service, error) {
+    do.Provide[Service](injector, func (i do.Injector) (Service, error) {
         return &RealService{}, nil
     })
-    do.Provide[*App](injector, func (i *do.Injector) (*App, error) {
+    do.Provide[*App](injector, func (i do.Injector) (*App, error) {
         return &App{i.MustInvoke[Service](i)}, nil
     })
 }
@@ -478,7 +459,7 @@ func TestService(t *testing.T) {
     defer i.Shutdown()
 
     // replace Service to MockService
-    do.Override[Service](i, func (i *do.Injector) (Service, error) {
+    do.Override[Service](i, func (i do.Injector) (Service, error) {
         return &MockService{}, nil
     }))
 
@@ -493,7 +474,7 @@ func TestService(t *testing.T) {
 
 ## 🤝 Contributing
 
-- Ping me on twitter [@samuelberthe](https://twitter.com/samuelberthe) (DMs, mentions, whatever :))
+- Ping me on Twitter [@samuelberthe](https://twitter.com/samuelberthe) (DMs, mentions, whatever :))
 - Fork the [project](https://github.com/samber/do)
 - Fix [open issues](https://github.com/samber/do/issues) or request new features
 
@@ -516,6 +497,13 @@ make test
 # or
 make watch-test
 ```
+
+### Lexicon
+
+- `Injector` is either a `RootScope`, a `Scope` or a `VirtualScope`
+- `Scope` is a service container
+- `RootScope` is the top-level `Scope`
+- `virtualScope` is an `Injector` wrapper that contains metadata for DAG resolution.
 
 ## 👤 Contributors
 
