@@ -8,77 +8,133 @@ import (
 )
 
 type lazyTest struct {
-	idx int
-	err error
+	foobar string
 }
 
-func (t *lazyTest) Shutdown() error {
-	return t.err
+var _ Healthchecker = (*lazyTestHeathcheckerOK)(nil)
+
+type lazyTestHeathcheckerOK struct {
+	foobar string
 }
 
-func TestServiceLazyName(t *testing.T) {
+func (t *lazyTestHeathcheckerOK) HealthCheck() error {
+	return nil
+}
+
+var _ Healthchecker = (*lazyTestHeathcheckerKO)(nil)
+
+type lazyTestHeathcheckerKO struct {
+	foobar string
+}
+
+func (t *lazyTestHeathcheckerKO) HealthCheck() error {
+	return assert.AnError
+}
+
+var _ Shutdowner = (*lazyTestShutdownerOK)(nil)
+
+type lazyTestShutdownerOK struct {
+	foobar string
+}
+
+func (t *lazyTestShutdownerOK) Shutdown() error {
+	return nil
+}
+
+var _ Shutdowner = (*lazyTestShutdownerKO)(nil)
+
+type lazyTestShutdownerKO struct {
+	foobar string
+}
+
+func (t *lazyTestShutdownerKO) Shutdown() error {
+	return assert.AnError
+}
+
+func TestNewServiceLazy(t *testing.T) {
+	// @TODO
+}
+
+func TestServiceLazy_getName(t *testing.T) {
 	is := assert.New(t)
 
-	type test struct {
-		foobar string
-	}
-	_test := test{foobar: "foobar"}
+	test := lazyTest{foobar: "foobar"}
 
-	provider1 := func(i *Injector) (int, error) {
+	provider1 := func(i Injector) (int, error) {
 		return 42, nil
 	}
-	provider2 := func(i *Injector) (test, error) {
-		return _test, nil
+	provider2 := func(i Injector) (lazyTest, error) {
+		return test, nil
 	}
 
-	service1 := newServiceLazy("foobar", provider1)
-	is.Equal("foobar", service1.getName())
+	service1 := newServiceLazy("foobar1", provider1)
+	is.Equal("foobar1", service1.getName())
 
-	service2 := newServiceLazy("foobar", provider2)
-	is.Equal("foobar", service2.getName())
+	service2 := newServiceLazy("foobar2", provider2)
+	is.Equal("foobar2", service2.getName())
 }
 
-func TestServiceLazyInstance(t *testing.T) {
+func TestServiceLazy_getType(t *testing.T) {
 	is := assert.New(t)
 
-	type test struct {
-		foobar string
-	}
-	_test := test{foobar: "foobar"}
+	test := lazyTest{foobar: "foobar"}
 
-	provider1 := func(i *Injector) (int, error) {
+	provider1 := func(i Injector) (int, error) {
 		return 42, nil
 	}
-	provider2 := func(i *Injector) (test, error) {
-		return _test, nil
+	provider2 := func(i Injector) (lazyTest, error) {
+		return test, nil
 	}
-	provider3 := func(i *Injector) (int, error) {
+
+	service1 := newServiceLazy("foobar1", provider1)
+	is.Equal(ServiceTypeLazy, service1.getType())
+
+	service2 := newServiceLazy("foobar2", provider2)
+	is.Equal(ServiceTypeLazy, service2.getType())
+}
+
+func TestServiceLazy_getInstance(t *testing.T) {
+	is := assert.New(t)
+
+	test := lazyTest{foobar: "foobar"}
+
+	provider1 := func(i Injector) (int, error) {
+		return 42, nil
+	}
+	provider2 := func(i Injector) (lazyTest, error) {
+		return test, nil
+	}
+	provider3 := func(i Injector) (int, error) {
 		panic("error")
 	}
-	provider4 := func(i *Injector) (int, error) {
+	provider4 := func(i Injector) (int, error) {
 		panic(fmt.Errorf("error"))
 	}
-	provider5 := func(i *Injector) (int, error) {
+	provider5 := func(i Injector) (int, error) {
 		return 42, fmt.Errorf("error")
 	}
 
 	i := New()
 
+	// basic type
 	service1 := newServiceLazy("foobar", provider1)
 	instance1, err1 := service1.getInstance(i)
 	is.Nil(err1)
 	is.Equal(42, instance1)
 
+	// struct
 	service2 := newServiceLazy("hello", provider2)
 	instance2, err2 := service2.getInstance(i)
 	is.Nil(err2)
-	is.Equal(_test, instance2)
+	is.Equal(test, instance2)
 
-	is.Panics(func() {
+	// provider panics, but panic is catched by getInstance
+	is.NotPanics(func() {
 		service3 := newServiceLazy("baz", provider3)
 		_, _ = service3.getInstance(i)
 	})
 
+	// provider panics, but panic is catched by getInstance
 	is.NotPanics(func() {
 		service4 := newServiceLazy("plop", provider4)
 		instance4, err4 := service4.getInstance(i)
@@ -88,6 +144,7 @@ func TestServiceLazyInstance(t *testing.T) {
 		is.Equal(expected, err4)
 	})
 
+	// provider returning error
 	is.NotPanics(func() {
 		service5 := newServiceLazy("plop", provider5)
 		instance5, err5 := service5.getInstance(i)
@@ -98,40 +155,227 @@ func TestServiceLazyInstance(t *testing.T) {
 	})
 }
 
-func TestServiceLazyInstanceShutDown(t *testing.T) {
+func TestServiceLazy_build(t *testing.T) {
 	is := assert.New(t)
 
-	index := 1
-	provider1 := func(i *Injector) (*lazyTest, error) {
-		index++
-		return &lazyTest{index, nil}, nil
+	test := lazyTest{foobar: "foobar"}
+
+	provider1 := func(i Injector) (int, error) {
+		return 42, nil
 	}
-	provider2 := func(i *Injector) (*lazyTest, error) {
-		index++
-		return &lazyTest{index, assert.AnError}, nil
+	provider2 := func(i Injector) (lazyTest, error) {
+		return test, nil
+	}
+	provider3 := func(i Injector) (int, error) {
+		panic("error")
+	}
+	provider4 := func(i Injector) (int, error) {
+		panic(fmt.Errorf("error"))
+	}
+	provider5 := func(i Injector) (int, error) {
+		return 42, fmt.Errorf("error")
 	}
 
 	i := New()
 
-	service1 := newServiceLazy("foobar", provider1)
-	instance1, err := service1.getInstance(i)
-	is.Nil(err)
-	is.True(service1.(*ServiceLazy[*lazyTest]).built)
-	err = service1.shutdown()
-	is.False(service1.(*ServiceLazy[*lazyTest]).built)
-	is.Nil(err)
-	instance2, err := service1.getInstance(i)
-	is.Nil(err)
-	is.NotEqual(instance1.idx, instance2.idx)
-	is.Equal(instance1.idx+1, instance2.idx)
+	// basic type
+	service1, _ := newServiceLazy("foobar", provider1).(*ServiceLazy[int])
+	is.False(service1.built)
+	is.Empty(service1.buildTime)
+	err1 := service1.build(i)
+	is.True(service1.built)
+	is.NotEmpty(service1.buildTime)
+	is.Nil(err1)
 
-	service2 := newServiceLazy("foobar", provider2).(*ServiceLazy[*lazyTest])
+	// struct
+	service2, _ := newServiceLazy("hello", provider2).(*ServiceLazy[lazyTest])
 	is.False(service2.built)
-	is.Nil(err)
-	err = service2.build(i)
-	is.Nil(err)
+	is.Empty(service2.buildTime)
+	err2 := service2.build(i)
 	is.True(service2.built)
-	err = service2.shutdown()
-	is.Error(assert.AnError, err)
+	is.NotEmpty(service2.buildTime)
+	is.Nil(err2)
+
+	// provider panics, but panic is catched by getInstance
+	is.NotPanics(func() {
+		service3, _ := newServiceLazy("baz", provider3).(*ServiceLazy[int])
+		is.False(service3.built)
+		is.Empty(service3.buildTime)
+		_ = service3.build(i)
+		is.False(service3.built)
+		is.Empty(service3.buildTime)
+	})
+
+	// provider panics, but panic is catched by getInstance
+	is.NotPanics(func() {
+		service4, _ := newServiceLazy("plop", provider4).(*ServiceLazy[int])
+		is.False(service4.built)
+		is.Empty(service4.buildTime)
+		err4 := service4.build(i)
+		is.False(service4.built)
+		is.Empty(service4.buildTime)
+		is.NotNil(err4)
+		is.Equal(fmt.Errorf("error"), err4)
+	})
+
+	// provider returning error
+	is.NotPanics(func() {
+		service5, _ := newServiceLazy("plop", provider5).(*ServiceLazy[int])
+		is.False(service5.built)
+		is.Empty(service5.buildTime)
+		err5 := service5.build(i)
+		is.False(service5.built)
+		is.Empty(service5.buildTime)
+		is.NotNil(err5)
+		is.Equal(fmt.Errorf("error"), err5)
+	})
+}
+
+func TestServiceLazy_isHealthchecker(t *testing.T) {
+	is := assert.New(t)
+
+	// no healthcheck
+	service1 := newServiceLazy("foobar", func(i Injector) (lazyTest, error) {
+		return lazyTest{foobar: "foobar"}, nil
+	})
+	is.False(service1.isHealthchecker())
+
+	// healthcheck ok
+	service2 := newServiceLazy("foobar", func(i Injector) (*lazyTestHeathcheckerOK, error) {
+		return &lazyTestHeathcheckerOK{foobar: "foobar"}, nil
+	})
+	is.False(service2.isHealthchecker())
+	_, _ = service2.getInstance(nil)
+	is.True(service2.isHealthchecker())
+
+	// healthcheck ko
+	service3 := newServiceLazy("foobar", func(i Injector) (*lazyTestHeathcheckerKO, error) {
+		return &lazyTestHeathcheckerKO{foobar: "foobar"}, nil
+	})
+	is.False(service3.isHealthchecker())
+	_, _ = service3.getInstance(nil)
+	is.True(service3.isHealthchecker())
+}
+
+func TestServiceLazy_healthcheck(t *testing.T) {
+	is := assert.New(t)
+
+	// no healthcheck
+	service1 := newServiceLazy("foobar", func(i Injector) (lazyTest, error) {
+		return lazyTest{foobar: "foobar"}, nil
+	})
+	is.Nil(service1.healthcheck())
+	_, _ = service1.getInstance(nil)
+	is.Nil(service1.healthcheck())
+
+	// healthcheck ok
+	service2 := newServiceLazy("foobar", func(i Injector) (*lazyTestHeathcheckerOK, error) {
+		return &lazyTestHeathcheckerOK{foobar: "foobar"}, nil
+	})
+	is.Nil(service2.healthcheck())
+	_, _ = service2.getInstance(nil)
+	is.Nil(service2.healthcheck())
+
+	// healthcheck ko
+	service3 := newServiceLazy("foobar", func(i Injector) (*lazyTestHeathcheckerKO, error) {
+		return &lazyTestHeathcheckerKO{foobar: "foobar"}, nil
+	})
+	is.Nil(service3.healthcheck())
+	_, _ = service3.getInstance(nil)
+	is.Equal(assert.AnError, service3.healthcheck())
+}
+
+func TestServiceLazy_shutdown(t *testing.T) {
+	is := assert.New(t)
+
+	// no shutdown
+	service1 := newServiceLazy("foobar", func(i Injector) (lazyTest, error) {
+		return lazyTest{foobar: "foobar"}, nil
+	}).(*ServiceLazy[lazyTest])
+	is.False(service1.built)
+	is.Nil(service1.shutdown())
+	_, _ = service1.getInstance(nil)
+	is.True(service1.built)
+	is.Nil(service1.shutdown())
+	is.False(service1.built)
+
+	// shutdown ok
+	service2 := newServiceLazy("foobar", func(i Injector) (*lazyTestShutdownerOK, error) {
+		return &lazyTestShutdownerOK{foobar: "foobar"}, nil
+	}).(*ServiceLazy[*lazyTestShutdownerOK])
+	is.False(service2.built)
+	is.Nil(service2.shutdown())
+	_, _ = service2.getInstance(nil)
 	is.True(service2.built)
+	is.Nil(service2.shutdown())
+	is.False(service2.built)
+
+	// shutdown ko
+	service3 := newServiceLazy("foobar", func(i Injector) (*lazyTestShutdownerKO, error) {
+		return &lazyTestShutdownerKO{foobar: "foobar"}, nil
+	}).(*ServiceLazy[*lazyTestShutdownerKO])
+	is.False(service3.built)
+	is.Nil(service3.shutdown())
+	_, _ = service3.getInstance(nil)
+	is.True(service3.built)
+	is.Equal(assert.AnError, service3.shutdown())
+	is.True(service3.built)
+}
+
+func TestServiceLazy_isShutdowner(t *testing.T) {
+	is := assert.New(t)
+
+	// no shutdown
+	service1 := newServiceLazy("foobar", func(i Injector) (lazyTest, error) {
+		return lazyTest{foobar: "foobar"}, nil
+	}).(*ServiceLazy[lazyTest])
+	is.False(service1.isShutdowner())
+
+	// shutdown ok
+	service2 := newServiceLazy("foobar", func(i Injector) (*lazyTestShutdownerOK, error) {
+		return &lazyTestShutdownerOK{foobar: "foobar"}, nil
+	}).(*ServiceLazy[*lazyTestShutdownerOK])
+	is.False(service2.isShutdowner())
+	_, _ = service2.getInstance(nil)
+	is.True(service2.isShutdowner())
+
+	// shutdown ko
+	service3 := newServiceLazy("foobar", func(i Injector) (*lazyTestShutdownerKO, error) {
+		return &lazyTestShutdownerKO{foobar: "foobar"}, nil
+	}).(*ServiceLazy[*lazyTestShutdownerKO])
+	is.False(service3.isShutdowner())
+	_, _ = service3.getInstance(nil)
+	is.True(service3.isShutdowner())
+}
+
+func TestServiceLazy_clone(t *testing.T) {
+	is := assert.New(t)
+
+	// initial
+	service1 := newServiceLazy("foobar", func(i Injector) (lazyTest, error) {
+		return lazyTest{foobar: "foobar"}, nil
+	}).(*ServiceLazy[lazyTest])
+	is.Equal("foobar", service1.getName())
+	is.False(service1.built)
+	_, _ = service1.getInstance(nil)
+	is.True(service1.built)
+
+	// clone
+	service2, ok := service1.clone().(*ServiceLazy[lazyTest])
+	is.True(ok)
+	is.Equal("foobar", service2.getName())
+	is.Empty(service2.instance)
+	is.False(service2.built)
+	_, _ = service2.getInstance(nil)
+	is.NotEmpty(service2.instance)
+	is.True(service2.built)
+
+	// change initial and check clone
+	service1.name = "baz"
+	is.Equal("baz", service1.getName())
+	is.Equal("foobar", service2.getName())
+}
+
+func TestServiceLazy_locate(t *testing.T) {
+	// @TODO
 }

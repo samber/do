@@ -15,7 +15,7 @@ func (c *carImplem) Start() {
 	println("vroooom")
 }
 
-func NewCar(i *do.Injector) (Car, error) {
+func NewCar(i do.Injector) (Car, error) {
 	wheels := []*Wheel{
 		do.MustInvokeNamed[*Wheel](i, "wheel-1"),
 		do.MustInvokeNamed[*Wheel](i, "wheel-2"),
