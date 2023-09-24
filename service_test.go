@@ -15,25 +15,48 @@ func TestGenerateServiceName(t *testing.T) {
 
 	name := generateServiceName[testStruct]()
 	is.Equal("github.com/samber/do.testStruct", name)
+	name = generateServiceName[[]testStruct]()
+	is.Equal("github.com/samber/do.[]testStruct", name)
 
 	name = generateServiceName[*testStruct]()
 	is.Equal("github.com/samber/do.*testStruct", name)
+	name = generateServiceName[*[]testStruct]()
+	is.Equal("github.com/samber/do.*[]testStruct", name)
+	name = generateServiceName[[]*testStruct]()
+	is.Equal("github.com/samber/do.[]*testStruct", name)
+	name = generateServiceName[*[]*testStruct]()
+	is.Equal("github.com/samber/do.*[]*testStruct", name)
+	name = generateServiceName[*[]*[]**testStruct]()
+	is.Equal("github.com/samber/do.*[]*[]**testStruct", name)
 
 	name = generateServiceName[***testStruct]()
 	is.Equal("github.com/samber/do.***testStruct", name)
-
 	name = generateServiceName[testInterface]()
 	is.Equal("github.com/samber/do.*testInterface", name)
-
 	name = generateServiceName[*testInterface]()
 	is.Equal("github.com/samber/do.*testInterface", name)
-
 	name = generateServiceName[***testInterface]()
 	is.Equal("github.com/samber/do.***testInterface", name)
 
 	name = generateServiceName[int]()
 	is.Equal("int", name)
+	name = generateServiceName[[]int]()
+	is.Equal("[]int", name)
 
 	name = generateServiceName[*int]()
 	is.Equal("*int", name)
+	name = generateServiceName[*[]int]()
+	is.Equal("*[]int", name)
+	name = generateServiceName[[]*int]()
+	is.Equal("[]*int", name)
+	name = generateServiceName[*[]*int]()
+	is.Equal("*[]*int", name)
+	name = generateServiceName[*[]*[]**int]()
+	is.Equal("*[]*[]**int", name)
+
+	// name = generateServiceName[any]()
+	// is.Equal("any", name)
+
+	// name = generateServiceName[*any]()
+	// is.Equal("any", name)
 }
