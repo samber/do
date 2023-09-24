@@ -24,25 +24,33 @@ type shutdownableService interface {
 func generateServiceName[T any]() string {
 	var t T
 	typeOfT := reflect.TypeOf(t)
-	star := 0
+	prefix := ""
 
 	if typeOfT == nil {
 		typeOfT = reflect.TypeOf(&t)
 	}
 
 	for {
-		if typeOfT.Kind() != reflect.Pointer {
+		if typeOfT.Kind() == reflect.Pointer {
+			typeOfT = typeOfT.Elem()
+			prefix += "*"
+		} else if typeOfT.Kind() == reflect.Slice || typeOfT.Kind() == reflect.Array {
+			typeOfT = typeOfT.Elem()
+			prefix += "[]"
+		} else {
 			break
 		}
-		typeOfT = typeOfT.Elem()
-		star++
+	}
+
+	if typeOfT.Name() == "" {
+		// @TODO: handle "any" and "interface{}" types
 	}
 
 	pkgPath := typeOfT.PkgPath()
 	if pkgPath != "" {
 		pkgPath += "."
 	}
-	return pkgPath + strings.Repeat("*", star) + typeOfT.Name()
+	return pkgPath + prefix + typeOfT.Name()
 }
 
 type Healthcheckable interface {
