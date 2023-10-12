@@ -104,12 +104,14 @@ func (i *Injector) HealthCheck() map[string]error {
 	return results
 }
 
-func (i *Injector) Shutdown() error {
+func (i *Injector) Shutdown() map[string]error {
 	i.mu.RLock()
 	invocations := invertMap(i.orderedInvocation)
 	i.mu.RUnlock()
 
 	i.logf("requested shutdown")
+
+	results := map[string]error{}
 
 	for index := i.orderedInvocationIndex; index >= 0; index-- {
 		name, ok := invocations[index]
@@ -117,27 +119,24 @@ func (i *Injector) Shutdown() error {
 			continue
 		}
 
-		err := i.shutdownImplem(name)
-		if err != nil {
-			return err
-		}
+		results[name] = i.shutdownImplem(name)
 	}
 
-	i.logf("shutdowned services")
+	i.logf("shutdowned services: %v", results)
 
-	return nil
+	return results
 }
 
 // ShutdownOnSIGTERM listens for sigterm signal in order to graceful stop service.
 // It will block until receiving a sigterm signal.
-func (i *Injector) ShutdownOnSIGTERM() error {
+func (i *Injector) ShutdownOnSIGTERM() map[string]error {
 	return i.ShutdownOnSignals(syscall.SIGTERM)
 }
 
 // ShutdownOnSignals listens for signals defined in signals parameter in order to graceful stop service.
 // It will block until receiving any of these signal.
 // If no signal is provided in signals parameter, syscall.SIGTERM will be added as default signal.
-func (i *Injector) ShutdownOnSignals(signals ...os.Signal) error {
+func (i *Injector) ShutdownOnSignals(signals ...os.Signal) map[string]error {
 	// Make sure there is at least syscall.SIGTERM as a signal
 	if len(signals) < 1 {
 		signals = append(signals, syscall.SIGTERM)

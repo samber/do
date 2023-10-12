@@ -123,11 +123,11 @@ func ExampleInjector_Shutdown() {
 	injector := New()
 
 	Provide(injector, dbServiceProvider)
-	err := injector.Shutdown()
+	shutdown := injector.Shutdown()
 
-	fmt.Println(err)
+	fmt.Println(shutdown)
 	// Output:
-	// <nil>
+	// map[]
 }
 
 func ExampleInjector_Clone() {

@@ -38,8 +38,10 @@ func TestInjectorNewWithOpts(t *testing.T) {
 		MustInvokeNamed[int](i, "foobar")
 	})
 
-	err := i.Shutdown()
-	is.Nil(err)
+	shutdown := i.Shutdown()
+	for _, err := range shutdown {
+		is.Nil(err)
+	}
 
 	is.Equal(2, count)
 }
