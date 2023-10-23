@@ -78,6 +78,7 @@ func DescribeNamedService[T any](scope Injector, name string) (output string, ok
 	), true
 }
 
+// @TODO: add service type icon (lazy, eager, transiant)
 var describeServiceDepsTemplate = `{{range .}}
 * {{.Service}} from scope {{.ScopeName}}{{.Recursive}}{{end}}`
 
@@ -229,7 +230,9 @@ func buildInjectorServicesList(i Injector) string {
 			suffix := ""
 
 			if info, ok := inferServiceInfo(i, item.Service); ok {
+				// @TODO: differenciate status of lazy services (built, not built). Such as: "😴 (✅)"
 				prefix += serviceTypeToIcon[info.serviceType] + " "
+
 				if info.healthchecker {
 					suffix += " 🏥"
 				}
