@@ -1,6 +1,8 @@
 package do
 
 import (
+	"context"
+
 	"github.com/samber/do/stacktrace"
 )
 
@@ -40,7 +42,7 @@ func (s *ServiceTransiant[T]) isHealthchecker() bool {
 	return false
 }
 
-func (s *ServiceTransiant[T]) healthcheck() error {
+func (s *ServiceTransiant[T]) healthcheck(ctx context.Context) error {
 	// @TODO: implement healthcheck ?
 	// It requires to store each instance of service, which is not good because of memory leaks.
 	return nil
@@ -50,7 +52,7 @@ func (s *ServiceTransiant[T]) isShutdowner() bool {
 	return false
 }
 
-func (s *ServiceTransiant[T]) shutdown() error {
+func (s *ServiceTransiant[T]) shutdown(ctx context.Context) error {
 	// @TODO: implement shutdown ?
 	// It requires to store each instance of service, which is not good because of memory leaks.
 	return nil
