@@ -1,6 +1,7 @@
 package do
 
 import (
+	"context"
 	"reflect"
 	"sync"
 	"time"
@@ -94,11 +95,12 @@ func (s *ServiceLazy[T]) isHealthchecker() bool {
 		return false
 	}
 
-	_, ok := any(s.instance).(Healthchecker)
-	return ok
+	_, ok1 := any(s.instance).(HealthcheckerWithContext)
+	_, ok2 := any(s.instance).(Healthchecker)
+	return ok1 || ok2
 }
 
-func (s *ServiceLazy[T]) healthcheck() error {
+func (s *ServiceLazy[T]) healthcheck(ctx context.Context) error {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
@@ -106,8 +108,9 @@ func (s *ServiceLazy[T]) healthcheck() error {
 		return nil
 	}
 
-	instance, ok := any(s.instance).(Healthchecker)
-	if ok {
+	if instance, ok := any(s.instance).(HealthcheckerWithContext); ok {
+		return instance.HealthCheckWithContext(ctx)
+	} else if instance, ok := any(s.instance).(Healthchecker); ok {
 		return instance.HealthCheck()
 	}
 
@@ -122,11 +125,12 @@ func (s *ServiceLazy[T]) isShutdowner() bool {
 		return false
 	}
 
-	_, ok := any(s.instance).(Shutdowner)
-	return ok
+	_, ok1 := any(s.instance).(ShutdownerWithContext)
+	_, ok2 := any(s.instance).(Shutdowner)
+	return ok1 || ok2
 }
 
-func (s *ServiceLazy[T]) shutdown() error {
+func (s *ServiceLazy[T]) shutdown(ctx context.Context) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
@@ -135,8 +139,12 @@ func (s *ServiceLazy[T]) shutdown() error {
 		return nil
 	}
 
-	instance, ok := any(s.instance).(Shutdowner)
-	if ok {
+	if instance, ok := any(s.instance).(ShutdownerWithContext); ok {
+		err := instance.ShutdownWithContext(ctx)
+		if err != nil {
+			return err
+		}
+	} else if instance, ok := any(s.instance).(Shutdowner); ok {
 		err := instance.Shutdown()
 		if err != nil {
 			return err

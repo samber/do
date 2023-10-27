@@ -1,6 +1,7 @@
 package do
 
 import (
+	"context"
 	"sync"
 
 	"github.com/samber/do/stacktrace"
@@ -53,13 +54,15 @@ func (s *ServiceEager[T]) getInstance(i Injector) (T, error) {
 }
 
 func (s *ServiceEager[T]) isHealthchecker() bool {
-	_, ok := any(s.instance).(Healthchecker)
-	return ok
+	_, ok1 := any(s.instance).(HealthcheckerWithContext)
+	_, ok2 := any(s.instance).(Healthchecker)
+	return ok1 || ok2
 }
 
-func (s *ServiceEager[T]) healthcheck() error {
-	instance, ok := any(s.instance).(Healthchecker)
-	if ok {
+func (s *ServiceEager[T]) healthcheck(ctx context.Context) error {
+	if instance, ok := any(s.instance).(HealthcheckerWithContext); ok {
+		return instance.HealthCheckWithContext(ctx)
+	} else if instance, ok := any(s.instance).(Healthchecker); ok {
 		return instance.HealthCheck()
 	}
 
@@ -67,13 +70,15 @@ func (s *ServiceEager[T]) healthcheck() error {
 }
 
 func (s *ServiceEager[T]) isShutdowner() bool {
-	_, ok := any(s.instance).(Shutdowner)
-	return ok
+	_, ok1 := any(s.instance).(ShutdownerWithContext)
+	_, ok2 := any(s.instance).(Shutdowner)
+	return ok1 || ok2
 }
 
-func (s *ServiceEager[T]) shutdown() error {
-	instance, ok := any(s.instance).(Shutdowner)
-	if ok {
+func (s *ServiceEager[T]) shutdown(ctx context.Context) error {
+	if instance, ok := any(s.instance).(ShutdownerWithContext); ok {
+		return instance.ShutdownWithContext(ctx)
+	} else if instance, ok := any(s.instance).(Shutdowner); ok {
 		return instance.Shutdown()
 	}
 
