@@ -90,7 +90,8 @@ func TestDescribeNamedService(t *testing.T) {
 	expected := `
 Scope ID: scope-id-123
 Scope name: scope-child
-Service: SERVICE-E
+
+Service name: SERVICE-E
 Service type: lazy
 Invoked: ` + dirname + `/di_describe_test.go:fakeProvider5:38
 

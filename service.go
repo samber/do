@@ -1,6 +1,7 @@
 package do
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/samber/do/stacktrace"
@@ -26,9 +27,9 @@ type Service[T any] interface {
 	getType() ServiceType
 	getInstance(Injector) (T, error)
 	isHealthchecker() bool
-	healthcheck() error
+	healthcheck(context.Context) error
 	isShutdowner() bool
-	shutdown() error
+	shutdown(context.Context) error
 	clone() any
 	locate() (stacktrace.Frame, []stacktrace.Frame)
 }
@@ -37,8 +38,16 @@ type Healthchecker interface {
 	HealthCheck() error
 }
 
+type HealthcheckerWithContext interface {
+	HealthCheckWithContext(context.Context) error
+}
+
 type Shutdowner interface {
 	Shutdown() error
+}
+
+type ShutdownerWithContext interface {
+	ShutdownWithContext(context.Context) error
 }
 
 var _ isHealthcheckerService = (Service[int])(nil)
@@ -53,7 +62,7 @@ type isHealthcheckerService interface {
 }
 
 type healthcheckerService interface {
-	healthcheck() error
+	healthcheck(context.Context) error
 }
 
 type isShutdownerService interface {
@@ -61,7 +70,7 @@ type isShutdownerService interface {
 }
 
 type shutdownerService interface {
-	shutdown() error
+	shutdown(context.Context) error
 }
 
 type clonerService interface {

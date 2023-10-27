@@ -1,6 +1,7 @@
 package do
 
 import (
+	"context"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -351,6 +352,11 @@ func TestScope_ListInvokedServices(t *testing.T) {
 }
 
 func TestScope_HealthCheck(t *testing.T) {
+	// @TODO
+}
+
+// @TODO: missing tests for context
+func TestScope_HealthCheckWithContext(t *testing.T) {
 	is := assert.New(t)
 
 	rootScope := New()
@@ -385,12 +391,18 @@ func TestScope_HealthCheck(t *testing.T) {
 	_, _ = invoke[*lazyTestHeathcheckerKO](child3, "child3-a")
 
 	is.EqualValues(map[string]error{"child1-a": nil, "child2a-a": nil, "child2a-b": assert.AnError, "root-a": assert.AnError}, child2a.HealthCheck())
-	is.EqualValues(map[string]error{"root-a": assert.AnError}, rootScope.HealthCheck())
+	is.EqualValues(map[string]error{"root-a": assert.AnError}, rootScope.HealthCheckWithContext(context.Background()))
 }
 
 func TestScope_Shutdown(t *testing.T) {
+	// @TODO
+}
+
+// @TODO: missing tests for context
+func TestScope_ShutdownWithContext(t *testing.T) {
 	is := assert.New(t)
 
+	ctx := context.Background()
 	rootScope := New()
 
 	// create children
@@ -418,32 +430,32 @@ func TestScope_Shutdown(t *testing.T) {
 	_, _ = invoke[*lazyTestHeathcheckerKO](child2b, "child2b-a")
 
 	// from rootScope POV
-	is.Equal(assert.AnError, rootScope.serviceHealthCheck("root-a"))
-	is.ErrorContains(rootScope.serviceHealthCheck("child1-a"), "could not find service")
-	is.ErrorContains(rootScope.serviceHealthCheck("child2a-a"), "could not find service")
-	is.ErrorContains(rootScope.serviceHealthCheck("child2a-b"), "could not find service")
-	is.ErrorContains(rootScope.serviceHealthCheck("child2b-a"), "could not find service")
+	is.Equal(assert.AnError, rootScope.serviceHealthCheck(ctx, "root-a"))
+	is.ErrorContains(rootScope.serviceHealthCheck(ctx, "child1-a"), "could not find service")
+	is.ErrorContains(rootScope.serviceHealthCheck(ctx, "child2a-a"), "could not find service")
+	is.ErrorContains(rootScope.serviceHealthCheck(ctx, "child2a-b"), "could not find service")
+	is.ErrorContains(rootScope.serviceHealthCheck(ctx, "child2b-a"), "could not find service")
 
 	// from child1 POV
-	is.ErrorContains(child1.serviceHealthCheck("root-a"), "could not find service")
-	is.Equal(nil, child1.serviceHealthCheck("child1-a"))
-	is.ErrorContains(child1.serviceHealthCheck("child2a-a"), "could not find service")
-	is.ErrorContains(child1.serviceHealthCheck("child2a-b"), "could not find service")
-	is.ErrorContains(child1.serviceHealthCheck("child2b-a"), "could not find service")
+	is.ErrorContains(child1.serviceHealthCheck(ctx, "root-a"), "could not find service")
+	is.Equal(nil, child1.serviceHealthCheck(ctx, "child1-a"))
+	is.ErrorContains(child1.serviceHealthCheck(ctx, "child2a-a"), "could not find service")
+	is.ErrorContains(child1.serviceHealthCheck(ctx, "child2a-b"), "could not find service")
+	is.ErrorContains(child1.serviceHealthCheck(ctx, "child2b-a"), "could not find service")
 
 	// from child2a POV
-	is.ErrorContains(child2a.serviceHealthCheck("root-a"), "could not find service")
-	is.ErrorContains(child2a.serviceHealthCheck("child1-a"), "could not find service")
-	is.Equal(nil, child2a.serviceHealthCheck("child2a-a"))
-	is.Equal(assert.AnError, child2a.serviceHealthCheck("child2a-b"))
-	is.ErrorContains(child2a.serviceHealthCheck("child2b-a"), "could not find service")
+	is.ErrorContains(child2a.serviceHealthCheck(ctx, "root-a"), "could not find service")
+	is.ErrorContains(child2a.serviceHealthCheck(ctx, "child1-a"), "could not find service")
+	is.Equal(nil, child2a.serviceHealthCheck(ctx, "child2a-a"))
+	is.Equal(assert.AnError, child2a.serviceHealthCheck(ctx, "child2a-b"))
+	is.ErrorContains(child2a.serviceHealthCheck(ctx, "child2b-a"), "could not find service")
 
 	// from child2b POV
-	is.ErrorContains(child2b.serviceHealthCheck("root-a"), "could not find service")
-	is.ErrorContains(child2b.serviceHealthCheck("child1-a"), "could not find service")
-	is.ErrorContains(child2b.serviceHealthCheck("child2a-a"), "could not find service")
-	is.ErrorContains(child2b.serviceHealthCheck("child2a-b"), "could not find service")
-	is.Equal(assert.AnError, child2b.serviceHealthCheck("child2b-a"))
+	is.ErrorContains(child2b.serviceHealthCheck(ctx, "root-a"), "could not find service")
+	is.ErrorContains(child2b.serviceHealthCheck(ctx, "child1-a"), "could not find service")
+	is.ErrorContains(child2b.serviceHealthCheck(ctx, "child2a-a"), "could not find service")
+	is.ErrorContains(child2b.serviceHealthCheck(ctx, "child2a-b"), "could not find service")
+	is.Equal(assert.AnError, child2b.serviceHealthCheck(ctx, "child2b-a"))
 }
 
 func TestScope_clone(t *testing.T) {

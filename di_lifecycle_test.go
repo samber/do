@@ -28,7 +28,15 @@ func TestHealthCheck(t *testing.T) {
 	is.Error(assert.AnError, HealthCheck[*lazyTestHeathcheckerKO](i))
 }
 
+func TestHealthCheckWithContext(t *testing.T) {
+	// @TODO
+}
+
 func TestHealthCheckNamed(t *testing.T) {
+	// @TODO
+}
+
+func TestHealthCheckNamedWithContext(t *testing.T) {
 	// @TODO
 }
 
@@ -58,6 +66,10 @@ func TestShutdown(t *testing.T) {
 
 	err = Shutdown[test](i)
 	is.NotNil(err)
+}
+
+func TestShutdownWithContext(t *testing.T) {
+	// @TODO
 }
 
 func TestMustShutdown(t *testing.T) {
@@ -90,6 +102,10 @@ func TestMustShutdown(t *testing.T) {
 	})
 }
 
+func TestMustShutdownWithContext(t *testing.T) {
+	// @TODO
+}
+
 func TestShutdownNamed(t *testing.T) {
 	is := assert.New(t)
 
@@ -110,6 +126,10 @@ func TestShutdownNamed(t *testing.T) {
 
 	err = ShutdownNamed(i, "foobar")
 	is.NotNil(err)
+}
+
+func TestShutdownNamedWithContext(t *testing.T) {
+	// @TODO
 }
 
 func TestMustShutdownNamed(t *testing.T) {
@@ -134,6 +154,10 @@ func TestMustShutdownNamed(t *testing.T) {
 	is.Panics(func() {
 		MustShutdownNamed(i, "foobar")
 	})
+}
+
+func TestMustShutdownNamedWithContext(t *testing.T) {
+	// @TODO
 }
 
 func TestDoubleInjection(t *testing.T) {

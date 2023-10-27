@@ -1,5 +1,7 @@
 package do
 
+import "context"
+
 type Injector interface {
 	// api
 	ID() string
@@ -13,7 +15,9 @@ type Injector interface {
 	ListProvidedServices() []EdgeService
 	ListInvokedServices() []EdgeService
 	HealthCheck() map[string]error
+	HealthCheckWithContext(context.Context) map[string]error
 	Shutdown() error
+	ShutdownWithContext(context.Context) error
 	clone(*RootScope, *Scope) *Scope
 
 	// service lifecycle
@@ -22,8 +26,8 @@ type Injector interface {
 	serviceGetRec(string) (any, *Scope, bool)
 	serviceSet(string, any)
 	serviceForEach(func(string, any))
-	serviceHealthCheck(string) error
-	serviceShutdown(string) error
+	serviceHealthCheck(context.Context, string) error
+	serviceShutdown(context.Context, string) error
 	onServiceInvoke(string)
 }
 
