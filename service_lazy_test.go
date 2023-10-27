@@ -1,6 +1,7 @@
 package do
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
@@ -257,46 +258,52 @@ func TestServiceLazy_isHealthchecker(t *testing.T) {
 	is.True(service3.isHealthchecker())
 }
 
+// @TODO: missing tests for context
 func TestServiceLazy_healthcheck(t *testing.T) {
 	is := assert.New(t)
+
+	ctx := context.Background()
 
 	// no healthcheck
 	service1 := newServiceLazy("foobar", func(i Injector) (lazyTest, error) {
 		return lazyTest{foobar: "foobar"}, nil
 	})
-	is.Nil(service1.healthcheck())
+	is.Nil(service1.healthcheck(ctx))
 	_, _ = service1.getInstance(nil)
-	is.Nil(service1.healthcheck())
+	is.Nil(service1.healthcheck(ctx))
 
 	// healthcheck ok
 	service2 := newServiceLazy("foobar", func(i Injector) (*lazyTestHeathcheckerOK, error) {
 		return &lazyTestHeathcheckerOK{foobar: "foobar"}, nil
 	})
-	is.Nil(service2.healthcheck())
+	is.Nil(service2.healthcheck(ctx))
 	_, _ = service2.getInstance(nil)
-	is.Nil(service2.healthcheck())
+	is.Nil(service2.healthcheck(ctx))
 
 	// healthcheck ko
 	service3 := newServiceLazy("foobar", func(i Injector) (*lazyTestHeathcheckerKO, error) {
 		return &lazyTestHeathcheckerKO{foobar: "foobar"}, nil
 	})
-	is.Nil(service3.healthcheck())
+	is.Nil(service3.healthcheck(ctx))
 	_, _ = service3.getInstance(nil)
-	is.Equal(assert.AnError, service3.healthcheck())
+	is.Equal(assert.AnError, service3.healthcheck(ctx))
 }
 
+// @TODO: missing tests for context
 func TestServiceLazy_shutdown(t *testing.T) {
 	is := assert.New(t)
+
+	ctx := context.Background()
 
 	// no shutdown
 	service1 := newServiceLazy("foobar", func(i Injector) (lazyTest, error) {
 		return lazyTest{foobar: "foobar"}, nil
 	}).(*ServiceLazy[lazyTest])
 	is.False(service1.built)
-	is.Nil(service1.shutdown())
+	is.Nil(service1.shutdown(ctx))
 	_, _ = service1.getInstance(nil)
 	is.True(service1.built)
-	is.Nil(service1.shutdown())
+	is.Nil(service1.shutdown(ctx))
 	is.False(service1.built)
 
 	// shutdown ok
@@ -304,10 +311,10 @@ func TestServiceLazy_shutdown(t *testing.T) {
 		return &lazyTestShutdownerOK{foobar: "foobar"}, nil
 	}).(*ServiceLazy[*lazyTestShutdownerOK])
 	is.False(service2.built)
-	is.Nil(service2.shutdown())
+	is.Nil(service2.shutdown(ctx))
 	_, _ = service2.getInstance(nil)
 	is.True(service2.built)
-	is.Nil(service2.shutdown())
+	is.Nil(service2.shutdown(ctx))
 	is.False(service2.built)
 
 	// shutdown ko
@@ -315,10 +322,10 @@ func TestServiceLazy_shutdown(t *testing.T) {
 		return &lazyTestShutdownerKO{foobar: "foobar"}, nil
 	}).(*ServiceLazy[*lazyTestShutdownerKO])
 	is.False(service3.built)
-	is.Nil(service3.shutdown())
+	is.Nil(service3.shutdown(ctx))
 	_, _ = service3.getInstance(nil)
 	is.True(service3.built)
-	is.Equal(assert.AnError, service3.shutdown())
+	is.Equal(assert.AnError, service3.shutdown(ctx))
 	is.True(service3.built)
 }
 

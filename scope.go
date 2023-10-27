@@ -1,6 +1,7 @@
 package do
 
 import (
+	"context"
 	"fmt"
 	"sync"
 )
@@ -151,11 +152,15 @@ func (s *Scope) ListInvokedServices() []EdgeService {
 }
 
 func (s *Scope) HealthCheck() map[string]error {
+	return s.HealthCheckWithContext(context.Background())
+}
+
+func (s *Scope) HealthCheckWithContext(ctx context.Context) map[string]error {
 	results := map[string]error{}
 
 	s.mu.RLock()
 	for _, name := range keys(s.services) {
-		results[name] = s.serviceHealthCheck(name)
+		results[name] = s.serviceHealthCheck(ctx, name)
 	}
 	s.mu.RUnlock()
 
@@ -177,6 +182,10 @@ func (s *Scope) HealthCheck() map[string]error {
 }
 
 func (s *Scope) Shutdown() error {
+	return s.ShutdownWithContext(context.Background())
+}
+
+func (s *Scope) ShutdownWithContext(ctx context.Context) error {
 	s.mu.RLock()
 	children := s.childScopes
 	invocations := invertMap(s.orderedInvocation)
@@ -203,7 +212,7 @@ func (s *Scope) Shutdown() error {
 			continue
 		}
 
-		err := s.serviceShutdown(name)
+		err := s.serviceShutdown(ctx, name)
 		if err != nil {
 			return err
 		}
@@ -293,7 +302,7 @@ func (s *Scope) serviceForEach(cb func(name string, service any)) {
 	}
 }
 
-func (s *Scope) serviceHealthCheck(name string) error {
+func (s *Scope) serviceHealthCheck(ctx context.Context, name string) error {
 	s.mu.RLock()
 
 	serviceAny, ok := s.services[name]
@@ -308,7 +317,7 @@ func (s *Scope) serviceHealthCheck(name string) error {
 	if ok {
 		s.logf("requested healthcheck for service %s", name)
 
-		err := service.healthcheck()
+		err := service.healthcheck(ctx)
 		if err != nil {
 			return err
 		}
@@ -317,7 +326,7 @@ func (s *Scope) serviceHealthCheck(name string) error {
 	return nil
 }
 
-func (s *Scope) serviceShutdown(name string) error {
+func (s *Scope) serviceShutdown(ctx context.Context, name string) error {
 	s.mu.RLock()
 
 	serviceAny, ok := s.services[name]
@@ -332,7 +341,7 @@ func (s *Scope) serviceShutdown(name string) error {
 	if ok {
 		s.logf("requested shutdown for service %s", name)
 
-		err := service.shutdown()
+		err := service.shutdown(ctx)
 		if err != nil {
 			return err
 		}
