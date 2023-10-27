@@ -1,6 +1,7 @@
 package do
 
 import (
+	"context"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -102,22 +103,25 @@ func TestServiceEager_isHealthchecker(t *testing.T) {
 	is.True(service3.isHealthchecker())
 }
 
+// @TODO: missing tests for context
 func TestServiceEager_healthcheck(t *testing.T) {
 	is := assert.New(t)
 
+	ctx := context.Background()
+
 	// no healthcheck
 	service1 := newServiceEager("foobar", &eagerTest{foobar: "foobar"})
-	err1 := service1.healthcheck()
+	err1 := service1.healthcheck(ctx)
 	is.Nil(err1)
 
 	// healthcheck ok
 	service2 := newServiceEager("foobar", &eagerTestHeathcheckerOK{foobar: "foobar"})
-	err2 := service2.healthcheck()
+	err2 := service2.healthcheck(ctx)
 	is.Nil(err2)
 
 	// healthcheck ko
 	service3 := newServiceEager("foobar", &eagerTestHeathcheckerKO{foobar: "foobar"})
-	err3 := service3.healthcheck()
+	err3 := service3.healthcheck(ctx)
 	is.NotNil(err3)
 	is.Error(err3)
 	is.Equal(err3, assert.AnError)
@@ -139,22 +143,25 @@ func TestServiceEager_isShutdowner(t *testing.T) {
 	is.True(service3.isShutdowner())
 }
 
+// @TODO: missing tests for context
 func TestServiceEager_shutdown(t *testing.T) {
 	is := assert.New(t)
 
+	ctx := context.Background()
+
 	// no shutdown
 	service1 := newServiceEager("foobar", &eagerTest{foobar: "foobar"})
-	err1 := service1.shutdown()
+	err1 := service1.shutdown(ctx)
 	is.Nil(err1)
 
 	// shutdown ok
 	service2 := newServiceEager("foobar", &eagerTestShutdownerOK{foobar: "foobar"})
-	err2 := service2.shutdown()
+	err2 := service2.shutdown(ctx)
 	is.Nil(err2)
 
 	// shutdown ko
 	service3 := newServiceEager("foobar", &eagerTestShutdownerKO{foobar: "foobar"})
-	err3 := service3.shutdown()
+	err3 := service3.shutdown(ctx)
 	is.NotNil(err3)
 	is.Error(err3)
 	is.Equal(err3, assert.AnError)

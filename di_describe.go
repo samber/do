@@ -25,7 +25,8 @@ func fromTemplate(tpl string, data any) string {
 var describeServiceTemplate = `
 Scope ID: {{.ScopeID}}
 Scope name: {{.ScopeName}}
-Service: {{.ServiceName}}
+
+Service name: {{.ServiceName}}
 Service type: {{.ServiceType}}
 Invoked: {{.Invoked}}
 
@@ -108,10 +109,19 @@ func buildDepsGraph(i Injector, edge EdgeService, mode string) string {
 				return line
 			})
 
+			// prefix := ""
+			// if info, ok := inferServiceInfo(i, item.Service); ok {
+			// 	// @TODO: differenciate status of lazy services (built, not built). Such as: "😴 (✅)"
+			// 	prefix += serviceTypeToIcon[info.serviceType] + " "
+			// } else {
+			// 	prefix += "❓ " // should never reach this branch
+			// }
+
 			return map[string]any{
 				"ScopeID":   item.ScopeID,
 				"ScopeName": item.ScopeName,
 				"Service":   item.Service,
+				// "Service":   prefix + item.Service,
 				"Recursive": strings.Join(lines, "\n"),
 			}
 		}),

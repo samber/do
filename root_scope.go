@@ -1,6 +1,7 @@
 package do
 
 import (
+	"context"
 	"os"
 	"os/signal"
 	"syscall"
@@ -43,27 +44,37 @@ type RootScope struct {
 }
 
 // pass through
-func (s *RootScope) ID() string                                    { return s.self.ID() }
-func (s *RootScope) Name() string                                  { return s.self.Name() }
-func (s *RootScope) Scope(name string) *Scope                      { return s.self.Scope(name) }
-func (s *RootScope) RootScope() *RootScope                         { return s.self.RootScope() }
-func (s *RootScope) Ancestors() []*Scope                           { return []*Scope{} }
-func (s *RootScope) Children() []*Scope                            { return s.self.Children() }
-func (s *RootScope) ChildByID(id string) (*Scope, bool)            { return s.self.ChildByID(id) }
-func (s *RootScope) ChildByName(name string) (*Scope, bool)        { return s.self.ChildByName(name) }
-func (s *RootScope) ListProvidedServices() []EdgeService           { return s.self.ListProvidedServices() }
-func (s *RootScope) ListInvokedServices() []EdgeService            { return s.self.ListInvokedServices() }
-func (s *RootScope) HealthCheck() map[string]error                 { return s.self.HealthCheck() }
-func (s *RootScope) Shutdown() error                               { return s.self.Shutdown() }
+func (s *RootScope) ID() string                             { return s.self.ID() }
+func (s *RootScope) Name() string                           { return s.self.Name() }
+func (s *RootScope) Scope(name string) *Scope               { return s.self.Scope(name) }
+func (s *RootScope) RootScope() *RootScope                  { return s.self.RootScope() }
+func (s *RootScope) Ancestors() []*Scope                    { return []*Scope{} }
+func (s *RootScope) Children() []*Scope                     { return s.self.Children() }
+func (s *RootScope) ChildByID(id string) (*Scope, bool)     { return s.self.ChildByID(id) }
+func (s *RootScope) ChildByName(name string) (*Scope, bool) { return s.self.ChildByName(name) }
+func (s *RootScope) ListProvidedServices() []EdgeService    { return s.self.ListProvidedServices() }
+func (s *RootScope) ListInvokedServices() []EdgeService     { return s.self.ListInvokedServices() }
+func (s *RootScope) HealthCheck() map[string]error          { return s.self.HealthCheck() }
+func (s *RootScope) HealthCheckWithContext(ctx context.Context) map[string]error {
+	return s.self.HealthCheckWithContext(ctx)
+}
+func (s *RootScope) Shutdown() error { return s.self.Shutdown() }
+func (s *RootScope) ShutdownWithContext(ctx context.Context) error {
+	return s.self.ShutdownWithContext(ctx)
+}
 func (s *RootScope) clone(root *RootScope, parent *Scope) *Scope   { return s.self.clone(root, parent) }
 func (s *RootScope) serviceExist(name string) bool                 { return s.self.serviceExist(name) }
 func (s *RootScope) serviceGet(name string) (any, bool)            { return s.self.serviceGet(name) }
 func (s *RootScope) serviceGetRec(name string) (any, *Scope, bool) { return s.self.serviceGetRec(name) }
 func (s *RootScope) serviceSet(name string, service any)           { s.self.serviceSet(name, service) }
 func (s *RootScope) serviceForEach(cb func(string, any))           { s.self.serviceForEach(cb) }
-func (s *RootScope) serviceHealthCheck(name string) error          { return s.self.serviceHealthCheck(name) }
-func (s *RootScope) serviceShutdown(name string) error             { return s.self.serviceShutdown(name) }
-func (s *RootScope) onServiceInvoke(name string)                   { s.self.onServiceInvoke(name) }
+func (s *RootScope) serviceHealthCheck(ctx context.Context, name string) error {
+	return s.self.serviceHealthCheck(ctx, name)
+}
+func (s *RootScope) serviceShutdown(ctx context.Context, name string) error {
+	return s.self.serviceShutdown(ctx, name)
+}
+func (s *RootScope) onServiceInvoke(name string) { s.self.onServiceInvoke(name) }
 
 // Clone clones injector with provided services but not with invoked instances.
 func (s *RootScope) Clone() *RootScope {
