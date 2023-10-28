@@ -135,17 +135,16 @@ func (s *ServiceLazy[T]) isShutdowner() bool {
 func (s *ServiceLazy[T]) shutdown(ctx context.Context) error {
 	s.mu.Lock()
 
-	if !s.built {
-		s.mu.Unlock()
-		// @TODO: mark s.build as false ?
-		return nil
-	}
-
 	defer func() {
+		// whatever the outcome, reset `build` flag and instance
 		s.built = false
 		s.instance = empty[T]()
 		s.mu.Unlock()
 	}()
+
+	if !s.built {
+		return nil
+	}
 
 	if instance, ok := any(s.instance).(ShutdownerWithContextAndError); ok {
 		return instance.Shutdown(ctx)
