@@ -41,7 +41,7 @@ func invoke[T any](i Injector, name string) (T, error) {
 		_i.RootScope().dag.addDependency(_i.ID(), _i.Name(), invokerName, serviceScope.ID(), serviceScope.Name(), name)
 	}
 
-	_i.onServiceInvoke(name)
+	serviceScope.onServiceInvoke(name)
 	_i.RootScope().opts.Logf("DI: service %s invoked", name)
 
 	return instance, nil
