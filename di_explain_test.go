@@ -30,7 +30,7 @@ func TestExplainService(t *testing.T) {
 	// from root POV
 	a, b, ok := ExplainService[*eagerTest](rootScope)
 	is.ElementsMatch([]EdgeService{}, a)
-	is.ElementsMatch([]EdgeService{{scopeIDChild, "child", "*github.com/samber/do.lazyTest"}}, b)
+	is.ElementsMatch([]EdgeService{{scopeIDChild, "child", "*github.com/samber/do/v2.lazyTest"}}, b)
 	is.True(ok)
 	a, b, ok = ExplainService[*lazyTest](rootScope)
 	is.ElementsMatch([]EdgeService{}, a)
@@ -44,10 +44,10 @@ func TestExplainService(t *testing.T) {
 	// from child POV
 	a, b, ok = ExplainService[*eagerTest](child)
 	is.ElementsMatch([]EdgeService{}, a)
-	is.ElementsMatch([]EdgeService{{scopeIDChild, "child", "*github.com/samber/do.lazyTest"}}, b)
+	is.ElementsMatch([]EdgeService{{scopeIDChild, "child", "*github.com/samber/do/v2.lazyTest"}}, b)
 	is.True(ok)
 	a, b, ok = ExplainService[*lazyTest](child)
-	is.ElementsMatch([]EdgeService{{scopeIDRoot, "[root]", "*github.com/samber/do.eagerTest"}}, a)
+	is.ElementsMatch([]EdgeService{{scopeIDRoot, "[root]", "*github.com/samber/do/v2.eagerTest"}}, a)
 	is.ElementsMatch([]EdgeService{}, b)
 	is.True(ok)
 	a, b, ok = ExplainService[int](child)

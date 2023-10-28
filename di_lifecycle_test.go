@@ -173,23 +173,23 @@ func TestDoubleInjection(t *testing.T) {
 		})
 	})
 
-	is.PanicsWithError("DI: service `*github.com/samber/do.test` has already been declared", func() {
+	is.PanicsWithError("DI: service `*github.com/samber/do/v2.test` has already been declared", func() {
 		Provide(i, func(i Injector) (*test, error) {
 			return &test{}, nil
 		})
 	})
 
-	is.PanicsWithError("DI: service `*github.com/samber/do.test` has already been declared", func() {
+	is.PanicsWithError("DI: service `*github.com/samber/do/v2.test` has already been declared", func() {
 		ProvideValue(i, &test{})
 	})
 
-	is.PanicsWithError("DI: service `*github.com/samber/do.test` has already been declared", func() {
-		ProvideNamed(i, "*github.com/samber/do.test", func(i Injector) (*test, error) {
+	is.PanicsWithError("DI: service `*github.com/samber/do/v2.test` has already been declared", func() {
+		ProvideNamed(i, "*github.com/samber/do/v2.test", func(i Injector) (*test, error) {
 			return &test{}, nil
 		})
 	})
 
-	is.PanicsWithError("DI: service `*github.com/samber/do.test` has already been declared", func() {
-		ProvideNamedValue(i, "*github.com/samber/do.test", &test{})
+	is.PanicsWithError("DI: service `*github.com/samber/do/v2.test` has already been declared", func() {
+		ProvideNamedValue(i, "*github.com/samber/do/v2.test", &test{})
 	})
 }
