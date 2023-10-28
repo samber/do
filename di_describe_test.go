@@ -1,7 +1,6 @@
 package do
 
 import (
-	"fmt"
 	"os"
 	"testing"
 
@@ -93,7 +92,7 @@ Scope name: scope-child
 
 Service name: SERVICE-E
 Service type: lazy
-Invoked: ` + dirname + `/di_describe_test.go:fakeProvider5:38
+Invoked: ` + dirname + `/di_describe_test.go:fakeProvider5:37
 
 Dependencies:
 * SERVICE-D from scope scope-child
@@ -112,7 +111,6 @@ Dependents:
 	output, ok := DescribeNamedService[int](scope, "SERVICE-E")
 	is.True(ok)
 	is.Equal(expected, output)
-	fmt.Println(output)
 
 	// service not found
 	output, ok = DescribeNamedService[int](scope, "not_found")

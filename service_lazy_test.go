@@ -326,7 +326,7 @@ func TestServiceLazy_shutdown(t *testing.T) {
 	_, _ = service3.getInstance(nil)
 	is.True(service3.built)
 	is.Equal(assert.AnError, service3.shutdown(ctx))
-	is.True(service3.built)
+	is.False(service3.built)
 }
 
 func TestServiceLazy_isShutdowner(t *testing.T) {
