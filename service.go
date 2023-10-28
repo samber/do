@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/samber/do/stacktrace"
+	"github.com/samber/do/v2/stacktrace"
 	typetostring "github.com/samber/go-type-to-string"
 )
 
