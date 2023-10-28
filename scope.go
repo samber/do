@@ -186,6 +186,7 @@ func (s *Scope) Shutdown() error {
 }
 
 func (s *Scope) ShutdownWithContext(ctx context.Context) error {
+
 	s.mu.RLock()
 	children := s.childScopes
 	invocations := invertMap(s.orderedInvocation)
@@ -345,6 +346,8 @@ func (s *Scope) serviceShutdown(ctx context.Context, name string) error {
 		if err != nil {
 			return err
 		}
+	} else {
+		panic(fmt.Errorf("DI: service `%s` is not shutdowner", name))
 	}
 
 	s.mu.Lock()

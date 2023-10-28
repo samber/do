@@ -102,6 +102,14 @@ func TestRootScope_CloneWithOpts(t *testing.T) {
 	is.Len(clone.Children(), 0)
 }
 
+func TestRootScope_ShutdownOnSIGTERMOrInterrupt(t *testing.T) {
+	// @TODO
+}
+
+func TestRootScope_ShutdownOnSIGTERMOrInterruptWithContext(t *testing.T) {
+	// @TODO
+}
+
 func TestRootScope_ShutdownOnSIGTERM(t *testing.T) {
 	// @TODO
 }
