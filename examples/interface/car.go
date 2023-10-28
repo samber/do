@@ -1,6 +1,6 @@
 package main
 
-import "github.com/samber/do"
+import "github.com/samber/do/v2"
 
 type Car interface {
 	Start()
