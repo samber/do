@@ -61,6 +61,10 @@ I love the **short name** for such a utility library. This name is the sum of `D
 ## 🚀 Install
 
 ```sh
+# v1
+go get github.com/samber/do
+
+# v2 (latest)
 go get github.com/samber/do@v2
 ```
 
@@ -76,7 +80,7 @@ You can import `do` using:
 
 ```go
 import (
-    "github.com/samber/do"
+    "github.com/samber/do/v2"
 )
 ```
 
@@ -146,49 +150,49 @@ func (c *CarService) Shutdown() error {
 
 ## 🤠 Spec
 
-[GoDoc: https://godoc.org/github.com/samber/do](https://godoc.org/github.com/samber/do)
+[GoDoc: https://godoc.org/github.com/samber/do/v2](https://godoc.org/github.com/samber/do/v2)
 
 Documentation: [https://do.samber.dev](https://do.samber.dev)
 
 Injector:
 
-- [do.New](https://pkg.go.dev/github.com/samber/do#New)
-- [do.NewWithOpts](https://pkg.go.dev/github.com/samber/do#NewWithOpts)
-  - [injector.Clone](https://pkg.go.dev/github.com/samber/do#injector.Clone)
-  - [injector.CloneWithOpts](https://pkg.go.dev/github.com/samber/do#injector.CloneWithOpts)
-  - [injector.HealthCheck](https://pkg.go.dev/github.com/samber/do#injector.HealthCheck)
-  - [injector.Shutdown](https://pkg.go.dev/github.com/samber/do#injector.Shutdown)
-  - [injector.ShutdownOnSIGTERM](https://pkg.go.dev/github.com/samber/do#injector.ShutdownOnSIGTERM)
-  - [injector.ShutdownOnSignals](https://pkg.go.dev/github.com/samber/do#injector.ShutdownOnSignals)
-  - [injector.ListProvidedServices](https://pkg.go.dev/github.com/samber/do#injector.ListProvidedServices)
-  - [injector.ListInvokedServices](https://pkg.go.dev/github.com/samber/do#injector.ListInvokedServices)
-- [do.HealthCheck](https://pkg.go.dev/github.com/samber/do#HealthCheck)
-- [do.HealthCheckNamed](https://pkg.go.dev/github.com/samber/do#HealthCheckNamed)
-- [do.Shutdown](https://pkg.go.dev/github.com/samber/do#Shutdown)
-- [do.ShutdownNamed](https://pkg.go.dev/github.com/samber/do#ShutdownNamed)
-- [do.MustShutdown](https://pkg.go.dev/github.com/samber/do#MustShutdown)
-- [do.MustShutdownNamed](https://pkg.go.dev/github.com/samber/do#MustShutdownNamed)
+- [do.New](https://pkg.go.dev/github.com/samber/do/v2#New)
+- [do.NewWithOpts](https://pkg.go.dev/github.com/samber/do/v2#NewWithOpts)
+  - [injector.Clone](https://pkg.go.dev/github.com/samber/do/v2#injector.Clone)
+  - [injector.CloneWithOpts](https://pkg.go.dev/github.com/samber/do/v2#injector.CloneWithOpts)
+  - [injector.HealthCheck](https://pkg.go.dev/github.com/samber/do/v2#injector.HealthCheck)
+  - [injector.Shutdown](https://pkg.go.dev/github.com/samber/do/v2#injector.Shutdown)
+  - [injector.ShutdownOnSIGTERM](https://pkg.go.dev/github.com/samber/do/v2#injector.ShutdownOnSIGTERM)
+  - [injector.ShutdownOnSignals](https://pkg.go.dev/github.com/samber/do/v2#injector.ShutdownOnSignals)
+  - [injector.ListProvidedServices](https://pkg.go.dev/github.com/samber/do/v2#injector.ListProvidedServices)
+  - [injector.ListInvokedServices](https://pkg.go.dev/github.com/samber/do/v2#injector.ListInvokedServices)
+- [do.HealthCheck](https://pkg.go.dev/github.com/samber/do/v2#HealthCheck)
+- [do.HealthCheckNamed](https://pkg.go.dev/github.com/samber/do/v2#HealthCheckNamed)
+- [do.Shutdown](https://pkg.go.dev/github.com/samber/do/v2#Shutdown)
+- [do.ShutdownNamed](https://pkg.go.dev/github.com/samber/do/v2#ShutdownNamed)
+- [do.MustShutdown](https://pkg.go.dev/github.com/samber/do/v2#MustShutdown)
+- [do.MustShutdownNamed](https://pkg.go.dev/github.com/samber/do/v2#MustShutdownNamed)
 
 Service registration:
 
-- [do.Provide](https://pkg.go.dev/github.com/samber/do#Provide)
-- [do.ProvideNamed](https://pkg.go.dev/github.com/samber/do#ProvideNamed)
-- [do.ProvideNamedValue](https://pkg.go.dev/github.com/samber/do#ProvideNamedValue)
-- [do.ProvideValue](https://pkg.go.dev/github.com/samber/do#ProvideValue)
+- [do.Provide](https://pkg.go.dev/github.com/samber/do/v2#Provide)
+- [do.ProvideNamed](https://pkg.go.dev/github.com/samber/do/v2#ProvideNamed)
+- [do.ProvideNamedValue](https://pkg.go.dev/github.com/samber/do/v2#ProvideNamedValue)
+- [do.ProvideValue](https://pkg.go.dev/github.com/samber/do/v2#ProvideValue)
 
 Service invocation:
 
-- [do.Invoke](https://pkg.go.dev/github.com/samber/do#Invoke)
-- [do.MustInvoke](https://pkg.go.dev/github.com/samber/do#MustInvoke)
-- [do.InvokeNamed](https://pkg.go.dev/github.com/samber/do#InvokeNamed)
-- [do.MustInvokeNamed](https://pkg.go.dev/github.com/samber/do#MustInvokeNamed)
+- [do.Invoke](https://pkg.go.dev/github.com/samber/do/v2#Invoke)
+- [do.MustInvoke](https://pkg.go.dev/github.com/samber/do/v2#MustInvoke)
+- [do.InvokeNamed](https://pkg.go.dev/github.com/samber/do/v2#InvokeNamed)
+- [do.MustInvokeNamed](https://pkg.go.dev/github.com/samber/do/v2#MustInvokeNamed)
 
 Service override:
 
-- [do.Override](https://pkg.go.dev/github.com/samber/do#Override)
-- [do.OverrideNamed](https://pkg.go.dev/github.com/samber/do#OverrideNamed)
-- [do.OverrideNamedValue](https://pkg.go.dev/github.com/samber/do#OverrideNamedValue)
-- [do.OverrideValue](https://pkg.go.dev/github.com/samber/do#OverrideValue)
+- [do.Override](https://pkg.go.dev/github.com/samber/do/v2#Override)
+- [do.OverrideNamed](https://pkg.go.dev/github.com/samber/do/v2#OverrideNamed)
+- [do.OverrideNamedValue](https://pkg.go.dev/github.com/samber/do/v2#OverrideNamedValue)
+- [do.OverrideValue](https://pkg.go.dev/github.com/samber/do/v2#OverrideValue)
 
 ### Injector (DI container)
 

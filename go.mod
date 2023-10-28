@@ -1,4 +1,4 @@
-module github.com/samber/do
+module github.com/samber/do/v2
 
 go 1.18
 

@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 
-	"github.com/samber/do"
+	"github.com/samber/do/v2"
 )
 
 /**
