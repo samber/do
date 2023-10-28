@@ -1,7 +1,9 @@
 package main
 
 import (
+	"context"
 	"fmt"
+	"time"
 
 	"github.com/samber/do/v2"
 )
@@ -10,6 +12,16 @@ import (
  * Wheel
  */
 type Wheel struct {
+}
+
+/**
+ * AutoPilot
+ */
+type AutoPilot struct {
+}
+
+func (a *AutoPilot) HealthCheckWithContext(ctx context.Context) error {
+	return nil
 }
 
 /**
@@ -25,8 +37,9 @@ func (e *Engine) HealthCheck() error {
  * Car
  */
 type Car struct {
-	Engine *Engine
-	Wheels []*Wheel
+	AutoPilot *AutoPilot
+	Engine    *Engine
+	Wheels    []*Wheel
 }
 
 func (c *Car) Start() {
@@ -48,7 +61,8 @@ func main() {
 	// provide car
 	do.Provide(injector, func(i do.Injector) (*Car, error) {
 		car := Car{
-			Engine: do.MustInvoke[*Engine](i),
+			AutoPilot: do.MustInvoke[*AutoPilot](i),
+			Engine:    do.MustInvoke[*Engine](i),
 			Wheels: []*Wheel{
 				do.MustInvokeNamed[*Wheel](i, "wheel-1"),
 				do.MustInvokeNamed[*Wheel](i, "wheel-2"),
@@ -65,12 +79,22 @@ func main() {
 		return &Engine{}, nil
 	})
 
+	// provide autopilot
+	do.Provide(injector, func(i do.Injector) (*AutoPilot, error) {
+		return &AutoPilot{}, nil
+	})
+
 	// start car
 	car := do.MustInvoke[*Car](injector)
 	car.Start()
 
 	// check single service
 	fmt.Println(do.HealthCheck[*Engine](injector))
+
 	// check all services
 	fmt.Println(injector.HealthCheck())
+	// or
+	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
+	defer cancel()
+	fmt.Println(injector.HealthCheckWithContext(ctx))
 }
