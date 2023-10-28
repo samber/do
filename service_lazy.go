@@ -2,7 +2,6 @@ package do
 
 import (
 	"context"
-	"fmt"
 	"reflect"
 	"sync"
 	"time"
@@ -148,7 +147,6 @@ func (s *ServiceLazy[T]) shutdown(ctx context.Context) error {
 		s.mu.Unlock()
 	}()
 
-	fmt.Println(s.name, "shutdown service ----------")
 	if instance, ok := any(s.instance).(ShutdownerWithContextAndError); ok {
 		return instance.Shutdown(ctx)
 	} else if instance, ok := any(s.instance).(ShutdownerWithError); ok {
