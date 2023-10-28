@@ -70,16 +70,24 @@ func (s *ServiceEager[T]) healthcheck(ctx context.Context) error {
 }
 
 func (s *ServiceEager[T]) isShutdowner() bool {
-	_, ok1 := any(s.instance).(ShutdownerWithContext)
-	_, ok2 := any(s.instance).(Shutdowner)
-	return ok1 || ok2
+	_, ok1 := any(s.instance).(ShutdownerWithContextAndError)
+	_, ok2 := any(s.instance).(ShutdownerWithError)
+	_, ok3 := any(s.instance).(ShutdownerWithContext)
+	_, ok4 := any(s.instance).(Shutdowner)
+	return ok1 || ok2 || ok3 || ok4
 }
 
 func (s *ServiceEager[T]) shutdown(ctx context.Context) error {
-	if instance, ok := any(s.instance).(ShutdownerWithContext); ok {
-		return instance.ShutdownWithContext(ctx)
-	} else if instance, ok := any(s.instance).(Shutdowner); ok {
+	if instance, ok := any(s.instance).(ShutdownerWithContextAndError); ok {
+		return instance.Shutdown(ctx)
+	} else if instance, ok := any(s.instance).(ShutdownerWithError); ok {
 		return instance.Shutdown()
+	} else if instance, ok := any(s.instance).(ShutdownerWithContext); ok {
+		instance.Shutdown(ctx)
+		return nil
+	} else if instance, ok := any(s.instance).(Shutdowner); ok {
+		instance.Shutdown()
+		return nil
 	}
 
 	return nil
