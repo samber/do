@@ -106,6 +106,14 @@ func TestRootScope_ShutdownOnSIGTERM(t *testing.T) {
 	// @TODO
 }
 
+func TestRootScope_ShutdownOnSIGTERMWithContext(t *testing.T) {
+	// @TODO
+}
+
 func TestRootScope_ShutdownOnSignals(t *testing.T) {
+	// @TODO
+}
+
+func TestRootScope_ShutdownOnSignalsWithContext(t *testing.T) {
 	// @TODO
 }
