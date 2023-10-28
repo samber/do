@@ -43,11 +43,18 @@ type HealthcheckerWithContext interface {
 }
 
 type Shutdowner interface {
+	Shutdown()
+}
+
+type ShutdownerWithError interface {
 	Shutdown() error
 }
 
 type ShutdownerWithContext interface {
-	ShutdownWithContext(context.Context) error
+	Shutdown(context.Context)
+}
+type ShutdownerWithContextAndError interface {
+	Shutdown(context.Context) error
 }
 
 var _ isHealthcheckerService = (Service[int])(nil)

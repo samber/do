@@ -2,6 +2,7 @@ package do
 
 import (
 	"context"
+	"fmt"
 	"reflect"
 	"sync"
 	"time"
@@ -125,34 +126,40 @@ func (s *ServiceLazy[T]) isShutdowner() bool {
 		return false
 	}
 
-	_, ok1 := any(s.instance).(ShutdownerWithContext)
-	_, ok2 := any(s.instance).(Shutdowner)
-	return ok1 || ok2
+	_, ok1 := any(s.instance).(ShutdownerWithContextAndError)
+	_, ok2 := any(s.instance).(ShutdownerWithError)
+	_, ok3 := any(s.instance).(ShutdownerWithContext)
+	_, ok4 := any(s.instance).(Shutdowner)
+	return ok1 || ok2 || ok3 || ok4
 }
 
 func (s *ServiceLazy[T]) shutdown(ctx context.Context) error {
 	s.mu.Lock()
-	defer s.mu.Unlock()
 
 	if !s.built {
+		s.mu.Unlock()
 		// @TODO: mark s.build as false ?
 		return nil
 	}
 
-	if instance, ok := any(s.instance).(ShutdownerWithContext); ok {
-		err := instance.ShutdownWithContext(ctx)
-		if err != nil {
-			return err
-		}
-	} else if instance, ok := any(s.instance).(Shutdowner); ok {
-		err := instance.Shutdown()
-		if err != nil {
-			return err
-		}
-	}
+	defer func() {
+		s.built = false
+		s.instance = empty[T]()
+		s.mu.Unlock()
+	}()
 
-	s.built = false
-	s.instance = empty[T]()
+	fmt.Println(s.name, "shutdown service ----------")
+	if instance, ok := any(s.instance).(ShutdownerWithContextAndError); ok {
+		return instance.Shutdown(ctx)
+	} else if instance, ok := any(s.instance).(ShutdownerWithError); ok {
+		return instance.Shutdown()
+	} else if instance, ok := any(s.instance).(ShutdownerWithContext); ok {
+		instance.Shutdown(ctx)
+		return nil
+	} else if instance, ok := any(s.instance).(Shutdowner); ok {
+		instance.Shutdown()
+		return nil
+	}
 
 	return nil
 }
