@@ -94,13 +94,26 @@ func (s *RootScope) CloneWithOpts(opts *InjectorOpts) *RootScope {
 // ShutdownOnSIGTERM listens for sigterm signal in order to graceful stop service.
 // It will block until receiving a sigterm signal.
 func (s *RootScope) ShutdownOnSIGTERM() error {
-	return s.ShutdownOnSignals(syscall.SIGTERM)
+	return s.ShutdownOnSignalsWithContext(context.Background(), syscall.SIGTERM)
+}
+
+// ShutdownOnSIGTERMWithContext listens for sigterm signal in order to graceful stop service.
+// It will block until receiving a sigterm signal.
+func (s *RootScope) ShutdownOnSIGTERMWithContext(ctx context.Context) error {
+	return s.ShutdownOnSignalsWithContext(ctx, syscall.SIGTERM)
 }
 
 // ShutdownOnSignals listens for signals defined in signals parameter in order to graceful stop service.
 // It will block until receiving any of these signal.
 // If no signal is provided in signals parameter, syscall.SIGTERM will be added as default signal.
 func (s *RootScope) ShutdownOnSignals(signals ...os.Signal) error {
+	return s.ShutdownOnSignalsWithContext(context.Background(), signals...)
+}
+
+// ShutdownOnSignalsWithContext listens for signals defined in signals parameter in order to graceful stop service.
+// It will block until receiving any of these signal.
+// If no signal is provided in signals parameter, syscall.SIGTERM will be added as default signal.
+func (s *RootScope) ShutdownOnSignalsWithContext(ctx context.Context, signals ...os.Signal) error {
 	// Make sure there is at least syscall.SIGTERM as a signal
 	if len(signals) < 1 {
 		signals = append(signals, syscall.SIGTERM)
@@ -113,5 +126,5 @@ func (s *RootScope) ShutdownOnSignals(signals ...os.Signal) error {
 	signal.Stop(ch)
 	close(ch)
 
-	return s.Shutdown()
+	return s.ShutdownWithContext(ctx)
 }
