@@ -11,6 +11,8 @@ type eagerTest struct {
 	foobar string
 }
 
+var _ Healthchecker = (*eagerTestHeathcheckerOK)(nil)
+
 type eagerTestHeathcheckerOK struct {
 	foobar string
 }
@@ -18,6 +20,8 @@ type eagerTestHeathcheckerOK struct {
 func (t *eagerTestHeathcheckerOK) HealthCheck() error {
 	return nil
 }
+
+var _ Healthchecker = (*eagerTestHeathcheckerKO)(nil)
 
 type eagerTestHeathcheckerKO struct {
 	foobar string
@@ -27,13 +31,17 @@ func (t *eagerTestHeathcheckerKO) HealthCheck() error {
 	return assert.AnError
 }
 
+var _ ShutdownerWithContextAndError = (*eagerTestShutdownerOK)(nil)
+
 type eagerTestShutdownerOK struct {
 	foobar string
 }
 
-func (t *eagerTestShutdownerOK) Shutdown() error {
+func (t *eagerTestShutdownerOK) Shutdown(ctx context.Context) error {
 	return nil
 }
+
+var _ ShutdownerWithError = (*eagerTestShutdownerKO)(nil)
 
 type eagerTestShutdownerKO struct {
 	foobar string
