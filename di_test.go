@@ -195,18 +195,18 @@ func TestProvideNamedValue(t *testing.T) {
 	// @TODO: check that all services share the same references
 }
 
-func TestProvideTransiant(t *testing.T) {
+func TestProvideTransient(t *testing.T) {
 	is := assert.New(t)
 
 	type test struct{}
 
 	i := New()
 
-	ProvideTransiant(i, func(i Injector) (*test, error) {
+	ProvideTransient(i, func(i Injector) (*test, error) {
 		return &test{}, nil
 	})
 
-	ProvideTransiant(i, func(i Injector) (test, error) {
+	ProvideTransient(i, func(i Injector) (test, error) {
 		return test{}, fmt.Errorf("error")
 	})
 
@@ -244,7 +244,7 @@ func TestProvideTransiant(t *testing.T) {
 
 	// @TODO: check that all services share the same references
 }
-func TestProvideNamedTransiant(t *testing.T) {
+func TestProvideNamedTransient(t *testing.T) {
 	is := assert.New(t)
 
 	type test struct{}
@@ -385,11 +385,11 @@ func TestOverrideNamedValue(t *testing.T) {
 	is.Equal(4, MustInvoke[*test](i).foobar)
 }
 
-func TestOverrideTransiant(t *testing.T) {
+func TestOverrideTransient(t *testing.T) {
 	// @TODO
 }
 
-func TestOverrideNamedTransiant(t *testing.T) {
+func TestOverrideNamedTransient(t *testing.T) {
 	// @TODO
 }
 
