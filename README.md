@@ -11,7 +11,7 @@
 
 **⚙️ A dependency injection toolkit based on Go 1.18+ Generics.**
 
-This library implements the Dependency Injection design pattern. It may replace the `uber/dig` fantastic package in simple Go projects. `samber/do` uses Go 1.18+ generics instead of reflection and therefore offers a typesafe interface.
+This library implements the Dependency Injection design pattern. It may replace the `uber/dig` fantastic package. `samber/do` uses Go 1.18+ generics instead of reflection and therefore offers a typesafe interface.
 
 **See also:**
 
@@ -22,9 +22,9 @@ This library implements the Dependency Injection design pattern. It may replace 
 
 I love the **short name** for such a utility library. This name is the sum of `DI` and `Go` and no Go package currently uses this name.
 
-## 🔥 Migration from v1
+## 🔥 Migration from v1 to v2
 
-- `do.Injector` has been transformed into an interface. Replace `*do.Injector` by `do.Injector`.
+[Documentation here](./MIGRATION-V1-TO-V2.md)
 
 ## 💡 Features
 
@@ -39,7 +39,7 @@ I love the **short name** for such a utility library. This name is the sum of `D
   - Health check
   - Graceful unload (shutdown)
   - Lifecycle hooks
-- Multi-level scopes (modules)
+- Scope (a.k.a modules) tree
   - Visibility control
   - Dependency grouping
 - Injector:
