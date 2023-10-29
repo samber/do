@@ -7,101 +7,101 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-type transiantTest struct {
+type transientTest struct {
 	foobar string
 }
 
 // nolint:unused
-type transiantTestHeathcheckerOK struct {
+type transientTestHeathcheckerOK struct {
 	foobar string
 }
 
 // nolint:unused
-func (t *transiantTestHeathcheckerOK) HealthCheck() error {
+func (t *transientTestHeathcheckerOK) HealthCheck() error {
 	return nil
 }
 
 // nolint:unused
-type transiantTestHeathcheckerKO struct {
+type transientTestHeathcheckerKO struct {
 	foobar string
 }
 
 // nolint:unused
-func (t *transiantTestHeathcheckerKO) HealthCheck() error {
+func (t *transientTestHeathcheckerKO) HealthCheck() error {
 	return assert.AnError
 }
 
 // nolint:unused
-type transiantTestShutdownerOK struct {
+type transientTestShutdownerOK struct {
 	foobar string
 }
 
 // nolint:unused
-func (t *transiantTestShutdownerOK) Shutdown() error {
+func (t *transientTestShutdownerOK) Shutdown() error {
 	return nil
 }
 
 // nolint:unused
-type transiantTestShutdownerKO struct {
+type transientTestShutdownerKO struct {
 	foobar string
 }
 
 // nolint:unused
-func (t *transiantTestShutdownerKO) Shutdown() error {
+func (t *transientTestShutdownerKO) Shutdown() error {
 	return assert.AnError
 }
 
-func TestNewServiceTransiant(t *testing.T) {
+func TestNewServiceTransient(t *testing.T) {
 	// @TODO
 }
 
-func TestServiceTransiant_getName(t *testing.T) {
+func TestServiceTransient_getName(t *testing.T) {
 	is := assert.New(t)
 
-	test := transiantTest{foobar: "foobar"}
+	test := transientTest{foobar: "foobar"}
 
 	provider1 := func(i Injector) (int, error) {
 		return 42, nil
 	}
-	provider2 := func(i Injector) (transiantTest, error) {
+	provider2 := func(i Injector) (transientTest, error) {
 		return test, nil
 	}
 
-	service1 := newServiceTransiant("foobar1", provider1)
+	service1 := newServiceTransient("foobar1", provider1)
 	is.Equal("foobar1", service1.getName())
 
-	service2 := newServiceTransiant("foobar2", provider2)
+	service2 := newServiceTransient("foobar2", provider2)
 	is.Equal("foobar2", service2.getName())
 }
 
-func TestServiceTransiant_getType(t *testing.T) {
+func TestServiceTransient_getType(t *testing.T) {
 	is := assert.New(t)
 
-	test := transiantTest{foobar: "foobar"}
+	test := transientTest{foobar: "foobar"}
 
 	provider1 := func(i Injector) (int, error) {
 		return 42, nil
 	}
-	provider2 := func(i Injector) (transiantTest, error) {
+	provider2 := func(i Injector) (transientTest, error) {
 		return test, nil
 	}
 
-	service1 := newServiceTransiant("foobar1", provider1)
-	is.Equal(ServiceTypeTransiant, service1.getType())
+	service1 := newServiceTransient("foobar1", provider1)
+	is.Equal(ServiceTypeTransient, service1.getType())
 
-	service2 := newServiceTransiant("foobar2", provider2)
-	is.Equal(ServiceTypeTransiant, service2.getType())
+	service2 := newServiceTransient("foobar2", provider2)
+	is.Equal(ServiceTypeTransient, service2.getType())
 }
 
-func TestServiceTransiant_getInstance(t *testing.T) {
+func TestServiceTransient_getInstance(t *testing.T) {
 	is := assert.New(t)
 
-	test := transiantTest{foobar: "foobar"}
+	test := transientTest{foobar: "foobar"}
 
 	provider1 := func(i Injector) (int, error) {
 		return 42, nil
 	}
-	provider2 := func(i Injector) (transiantTest, error) {
+	provider2 := func(i Injector) (transientTest, error) {
 		return test, nil
 	}
 	provider3 := func(i Injector) (int, error) {
@@ -117,26 +117,26 @@ func TestServiceTransiant_getInstance(t *testing.T) {
 	i := New()
 
 	// basic type
-	service1 := newServiceTransiant("foobar", provider1).(*ServiceTransiant[int])
+	service1 := newServiceTransient("foobar", provider1).(*ServiceTransient[int])
 	instance1, err1 := service1.getInstance(i)
 	is.Nil(err1)
 	is.Equal(42, instance1)
 
 	// struct
-	service2 := newServiceTransiant("hello", provider2).(*ServiceTransiant[transiantTest])
+	service2 := newServiceTransient("hello", provider2).(*ServiceTransient[transientTest])
 	instance2, err2 := service2.getInstance(i)
 	is.Nil(err2)
 	is.Equal(test, instance2)
 
 	// provider panics, but panic is catched by getInstance
 	is.NotPanics(func() {
-		service3 := newServiceTransiant("baz", provider3)
+		service3 := newServiceTransient("baz", provider3)
 		_, _ = service3.getInstance(i)
 	})
 
 	// provider panics, but panic is catched by getInstance
 	is.NotPanics(func() {
-		service4 := newServiceTransiant("plop", provider4)
+		service4 := newServiceTransient("plop", provider4)
 		instance4, err4 := service4.getInstance(i)
 		is.NotNil(err4)
 		is.Empty(instance4)
@@ -146,7 +146,7 @@ func TestServiceTransiant_getInstance(t *testing.T) {
 
 	// provider returning error
 	is.NotPanics(func() {
-		service5 := newServiceTransiant("plop", provider5)
+		service5 := newServiceTransient("plop", provider5)
 		instance5, err5 := service5.getInstance(i)
 		is.NotNil(err5)
 		is.Empty(instance5)
@@ -155,34 +155,34 @@ func TestServiceTransiant_getInstance(t *testing.T) {
 	})
 }
 
-func TestServiceTransiant_isHealthchecker(t *testing.T) {
+func TestServiceTransient_isHealthchecker(t *testing.T) {
 	// @TODO
 }
 
-func TestServiceTransiant_healthcheck(t *testing.T) {
+func TestServiceTransient_healthcheck(t *testing.T) {
 	// @TODO
 }
 
-func TestServiceTransiant_isShutdowner(t *testing.T) {
+func TestServiceTransient_isShutdowner(t *testing.T) {
 	// @TODO
 }
 
-func TestServiceTransiant_shutdown(t *testing.T) {
+func TestServiceTransient_shutdown(t *testing.T) {
 	// @TODO
 }
 
-func TestServiceTransiant_clone(t *testing.T) {
+func TestServiceTransient_clone(t *testing.T) {
 	// @TODO
 	is := assert.New(t)
 
 	// initial
-	service1 := newServiceTransiant("foobar", func(i Injector) (transiantTest, error) {
-		return transiantTest{foobar: "foobar"}, nil
-	}).(*ServiceTransiant[transiantTest])
+	service1 := newServiceTransient("foobar", func(i Injector) (transientTest, error) {
+		return transientTest{foobar: "foobar"}, nil
+	}).(*ServiceTransient[transientTest])
 	is.Equal("foobar", service1.getName())
 
 	// clone
-	service2, ok := service1.clone().(*ServiceTransiant[transiantTest])
+	service2, ok := service1.clone().(*ServiceTransient[transientTest])
 	is.True(ok)
 	is.Equal("foobar", service2.getName())
 
@@ -192,6 +192,6 @@ func TestServiceTransiant_clone(t *testing.T) {
 	is.Equal("foobar", service2.getName())
 }
 
-func TestServiceTransiant_locate(t *testing.T) {
+func TestServiceTransient_source(t *testing.T) {
 	// @TODO
 }

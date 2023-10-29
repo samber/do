@@ -79,7 +79,7 @@ func DescribeNamedService[T any](scope Injector, name string) (output string, ok
 	), true
 }
 
-// @TODO: add service type icon (lazy, eager, transiant)
+// @TODO: add service type icon (lazy, eager, transient)
 var describeServiceDepsTemplate = `{{range .}}
 * {{.Service}} from scope {{.ScopeName}}{{.Recursive}}{{end}}`
 

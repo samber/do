@@ -176,6 +176,6 @@ func (s *ServiceLazy[T]) clone() any {
 }
 
 //nolint:unused
-func (s *ServiceLazy[T]) locate() (stacktrace.Frame, []stacktrace.Frame) {
+func (s *ServiceLazy[T]) source() (stacktrace.Frame, []stacktrace.Frame) {
 	return s.providerFrame, s.invokationFrames
 }

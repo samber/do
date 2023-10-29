@@ -195,6 +195,6 @@ func TestServiceEager_clone(t *testing.T) {
 	is.Equal("foobar", service2.getName())
 }
 
-func TestServiceEager_locate(t *testing.T) {
+func TestServiceEager_source(t *testing.T) {
 	// @TODO
 }

@@ -105,6 +105,6 @@ func (s *ServiceEager[T]) clone() any {
 }
 
 // nolint:unused
-func (s *ServiceEager[T]) locate() (stacktrace.Frame, []stacktrace.Frame) {
+func (s *ServiceEager[T]) source() (stacktrace.Frame, []stacktrace.Frame) {
 	return s.providerFrame, s.invokationFrames
 }

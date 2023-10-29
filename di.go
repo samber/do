@@ -22,13 +22,13 @@ func ProvideNamedValue[T any](i Injector, name string, value T) {
 	provide(i, name, value, newServiceEager[T])
 }
 
-func ProvideTransiant[T any](i Injector, provider Provider[T]) {
+func ProvideTransient[T any](i Injector, provider Provider[T]) {
 	name := inferServiceName[T]()
-	ProvideNamedTransiant[T](i, name, provider)
+	ProvideNamedTransient[T](i, name, provider)
 }
 
-func ProvideNamedTransiant[T any](i Injector, name string, provider Provider[T]) {
-	provide(i, name, provider, newServiceTransiant[T])
+func ProvideNamedTransient[T any](i Injector, name string, provider Provider[T]) {
+	provide(i, name, provider, newServiceTransient[T])
 }
 
 func provide[T any, A any](i Injector, name string, valueOrProvider A, serviceCtor func(string, A) Service[T]) {
@@ -61,13 +61,13 @@ func OverrideNamedValue[T any](i Injector, name string, value T) {
 	override(i, name, value, newServiceEager[T])
 }
 
-func OverrideTransiant[T any](i Injector, provider Provider[T]) {
+func OverrideTransient[T any](i Injector, provider Provider[T]) {
 	name := inferServiceName[T]()
 	OverrideNamed[T](i, name, provider)
 }
 
-func OverrideNamedTransiant[T any](i Injector, name string, provider Provider[T]) {
-	override(i, name, provider, newServiceTransiant[T])
+func OverrideNamedTransient[T any](i Injector, name string, provider Provider[T]) {
+	override(i, name, provider, newServiceTransient[T])
 }
 
 func override[T any, A any](i Injector, name string, valueOrProvider A, serviceCtor func(string, A) Service[T]) {
