@@ -141,6 +141,7 @@ DAG:{{.DAG}}
 
 const scopePrefixTemplate = "    "
 
+// DescribeInjector returns a human readable description of the injector, with services and scope tree.
 func DescribeInjector(scope Injector) (output string, ok bool) {
 	_i := getInjectorOrDefault(scope)
 

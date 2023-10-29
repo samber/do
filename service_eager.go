@@ -46,7 +46,7 @@ func (s *ServiceEager[T]) getInstance(i Injector) (T, error) {
 	frame, ok := stacktrace.NewFrameFromCaller()
 	if ok {
 		s.mu.Lock()
-		s.invokationFrames = append(s.invokationFrames, frame)
+		s.invokationFrames = append(s.invokationFrames, frame) // @TODO: potential memory leak
 		s.mu.Unlock()
 	}
 
