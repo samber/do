@@ -186,7 +186,6 @@ func (s *Scope) Shutdown() error {
 }
 
 func (s *Scope) ShutdownWithContext(ctx context.Context) error {
-
 	s.mu.RLock()
 	children := s.childScopes
 	orderedInvocationIndex := s.orderedInvocationIndex
@@ -259,6 +258,22 @@ func (s *Scope) serviceExist(name string) bool {
 
 	_, ok := s.services[name]
 	return ok
+}
+
+func (s *Scope) serviceExistRec(name string) bool {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	_, ok := s.services[name]
+	if ok {
+		return ok
+	}
+
+	if s.parentScope == nil {
+		return false
+	}
+
+	return s.parentScope.serviceExistRec(name)
 }
 
 func (s *Scope) serviceGet(name string) (any, bool) {
