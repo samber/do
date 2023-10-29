@@ -59,7 +59,7 @@ func (s *ServiceLazy[T]) getInstance(i Injector) (T, error) {
 	defer s.mu.Unlock()
 
 	if ok {
-		s.invokationFrames = append(s.invokationFrames, frame)
+		s.invokationFrames = append(s.invokationFrames, frame) // @TODO: potential memory leak
 	}
 
 	if !s.built {

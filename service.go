@@ -14,12 +14,14 @@ const (
 	ServiceTypeLazy      ServiceType = "lazy"
 	ServiceTypeEager     ServiceType = "eager"
 	ServiceTypeTransient ServiceType = "transient"
+	ServiceTypeAlias     ServiceType = "alias"
 )
 
 var serviceTypeToIcon = map[ServiceType]string{
 	ServiceTypeLazy:      "😴",
 	ServiceTypeEager:     "🔁",
 	ServiceTypeTransient: "🏭",
+	ServiceTypeAlias:     "🔗",
 }
 
 type Service[T any] interface {
@@ -100,6 +102,8 @@ func inferServiceType[T any](service Service[T]) ServiceType {
 		return ServiceTypeEager
 	case *ServiceTransient[T]:
 		return ServiceTypeTransient
+	case *ServiceAlias[T]:
+		return ServiceTypeAlias
 	}
 
 	panic(fmt.Errorf("DI: unknown service type"))
@@ -113,6 +117,8 @@ func inferServiceStacktrace[T any](service Service[T]) (stacktrace.Frame, bool) 
 		return s.providerFrame, true
 	case *ServiceTransient[T]:
 		return stacktrace.Frame{}, false
+	case *ServiceAlias[T]:
+		return s.providerFrame, true
 	}
 
 	panic(fmt.Errorf("DI: unknown service type"))

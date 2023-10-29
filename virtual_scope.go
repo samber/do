@@ -33,6 +33,7 @@ func (s *virtualScope) ShutdownWithContext(ctx context.Context) error {
 }
 func (s *virtualScope) clone(r *RootScope, p *Scope) *Scope        { return s.self.clone(r, p) }
 func (s *virtualScope) serviceExist(name string) bool              { return s.self.serviceExist(name) }
+func (s *virtualScope) serviceExistRec(name string) bool           { return s.self.serviceExistRec(name) }
 func (s *virtualScope) serviceGet(name string) (any, bool)         { return s.self.serviceGet(name) }
 func (s *virtualScope) serviceGetRec(n string) (any, *Scope, bool) { return s.self.serviceGetRec(n) }
 func (s *virtualScope) serviceSet(name string, service any)        { s.self.serviceSet(name, service) }

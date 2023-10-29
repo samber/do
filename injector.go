@@ -22,6 +22,7 @@ type Injector interface {
 
 	// service lifecycle
 	serviceExist(string) bool
+	serviceExistRec(string) bool
 	serviceGet(string) (any, bool)
 	serviceGetRec(string) (any, *Scope, bool)
 	serviceSet(string, any)
