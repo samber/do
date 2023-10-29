@@ -151,7 +151,7 @@ func TestDescribeInjector(t *testing.T) {
 	ProvideNamed(scope1a, "SERVICE-D", fakeProvider4)
 	ProvideNamed(scope1a, "SERVICE-E", fakeProvider5)
 	ProvideNamed(scope1b, "SERVICE-F", fakeProvider6)
-	ProvideNamedTransiant[*lazyTest](scope2a, "SERVICE-TRANSIANT-SIMPLE", func(i Injector) (*lazyTest, error) { return &lazyTest{}, nil })
+	ProvideNamedTransient[*lazyTest](scope2a, "SERVICE-TRANSIENT-SIMPLE", func(i Injector) (*lazyTest, error) { return &lazyTest{}, nil })
 	ProvideNamed[*lazyTestHeathcheckerOK](scope2a, "SERVICE-LAZY-HEALTH", func(i Injector) (*lazyTestHeathcheckerOK, error) { return &lazyTestHeathcheckerOK{}, nil })
 	ProvideNamed[*lazyTestShutdownerOK](scope2b, "SERVICE-LAZY-SHUTDOWN", func(i Injector) (*lazyTestShutdownerOK, error) { return &lazyTestShutdownerOK{}, nil })
 	ProvideNamedValue[int](scope1a, "SERVICE-EAGER-VALUE", 1)
@@ -185,7 +185,7 @@ DAG:
          |    |
          |    |\_ scope-2a (ID: scope-id-2a)
          |    |    * 😴 SERVICE-LAZY-HEALTH 🏥
-         |    |    * 🏭 SERVICE-TRANSIANT-SIMPLE
+         |    |    * 🏭 SERVICE-TRANSIENT-SIMPLE
          |    |     
          |    |
          |     \_ scope-2b (ID: scope-id-2b)
@@ -226,7 +226,7 @@ DAG:
          |    |
          |    |\_ scope-2a (ID: scope-id-2a)
          |    |    * 😴 SERVICE-LAZY-HEALTH 🏥
-         |    |    * 🏭 SERVICE-TRANSIANT-SIMPLE
+         |    |    * 🏭 SERVICE-TRANSIENT-SIMPLE
          |    |     
          |    |
          |     \_ scope-2b (ID: scope-id-2b)
@@ -267,7 +267,7 @@ DAG:
               |
               |\_ scope-2a (ID: scope-id-2a)
               |    * 😴 SERVICE-LAZY-HEALTH 🏥
-              |    * 🏭 SERVICE-TRANSIANT-SIMPLE
+              |    * 🏭 SERVICE-TRANSIENT-SIMPLE
               |     
               |
                \_ scope-2b (ID: scope-id-2b)
@@ -328,7 +328,7 @@ DAG:
               |
                \_ scope-2a (ID: scope-id-2a)
                    * 😴 SERVICE-LAZY-HEALTH 🏥
-                   * 🏭 SERVICE-TRANSIANT-SIMPLE
+                   * 🏭 SERVICE-TRANSIENT-SIMPLE
                     
 `
 	output, ok = DescribeInjector(scope2a)
