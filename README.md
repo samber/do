@@ -34,6 +34,7 @@ I love the **short name** for such a utility library. This name is the sum of `D
 - Service invocation
   - Eager loading
   - Lazy loading
+  - Transient loading
 - Service lifecycle:
   - Health check
   - Graceful unload (shutdown)

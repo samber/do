@@ -383,6 +383,6 @@ func TestServiceLazy_clone(t *testing.T) {
 	is.Equal("foobar", service2.getName())
 }
 
-func TestServiceLazy_locate(t *testing.T) {
+func TestServiceLazy_source(t *testing.T) {
 	// @TODO
 }
