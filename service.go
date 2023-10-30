@@ -94,11 +94,7 @@ func inferServiceName[T any]() string {
 	return typetostring.GetType[T]()
 }
 
-func inferServiceType[T any](service Service[T]) ServiceType {
-	return service.getType()
-}
-
-func inferServiceStacktrace[T any](service Service[T]) (stacktrace.Frame, bool) {
+func inferServiceProviderStacktrace[T any](service Service[T]) (stacktrace.Frame, bool) {
 	if service.getType() == ServiceTypeTransient {
 		return stacktrace.Frame{}, false
 	} else {
