@@ -18,6 +18,10 @@ func TestAs(t *testing.T) {
 	is.EqualError(As[*lazyTestShutdownerOK, *lazyTestShutdownerOK](i), "DI: service `*github.com/samber/do/v2.lazyTestShutdownerOK` has not been declared")
 }
 
+func TestMustAs(t *testing.T) {
+	// @TODO
+}
+
 func TestAsNamed(t *testing.T) {
 	is := assert.New(t)
 
@@ -28,4 +32,8 @@ func TestAsNamed(t *testing.T) {
 	is.EqualError(AsNamed[*lazyTestShutdownerOK, Healthchecker](i, "*github.com/samber/do/v2.lazyTestShutdownerOK", "*github.com/samber/do/v2.Healthchecker"), "DI: `*github.com/samber/do/v2.lazyTestShutdownerOK` is not `*github.com/samber/do/v2.Healthchecker`")
 	is.EqualError(AsNamed[*lazyTestHeathcheckerKO, Healthchecker](i, "*github.com/samber/do/v2.lazyTestHeathcheckerKO", "*github.com/samber/do/v2.Healthchecker"), "DI: service `*github.com/samber/do/v2.lazyTestHeathcheckerKO` has not been declared")
 	is.EqualError(AsNamed[*lazyTestShutdownerOK, *lazyTestShutdownerOK](i, "*github.com/samber/do/v2.lazyTestShutdownerOK", "*github.com/samber/do/v2.lazyTestShutdownerOK"), "DI: service `*github.com/samber/do/v2.lazyTestShutdownerOK` has not been declared")
+}
+
+func TestMustAsNamed(t *testing.T) {
+	// @TODO
 }
