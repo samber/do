@@ -2,7 +2,6 @@ package do
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/samber/do/v2/stacktrace"
 	typetostring "github.com/samber/go-type-to-string"
@@ -55,6 +54,7 @@ type ShutdownerWithError interface {
 type ShutdownerWithContext interface {
 	Shutdown(context.Context)
 }
+
 type ShutdownerWithContextAndError interface {
 	Shutdown(context.Context) error
 }
@@ -95,33 +95,16 @@ func inferServiceName[T any]() string {
 }
 
 func inferServiceType[T any](service Service[T]) ServiceType {
-	switch service.(type) {
-	case *ServiceLazy[T]:
-		return ServiceTypeLazy
-	case *ServiceEager[T]:
-		return ServiceTypeEager
-	case *ServiceTransient[T]:
-		return ServiceTypeTransient
-	case *ServiceAlias[T]:
-		return ServiceTypeAlias
-	}
-
-	panic(fmt.Errorf("DI: unknown service type"))
+	return service.getType()
 }
 
 func inferServiceStacktrace[T any](service Service[T]) (stacktrace.Frame, bool) {
-	switch s := service.(type) {
-	case *ServiceLazy[T]:
-		return s.providerFrame, true
-	case *ServiceEager[T]:
-		return s.providerFrame, true
-	case *ServiceTransient[T]:
+	if service.getType() == ServiceTypeTransient {
 		return stacktrace.Frame{}, false
-	case *ServiceAlias[T]:
-		return s.providerFrame, true
+	} else {
+		providerFrame, _ := service.source()
+		return providerFrame, true
 	}
-
-	panic(fmt.Errorf("DI: unknown service type"))
 }
 
 type serviceInfo struct {

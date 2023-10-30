@@ -18,7 +18,7 @@ type ServiceTransient[T any] struct {
 	provider Provider[T]
 }
 
-func newServiceTransient[T any](name string, provider Provider[T]) Service[T] {
+func newServiceTransient[T any](name string, provider Provider[T]) *ServiceTransient[T] {
 	return &ServiceTransient[T]{
 		name: name,
 

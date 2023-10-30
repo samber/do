@@ -12,10 +12,12 @@ const DefaultRootScopeName = "[root]"
 var DefaultRootScope *RootScope = New()
 var noOpLogf = func(format string, args ...any) {}
 
+// New creates a new injector.
 func New() *RootScope {
 	return NewWithOpts(&InjectorOpts{})
 }
 
+// NewWithOpts creates a new injector with options.
 func NewWithOpts(opts *InjectorOpts) *RootScope {
 	if opts.Logf == nil {
 		opts.Logf = noOpLogf
@@ -35,6 +37,7 @@ func NewWithOpts(opts *InjectorOpts) *RootScope {
 
 var _ Injector = (*RootScope)(nil)
 
+// RootScope is the first level of scope tree.
 type RootScope struct {
 	self *Scope
 

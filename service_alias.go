@@ -8,12 +8,12 @@ import (
 	"github.com/samber/do/v2/stacktrace"
 )
 
-var _ Service[int] = (*ServiceAlias[int])(nil)
-var _ healthcheckerService = (*ServiceAlias[int])(nil)
-var _ shutdownerService = (*ServiceAlias[int])(nil)
-var _ clonerService = (*ServiceAlias[int])(nil)
+var _ Service[int] = (*ServiceAlias[int, int])(nil)
+var _ healthcheckerService = (*ServiceAlias[int, int])(nil)
+var _ shutdownerService = (*ServiceAlias[int, int])(nil)
+var _ clonerService = (*ServiceAlias[int, int])(nil)
 
-type ServiceAlias[T any] struct {
+type ServiceAlias[Initial any, Alias any] struct {
 	mu         sync.RWMutex
 	name       string
 	scope      Injector
@@ -23,10 +23,10 @@ type ServiceAlias[T any] struct {
 	invokationFrames []stacktrace.Frame
 }
 
-func newServiceAlias[T any](name string, scope Injector, targetName string) Service[T] {
+func newServiceAlias[Initial any, Alias any](name string, scope Injector, targetName string) *ServiceAlias[Initial, Alias] {
 	providerFrame, _ := stacktrace.NewFrameFromCaller()
 
-	return &ServiceAlias[T]{
+	return &ServiceAlias[Initial, Alias]{
 		mu:         sync.RWMutex{},
 		name:       name,
 		scope:      scope,
@@ -37,15 +37,15 @@ func newServiceAlias[T any](name string, scope Injector, targetName string) Serv
 	}
 }
 
-func (s *ServiceAlias[T]) getName() string {
+func (s *ServiceAlias[Initial, Alias]) getName() string {
 	return s.name
 }
 
-func (s *ServiceAlias[T]) getType() ServiceType {
+func (s *ServiceAlias[Initial, Alias]) getType() ServiceType {
 	return ServiceTypeAlias
 }
 
-func (s *ServiceAlias[T]) getInstance(i Injector) (T, error) {
+func (s *ServiceAlias[Initial, Alias]) getInstance(i Injector) (Alias, error) {
 	frame, ok := stacktrace.NewFrameFromCaller()
 	if ok {
 		s.mu.Lock()
@@ -53,81 +53,86 @@ func (s *ServiceAlias[T]) getInstance(i Injector) (T, error) {
 		s.mu.Unlock()
 	}
 
-	instance, _, ok := s.scope.serviceGetRec(s.targetName)
-	if !ok {
-		return empty[T](), serviceNotFound(i, s.name)
+	instance, err := invoke[Initial](s.scope, s.targetName)
+	if err != nil {
+		return empty[Alias](), err
 	}
 
-	target, ok := any(instance).(T)
-	if !ok {
-		return empty[T](), fmt.Errorf("DI: could not cast service `%s` to type `%s`", s.name, s.targetName)
+	switch target := any(instance).(type) {
+	case Alias:
+		return target, nil
+	default:
+		// should never happen, since invoke() checks the type
+		return empty[Alias](), fmt.Errorf("DI: could not cast `%s` as `%s`", s.targetName, s.name)
 	}
-
-	return target, nil
 }
 
-func (s *ServiceAlias[T]) isHealthchecker() bool {
-	instance, _, ok := s.scope.serviceGetRec(s.targetName)
+func (s *ServiceAlias[Initial, Alias]) isHealthchecker() bool {
+	serviceAny, _, ok := s.scope.serviceGetRec(s.targetName)
 	if !ok {
 		return false
 	}
 
-	_, ok1 := any(instance).(HealthcheckerWithContext)
-	_, ok2 := any(instance).(Healthchecker)
-	return ok1 || ok2
-}
-
-func (s *ServiceAlias[T]) healthcheck(ctx context.Context) error {
-	instance, _, ok := s.scope.serviceGetRec(s.targetName)
-	if !ok {
-		return nil
-	}
-
-	if instance, ok := any(instance).(HealthcheckerWithContext); ok {
-		return instance.HealthCheckWithContext(ctx)
-	} else if instance, ok := any(instance).(Healthchecker); ok {
-		return instance.HealthCheck()
-	}
-
-	return nil
-}
-
-func (s *ServiceAlias[T]) isShutdowner() bool {
-	instance, _, ok := s.scope.serviceGetRec(s.targetName)
+	service, ok := serviceAny.(Service[Initial])
 	if !ok {
 		return false
 	}
 
-	_, ok1 := any(instance).(ShutdownerWithContextAndError)
-	_, ok2 := any(instance).(ShutdownerWithError)
-	_, ok3 := any(instance).(ShutdownerWithContext)
-	_, ok4 := any(instance).(Shutdowner)
-	return ok1 || ok2 || ok3 || ok4
+	// @TODO: check convertible to `Alias`?
+
+	return service.isHealthchecker()
 }
 
-func (s *ServiceAlias[T]) shutdown(ctx context.Context) error {
-	instance, _, ok := s.scope.serviceGetRec(s.targetName)
+func (s *ServiceAlias[Initial, Alias]) healthcheck(ctx context.Context) error {
+	serviceAny, _, ok := s.scope.serviceGetRec(s.targetName)
 	if !ok {
 		return nil
 	}
 
-	if instance, ok := any(instance).(ShutdownerWithContextAndError); ok {
-		return instance.Shutdown(ctx)
-	} else if instance, ok := any(instance).(ShutdownerWithError); ok {
-		return instance.Shutdown()
-	} else if instance, ok := any(instance).(ShutdownerWithContext); ok {
-		instance.Shutdown(ctx)
-		return nil
-	} else if instance, ok := any(instance).(Shutdowner); ok {
-		instance.Shutdown()
+	service, ok := serviceAny.(Service[Initial])
+	if !ok {
 		return nil
 	}
 
-	return nil
+	// @TODO: check convertible to `Alias`?
+
+	return service.healthcheck(ctx)
 }
 
-func (s *ServiceAlias[T]) clone() any {
-	return &ServiceAlias[T]{
+func (s *ServiceAlias[Initial, Alias]) isShutdowner() bool {
+	serviceAny, _, ok := s.scope.serviceGetRec(s.targetName)
+	if !ok {
+		return false
+	}
+
+	service, ok := serviceAny.(Service[Initial])
+	if !ok {
+		return false
+	}
+
+	// @TODO: check convertible to `Alias`?
+
+	return service.isShutdowner()
+}
+
+func (s *ServiceAlias[Initial, Alias]) shutdown(ctx context.Context) error {
+	serviceAny, _, ok := s.scope.serviceGetRec(s.targetName)
+	if !ok {
+		return nil
+	}
+
+	service, ok := serviceAny.(Service[Initial])
+	if !ok {
+		return nil
+	}
+
+	// @TODO: check convertible to `Alias`?
+
+	return service.shutdown(ctx)
+}
+
+func (s *ServiceAlias[Initial, Alias]) clone() any {
+	return &ServiceAlias[Initial, Alias]{
 		mu:   sync.RWMutex{},
 		name: s.name,
 		// scope:      s.scope,		<-- we should inject here the cloned scope
@@ -139,6 +144,6 @@ func (s *ServiceAlias[T]) clone() any {
 }
 
 // nolint:unused
-func (s *ServiceAlias[T]) source() (stacktrace.Frame, []stacktrace.Frame) {
+func (s *ServiceAlias[Initial, Alias]) source() (stacktrace.Frame, []stacktrace.Frame) {
 	return s.providerFrame, s.invokationFrames
 }
