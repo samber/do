@@ -79,4 +79,6 @@ func TestServiceNotFound(t *testing.T) {
 	child3.serviceSet("child3-a", newServiceLazy("child3-a", func(i Injector) (int, error) { return 5, nil }))
 
 	is.EqualError(serviceNotFound(child1, "not-found"), "DI: could not find service `not-found`, available services: `child1-a`, `root-a`")
+
+	// @TODO: test service ordering
 }

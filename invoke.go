@@ -2,6 +2,7 @@ package do
 
 import (
 	"fmt"
+	"sort"
 	"strings"
 )
 
@@ -54,6 +55,11 @@ func serviceNotFound(injector Injector, name string) error {
 	servicesNames := mAp(services, func(edge EdgeService, _ int) string {
 		return fmt.Sprintf("`%s`", edge.Service)
 	})
+
+	// cool for unit tests
+	sorter := sort.StringSlice(servicesNames)
+	sorter.Sort()
+	servicesNames = []string(sorter)
 
 	return fmt.Errorf("DI: could not find service `%s`, available services: %s", name, strings.Join(servicesNames, ", "))
 }

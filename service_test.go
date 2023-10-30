@@ -12,6 +12,7 @@ func TestInferServiceType(t *testing.T) {
 	svc1 := newServiceLazy[int]("foobar1", func(i Injector) (int, error) { return 42, nil })
 	svc2 := newServiceEager[int]("foobar2", 42)
 	svc3 := newServiceTransient[int]("foobar3", func(i Injector) (int, error) { return 42, nil })
+	svc4 := newServiceAlias[int, int]("foobar4", New(), "foobar5")
 
 	is.Equal(ServiceTypeLazy, inferServiceType(svc1))
 	is.Equal(ServiceTypeEager, inferServiceType(svc2))
@@ -19,6 +20,17 @@ func TestInferServiceType(t *testing.T) {
 	is.Panics(func() {
 		is.Equal(ServiceTypeTransient, inferServiceType[string](any(svc3).(Service[string])))
 	})
+	is.Equal(ServiceTypeAlias, inferServiceType(svc4))
+}
+
+func TestInferServiceName(t *testing.T) {
+	is := assert.New(t)
+
+	// more tests in the package
+	is.Equal("int", inferServiceName[int]())
+	is.Equal("github.com/samber/do/v2.eagerTest", inferServiceName[eagerTest]())
+	is.Equal("*github.com/samber/do/v2.eagerTest", inferServiceName[*eagerTest]())
+	is.Equal("*github.com/samber/do/v2.Healthchecker", inferServiceName[Healthchecker]())
 }
 
 func TestInferServiceStacktrace(t *testing.T) {

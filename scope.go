@@ -24,6 +24,7 @@ func newScope(name string, root *RootScope, parent *Scope) *Scope {
 
 var _ Injector = (*Scope)(nil)
 
+// Scope is a DI container. It must be created with injector.Scope("name") method.
 type Scope struct {
 	id          string            // immutable
 	name        string            // immutable
@@ -39,14 +40,17 @@ type Scope struct {
 	orderedInvocationIndex int
 }
 
+// ID returns the unique identifier of the scope.
 func (s *Scope) ID() string {
 	return s.id
 }
 
+// Name returns the name of the scope.
 func (s *Scope) Name() string {
 	return s.name
 }
 
+// Scope creates a new child scope.
 func (s *Scope) Scope(name string) *Scope {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -61,10 +65,12 @@ func (s *Scope) Scope(name string) *Scope {
 	return child
 }
 
+// RootScope returns the root scope.
 func (s *Scope) RootScope() *RootScope {
 	return s.rootScope
 }
 
+// Ancestors returns the list of parent scopes recursively.
 func (s *Scope) Ancestors() []*Scope {
 	if s.parentScope == nil {
 		return []*Scope{}
@@ -73,6 +79,7 @@ func (s *Scope) Ancestors() []*Scope {
 	return append([]*Scope{s.parentScope}, s.parentScope.Ancestors()...)
 }
 
+// Children returns the list of immediate child scopes.
 func (s *Scope) Children() []*Scope {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
@@ -85,6 +92,7 @@ func (s *Scope) Children() []*Scope {
 	return scopes
 }
 
+// ChildByID returns the child scope recursively by its ID.
 func (s *Scope) ChildByID(id string) (*Scope, bool) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
@@ -102,6 +110,7 @@ func (s *Scope) ChildByID(id string) (*Scope, bool) {
 	return nil, false
 }
 
+// ChildByName returns the child scope recursively by its name.
 func (s *Scope) ChildByName(name string) (*Scope, bool) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
@@ -119,6 +128,7 @@ func (s *Scope) ChildByName(name string) (*Scope, bool) {
 	return nil, false
 }
 
+// ListProvidedServices returns the list of services provided by the scope.
 func (s *Scope) ListProvidedServices() []EdgeService {
 	s.mu.RLock()
 	edges := mAp(keys(s.services), func(name string, _ int) EdgeService {
@@ -135,6 +145,7 @@ func (s *Scope) ListProvidedServices() []EdgeService {
 	return orderedUniq(edges)
 }
 
+// ListInvokedServices returns the list of services invoked by the scope.
 func (s *Scope) ListInvokedServices() []EdgeService {
 	s.mu.RLock()
 	edges := mAp(keys(s.orderedInvocation), func(name string, _ int) EdgeService {
@@ -151,10 +162,12 @@ func (s *Scope) ListInvokedServices() []EdgeService {
 	return orderedUniq(edges)
 }
 
+// HealthCheck returns the healthcheck results of the scope, in a map of service name to error.
 func (s *Scope) HealthCheck() map[string]error {
 	return s.HealthCheckWithContext(context.Background())
 }
 
+// HealthCheckWithContext returns the healthcheck results of the scope, in a map of service name to error.
 func (s *Scope) HealthCheckWithContext(ctx context.Context) map[string]error {
 	results := map[string]error{}
 
@@ -181,10 +194,12 @@ func (s *Scope) HealthCheckWithContext(ctx context.Context) map[string]error {
 	return results
 }
 
+// Shutdown shutdowns the scope and all its children.
 func (s *Scope) Shutdown() error {
 	return s.ShutdownWithContext(context.Background())
 }
 
+// ShutdownWithContext shutdowns the scope and all its children.
 func (s *Scope) ShutdownWithContext(ctx context.Context) error {
 	s.mu.RLock()
 	children := s.childScopes

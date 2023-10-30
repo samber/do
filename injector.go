@@ -2,6 +2,7 @@ package do
 
 import "context"
 
+// Injector is a DI container.
 type Injector interface {
 	// api
 	ID() string

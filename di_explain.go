@@ -7,7 +7,7 @@ func ExplainService[T any](scope Injector) (dependencies []EdgeService, dependen
 	return ExplainNamedService(scope, name)
 }
 
-// ExplainService returns a list of dependencies and dependents of a named service.
+// ExplainNamedService returns a list of dependencies and dependents of a named service.
 func ExplainNamedService(scope Injector, name string) (dependencies []EdgeService, dependents []EdgeService, ok bool) {
 	_i := getInjectorOrDefault(scope)
 

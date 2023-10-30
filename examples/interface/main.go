@@ -19,6 +19,10 @@ func main() {
 	// provide engine
 	do.Provide(injector, NewEngine)
 
+	// magic happens here
+	do.As[*carImplem, Car](injector)
+	do.As[*engineImplem, Engine](injector)
+
 	// start car
 	car := do.MustInvoke[Car](injector)
 	car.Start()

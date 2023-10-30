@@ -180,7 +180,7 @@ func TestServiceLazy_build(t *testing.T) {
 	i := New()
 
 	// basic type
-	service1, _ := newServiceLazy("foobar", provider1).(*ServiceLazy[int])
+	service1 := newServiceLazy("foobar", provider1)
 	is.False(service1.built)
 	is.Empty(service1.buildTime)
 	err1 := service1.build(i)
@@ -189,7 +189,7 @@ func TestServiceLazy_build(t *testing.T) {
 	is.Nil(err1)
 
 	// struct
-	service2, _ := newServiceLazy("hello", provider2).(*ServiceLazy[lazyTest])
+	service2 := newServiceLazy("hello", provider2)
 	is.False(service2.built)
 	is.Empty(service2.buildTime)
 	err2 := service2.build(i)
@@ -199,7 +199,7 @@ func TestServiceLazy_build(t *testing.T) {
 
 	// provider panics, but panic is catched by getInstance
 	is.NotPanics(func() {
-		service3, _ := newServiceLazy("baz", provider3).(*ServiceLazy[int])
+		service3 := newServiceLazy("baz", provider3)
 		is.False(service3.built)
 		is.Empty(service3.buildTime)
 		_ = service3.build(i)
@@ -209,7 +209,7 @@ func TestServiceLazy_build(t *testing.T) {
 
 	// provider panics, but panic is catched by getInstance
 	is.NotPanics(func() {
-		service4, _ := newServiceLazy("plop", provider4).(*ServiceLazy[int])
+		service4 := newServiceLazy("plop", provider4)
 		is.False(service4.built)
 		is.Empty(service4.buildTime)
 		err4 := service4.build(i)
@@ -221,7 +221,7 @@ func TestServiceLazy_build(t *testing.T) {
 
 	// provider returning error
 	is.NotPanics(func() {
-		service5, _ := newServiceLazy("plop", provider5).(*ServiceLazy[int])
+		service5 := newServiceLazy("plop", provider5)
 		is.False(service5.built)
 		is.Empty(service5.buildTime)
 		err5 := service5.build(i)
@@ -298,7 +298,7 @@ func TestServiceLazy_shutdown(t *testing.T) {
 	// no shutdown
 	service1 := newServiceLazy("foobar", func(i Injector) (lazyTest, error) {
 		return lazyTest{foobar: "foobar"}, nil
-	}).(*ServiceLazy[lazyTest])
+	})
 	is.False(service1.built)
 	is.Nil(service1.shutdown(ctx))
 	_, _ = service1.getInstance(nil)
@@ -309,7 +309,7 @@ func TestServiceLazy_shutdown(t *testing.T) {
 	// shutdown ok
 	service2 := newServiceLazy("foobar", func(i Injector) (*lazyTestShutdownerOK, error) {
 		return &lazyTestShutdownerOK{foobar: "foobar"}, nil
-	}).(*ServiceLazy[*lazyTestShutdownerOK])
+	})
 	is.False(service2.built)
 	is.Nil(service2.shutdown(ctx))
 	_, _ = service2.getInstance(nil)
@@ -320,7 +320,7 @@ func TestServiceLazy_shutdown(t *testing.T) {
 	// shutdown ko
 	service3 := newServiceLazy("foobar", func(i Injector) (*lazyTestShutdownerKO, error) {
 		return &lazyTestShutdownerKO{foobar: "foobar"}, nil
-	}).(*ServiceLazy[*lazyTestShutdownerKO])
+	})
 	is.False(service3.built)
 	is.Nil(service3.shutdown(ctx))
 	_, _ = service3.getInstance(nil)
@@ -335,13 +335,13 @@ func TestServiceLazy_isShutdowner(t *testing.T) {
 	// no shutdown
 	service1 := newServiceLazy("foobar", func(i Injector) (lazyTest, error) {
 		return lazyTest{foobar: "foobar"}, nil
-	}).(*ServiceLazy[lazyTest])
+	})
 	is.False(service1.isShutdowner())
 
 	// shutdown ok
 	service2 := newServiceLazy("foobar", func(i Injector) (*lazyTestShutdownerOK, error) {
 		return &lazyTestShutdownerOK{foobar: "foobar"}, nil
-	}).(*ServiceLazy[*lazyTestShutdownerOK])
+	})
 	is.False(service2.isShutdowner())
 	_, _ = service2.getInstance(nil)
 	is.True(service2.isShutdowner())
@@ -349,7 +349,7 @@ func TestServiceLazy_isShutdowner(t *testing.T) {
 	// shutdown ko
 	service3 := newServiceLazy("foobar", func(i Injector) (*lazyTestShutdownerKO, error) {
 		return &lazyTestShutdownerKO{foobar: "foobar"}, nil
-	}).(*ServiceLazy[*lazyTestShutdownerKO])
+	})
 	is.False(service3.isShutdowner())
 	_, _ = service3.getInstance(nil)
 	is.True(service3.isShutdowner())
@@ -361,7 +361,7 @@ func TestServiceLazy_clone(t *testing.T) {
 	// initial
 	service1 := newServiceLazy("foobar", func(i Injector) (lazyTest, error) {
 		return lazyTest{foobar: "foobar"}, nil
-	}).(*ServiceLazy[lazyTest])
+	})
 	is.Equal("foobar", service1.getName())
 	is.False(service1.built)
 	_, _ = service1.getInstance(nil)

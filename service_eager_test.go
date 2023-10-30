@@ -84,12 +84,12 @@ func TestServiceEager_getInstance(t *testing.T) {
 
 	test := eagerTest{foobar: "foobar"}
 
-	service1 := newServiceEager("foobar", test).(*ServiceEager[eagerTest])
+	service1 := newServiceEager("foobar", test)
 	instance1, err1 := service1.getInstance(nil)
 	is.Nil(err1)
 	is.Equal(test, instance1)
 
-	service2 := newServiceEager("foobar", 42).(*ServiceEager[int])
+	service2 := newServiceEager("foobar", 42)
 	instance2, err2 := service2.getInstance(nil)
 	is.Nil(err2)
 	is.Equal(42, instance2)
@@ -181,7 +181,7 @@ func TestServiceEager_clone(t *testing.T) {
 	test := eagerTest{foobar: "foobar"}
 
 	// initial
-	service1 := newServiceEager("foobar", test).(*ServiceEager[eagerTest])
+	service1 := newServiceEager("foobar", test)
 	is.Equal("foobar", service1.getName())
 
 	// clone

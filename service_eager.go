@@ -21,7 +21,7 @@ type ServiceEager[T any] struct {
 	invokationFrames []stacktrace.Frame
 }
 
-func newServiceEager[T any](name string, instance T) Service[T] {
+func newServiceEager[T any](name string, instance T) *ServiceEager[T] {
 	providerFrame, _ := stacktrace.NewFrameFromCaller()
 
 	return &ServiceEager[T]{

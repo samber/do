@@ -117,13 +117,13 @@ func TestServiceTransient_getInstance(t *testing.T) {
 	i := New()
 
 	// basic type
-	service1 := newServiceTransient("foobar", provider1).(*ServiceTransient[int])
+	service1 := newServiceTransient("foobar", provider1)
 	instance1, err1 := service1.getInstance(i)
 	is.Nil(err1)
 	is.Equal(42, instance1)
 
 	// struct
-	service2 := newServiceTransient("hello", provider2).(*ServiceTransient[transientTest])
+	service2 := newServiceTransient("hello", provider2)
 	instance2, err2 := service2.getInstance(i)
 	is.Nil(err2)
 	is.Equal(test, instance2)
@@ -178,7 +178,7 @@ func TestServiceTransient_clone(t *testing.T) {
 	// initial
 	service1 := newServiceTransient("foobar", func(i Injector) (transientTest, error) {
 		return transientTest{foobar: "foobar"}, nil
-	}).(*ServiceTransient[transientTest])
+	})
 	is.Equal("foobar", service1.getName())
 
 	// clone
