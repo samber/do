@@ -10,6 +10,11 @@ func As[Initial any, Alias any](i Injector) error {
 	return AsNamed[Initial, Alias](i, initialName, aliasName)
 }
 
+// MustAs declares an alias for a service. It panics on error.
+func MustAs[Initial any, Alias any](i Injector) {
+	must0(As[Initial, Alias](i))
+}
+
 // AsNamed declares a named alias for a named service.
 func AsNamed[Initial any, Alias any](i Injector, initial string, alias string) error {
 	// first, we check if Initial can be cast to Alias
@@ -28,4 +33,9 @@ func AsNamed[Initial any, Alias any](i Injector, initial string, alias string) e
 	})
 
 	return nil
+}
+
+// AsNamed declares a named alias for a named service. It panics on error.
+func MustAsNamed[Initial any, Alias any](i Injector, initial string, alias string) {
+	must0(AsNamed[Initial, Alias](i, initial, alias))
 }
