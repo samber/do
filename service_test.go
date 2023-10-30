@@ -14,13 +14,13 @@ func TestInferServiceType(t *testing.T) {
 	svc3 := newServiceTransient[int]("foobar3", func(i Injector) (int, error) { return 42, nil })
 	svc4 := newServiceAlias[int, int]("foobar4", New(), "foobar5")
 
-	is.Equal(ServiceTypeLazy, inferServiceType(svc1))
-	is.Equal(ServiceTypeEager, inferServiceType(svc2))
-	is.Equal(ServiceTypeTransient, inferServiceType(svc3))
+	is.Equal(ServiceTypeLazy, inferServiceType[int](svc1))
+	is.Equal(ServiceTypeEager, inferServiceType[int](svc2))
+	is.Equal(ServiceTypeTransient, inferServiceType[int](svc3))
 	is.Panics(func() {
 		is.Equal(ServiceTypeTransient, inferServiceType[string](any(svc3).(Service[string])))
 	})
-	is.Equal(ServiceTypeAlias, inferServiceType(svc4))
+	is.Equal(ServiceTypeAlias, inferServiceType[int](svc4))
 }
 
 func TestInferServiceName(t *testing.T) {
