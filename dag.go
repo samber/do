@@ -12,6 +12,7 @@ func newEdgeService(scopeID string, scopeName string, serviceName string) EdgeSe
 	}
 }
 
+// EdgeService represents a service in the DAG.
 type EdgeService struct {
 	ScopeID   string
 	ScopeName string
@@ -26,6 +27,7 @@ func newDAG() *DAG {
 	}
 }
 
+// DAG represents a directed acyclic graph of services, with dependencies and dependents.
 type DAG struct {
 	mu           sync.RWMutex
 	dependencies map[EdgeService]map[EdgeService]struct{}

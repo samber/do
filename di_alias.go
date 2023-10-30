@@ -24,7 +24,7 @@ func AsNamed[Initial any, Alias any](i Injector, initial string, alias string) e
 	}
 
 	provide(i, alias, 42, func(_ string, _ int) Service[Alias] {
-		return newServiceAlias[Alias](alias, i, initial)
+		return newServiceAlias[Initial, Alias](alias, i, initial)
 	})
 
 	return nil

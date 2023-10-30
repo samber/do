@@ -7,6 +7,6 @@ type Engine interface{}
 type engineImplem struct {
 }
 
-func NewEngine(i do.Injector) (Engine, error) {
+func NewEngine(i do.Injector) (*engineImplem, error) {
 	return &engineImplem{}, nil
 }

@@ -28,7 +28,7 @@ type ServiceLazy[T any] struct {
 	invokationFrames []stacktrace.Frame
 }
 
-func newServiceLazy[T any](name string, provider Provider[T]) Service[T] {
+func newServiceLazy[T any](name string, provider Provider[T]) *ServiceLazy[T] {
 	providerFrame, _ := stacktrace.NewFrameFromPtr(reflect.ValueOf(provider).Pointer())
 
 	return &ServiceLazy[T]{
