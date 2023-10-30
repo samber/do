@@ -60,7 +60,7 @@ func DescribeNamedService[T any](scope Injector, name string) (output string, ok
 	}
 
 	invoked := ""
-	frame, ok := inferServiceStacktrace[T](service)
+	frame, ok := inferServiceProviderStacktrace[T](service)
 	if ok {
 		invoked = frame.String()
 	}
@@ -71,7 +71,7 @@ func DescribeNamedService[T any](scope Injector, name string) (output string, ok
 			"ScopeID":      serviceScope.ID(),
 			"ScopeName":    serviceScope.Name(),
 			"ServiceName":  name,
-			"ServiceType":  inferServiceType[T](service),
+			"ServiceType":  service.getType(),
 			"Invoked":      invoked,
 			"Dependencies": buildDepsGraph(_i, newEdgeService(_i.ID(), _i.Name(), name), "dependencies"),
 			"Dependents":   buildDepsGraph(_i, newEdgeService(_i.ID(), _i.Name(), name), "dependents"),
