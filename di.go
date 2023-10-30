@@ -19,7 +19,9 @@ func Provide[T any](i Injector, provider Provider[T]) {
 
 // ProvideNamed registers a named service in the DI container.
 func ProvideNamed[T any](i Injector, name string, provider Provider[T]) {
-	provide(i, name, provider, newServiceLazy[T])
+	provide(i, name, provider, func(s string, a Provider[T]) Service[T] {
+		return newServiceLazy[T](s, a)
+	})
 }
 
 // ProvideValue registers a value in the DI container, using type inference to determine the service name.
@@ -30,7 +32,9 @@ func ProvideValue[T any](i Injector, value T) {
 
 // ProvideNamedValue registers a named value in the DI container.
 func ProvideNamedValue[T any](i Injector, name string, value T) {
-	provide(i, name, value, newServiceEager[T])
+	provide(i, name, value, func(s string, a T) Service[T] {
+		return newServiceEager[T](s, a)
+	})
 }
 
 // ProvideTransient registers a factory in the DI container, using type inference to determine the service name.
@@ -41,7 +45,9 @@ func ProvideTransient[T any](i Injector, provider Provider[T]) {
 
 // ProvideNamedTransient registers a named factory in the DI container.
 func ProvideNamedTransient[T any](i Injector, name string, provider Provider[T]) {
-	provide(i, name, provider, newServiceTransient[T])
+	provide(i, name, provider, func(s string, a Provider[T]) Service[T] {
+		return newServiceTransient[T](s, a)
+	})
 }
 
 func provide[T any, A any](i Injector, name string, valueOrProvider A, serviceCtor func(string, A) Service[T]) {
@@ -64,7 +70,9 @@ func Override[T any](i Injector, provider Provider[T]) {
 
 // OverrideNamed replaces the named service in the DI container.
 func OverrideNamed[T any](i Injector, name string, provider Provider[T]) {
-	override(i, name, provider, newServiceLazy[T])
+	override(i, name, provider, func(s string, a Provider[T]) Service[T] {
+		return newServiceLazy[T](s, a)
+	})
 }
 
 // OverrideValue replaces the value in the DI container, using type inference to determine the service name.
@@ -75,7 +83,9 @@ func OverrideValue[T any](i Injector, value T) {
 
 // OverrideNamedValue replaces the named value in the DI container.
 func OverrideNamedValue[T any](i Injector, name string, value T) {
-	override(i, name, value, newServiceEager[T])
+	override(i, name, value, func(s string, a T) Service[T] {
+		return newServiceEager[T](s, a)
+	})
 }
 
 // OverrideTransient replaces the factory in the DI container, using type inference to determine the service name.
@@ -86,7 +96,9 @@ func OverrideTransient[T any](i Injector, provider Provider[T]) {
 
 // OverrideNamedTransient replaces the named factory in the DI container.
 func OverrideNamedTransient[T any](i Injector, name string, provider Provider[T]) {
-	override(i, name, provider, newServiceTransient[T])
+	override(i, name, provider, func(s string, a Provider[T]) Service[T] {
+		return newServiceTransient[T](s, a)
+	})
 }
 
 func override[T any, A any](i Injector, name string, valueOrProvider A, serviceCtor func(string, A) Service[T]) {
@@ -111,12 +123,12 @@ func MustInvoke[T any](i Injector) T {
 	return s
 }
 
-// Invoke invokes a named service in the DI container.
+// InvokeNamed invokes a named service in the DI container.
 func InvokeNamed[T any](i Injector, name string) (T, error) {
 	return invoke[T](i, name)
 }
 
-// MustInvoke invokes a named service in the DI container. It panics on error.
+// MustInvokeNamed invokes a named service in the DI container. It panics on error.
 func MustInvokeNamed[T any](i Injector, name string) T {
 	s, err := InvokeNamed[T](i, name)
 	must0(err)
