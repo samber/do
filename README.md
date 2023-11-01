@@ -29,20 +29,23 @@ I love the **short name** for such a utility library. This name is the sum of `D
 ## 💡 Features
 
 - Service registration:
-  - Named services
-  - Anonymous services
+  - By type inference
+  - By name
 - Service invocation
   - Eager loading
   - Lazy loading
   - Transient loading
+- Service aliasing
+  - Implicit (provide struct, invoke interface)
+  - Explicit (provide struct, bind interface, invoke interface)
 - Service lifecycle:
   - Health check
   - Graceful unload (shutdown)
   - Lifecycle hooks
-- Scope (a.k.a modules) tree
+- Scope (a.k.a module) tree
   - Visibility control
   - Dependency grouping
-- Injector:
+- Injector
   - Dependency graph resolution and visualization
   - Default injector
   - Injector cloning

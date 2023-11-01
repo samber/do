@@ -26,6 +26,8 @@ var serviceTypeToIcon = map[ServiceType]string{
 type Service[T any] interface {
 	getName() string
 	getType() ServiceType
+	getEmptyInstance() any
+	getInstanceAny(Injector) (any, error)
 	getInstance(Injector) (T, error)
 	isHealthchecker() bool
 	healthcheck(context.Context) error
@@ -35,60 +37,60 @@ type Service[T any] interface {
 	source() (stacktrace.Frame, []stacktrace.Frame)
 }
 
-type Healthchecker interface {
-	HealthCheck() error
+type serviceGetName interface {
+	getName() string
 }
 
-type HealthcheckerWithContext interface {
-	HealthCheckWithContext(context.Context) error
+type serviceGetType interface {
+	getType() ServiceType
 }
 
-type Shutdowner interface {
-	Shutdown()
+type serviceGetEmptyInstance interface {
+	getEmptyInstance() any
 }
 
-type ShutdownerWithError interface {
-	Shutdown() error
+type serviceGetInstanceAny interface {
+	getInstanceAny(Injector) (any, error)
 }
 
-type ShutdownerWithContext interface {
-	Shutdown(context.Context)
+type serviceGetInstance[T any] interface {
+	getInstance(Injector) (T, error)
 }
 
-type ShutdownerWithContextAndError interface {
-	Shutdown(context.Context) error
-}
-
-var _ isHealthcheckerService = (Service[int])(nil)
-var _ healthcheckerService = (Service[int])(nil)
-var _ isShutdownerService = (Service[int])(nil)
-var _ shutdownerService = (Service[int])(nil)
-var _ clonerService = (Service[int])(nil)
-var _ getTyperService = (Service[int])(nil)
-
-type isHealthcheckerService interface {
+type serviceIsHealthchecker interface {
 	isHealthchecker() bool
 }
 
-type healthcheckerService interface {
+type serviceHealthcheck interface {
 	healthcheck(context.Context) error
 }
 
-type isShutdownerService interface {
+type serviceIsShutdowner interface {
 	isShutdowner() bool
 }
 
-type shutdownerService interface {
+type serviceShutdown interface {
 	shutdown(context.Context) error
 }
 
-type clonerService interface {
+type serviceClone interface {
 	clone() any
 }
 
-type getTyperService interface {
-	getType() ServiceType
+type serviceSource interface {
+	source() (stacktrace.Frame, []stacktrace.Frame)
 }
+
+var _ serviceGetName = (Service[int])(nil)
+var _ serviceGetType = (Service[int])(nil)
+var _ serviceGetEmptyInstance = (Service[int])(nil)
+var _ serviceGetInstanceAny = (Service[int])(nil)
+var _ serviceIsHealthchecker = (Service[int])(nil)
+var _ serviceHealthcheck = (Service[int])(nil)
+var _ serviceIsShutdowner = (Service[int])(nil)
+var _ serviceShutdown = (Service[int])(nil)
+var _ serviceClone = (Service[int])(nil)
+var _ serviceSource = (Service[int])(nil)
 
 func inferServiceName[T any]() string {
 	return typetostring.GetType[T]()
@@ -114,11 +116,21 @@ func inferServiceInfo(injector Injector, name string) (serviceInfo, bool) {
 	if serviceAny, ok := injector.serviceGet(name); ok {
 		return serviceInfo{
 			name:          name,
-			serviceType:   serviceAny.(getTyperService).getType(),
-			healthchecker: serviceAny.(isHealthcheckerService).isHealthchecker(),
-			shutdowner:    serviceAny.(isShutdownerService).isShutdowner(),
+			serviceType:   serviceAny.(serviceGetType).getType(),
+			healthchecker: serviceAny.(serviceIsHealthchecker).isHealthchecker(),
+			shutdowner:    serviceAny.(serviceIsShutdowner).isShutdowner(),
 		}, true
 	}
 
 	return serviceInfo{}, false
+}
+
+func serviceIsAssignable[T any](service any) bool {
+	if svc, ok := service.(serviceGetEmptyInstance); ok {
+		// we need an empty instance here, because we don't want to instantiate the service when not needed
+		if _, ok = svc.getEmptyInstance().(T); ok {
+			return true
+		}
+	}
+	return false
 }
