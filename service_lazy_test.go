@@ -382,6 +382,33 @@ func TestServiceLazy_healthcheck(t *testing.T) {
 }
 
 // @TODO: missing tests for context
+func TestServiceLazy_isShutdowner(t *testing.T) {
+	is := assert.New(t)
+
+	// no shutdown
+	service1 := newServiceLazy("foobar", func(i Injector) (lazyTest, error) {
+		return lazyTest{foobar: "foobar"}, nil
+	})
+	is.False(service1.isShutdowner())
+
+	// shutdown ok
+	service2 := newServiceLazy("foobar", func(i Injector) (*lazyTestShutdownerOK, error) {
+		return &lazyTestShutdownerOK{foobar: "foobar"}, nil
+	})
+	is.False(service2.isShutdowner())
+	_, _ = service2.getInstance(nil)
+	is.True(service2.isShutdowner())
+
+	// shutdown ko
+	service3 := newServiceLazy("foobar", func(i Injector) (*lazyTestShutdownerKO, error) {
+		return &lazyTestShutdownerKO{foobar: "foobar"}, nil
+	})
+	is.False(service3.isShutdowner())
+	_, _ = service3.getInstance(nil)
+	is.True(service3.isShutdowner())
+}
+
+// @TODO: missing tests for context
 func TestServiceLazy_shutdown(t *testing.T) {
 	is := assert.New(t)
 
@@ -419,32 +446,6 @@ func TestServiceLazy_shutdown(t *testing.T) {
 	is.True(service3.built)
 	is.Equal(assert.AnError, service3.shutdown(ctx))
 	is.False(service3.built)
-}
-
-func TestServiceLazy_isShutdowner(t *testing.T) {
-	is := assert.New(t)
-
-	// no shutdown
-	service1 := newServiceLazy("foobar", func(i Injector) (lazyTest, error) {
-		return lazyTest{foobar: "foobar"}, nil
-	})
-	is.False(service1.isShutdowner())
-
-	// shutdown ok
-	service2 := newServiceLazy("foobar", func(i Injector) (*lazyTestShutdownerOK, error) {
-		return &lazyTestShutdownerOK{foobar: "foobar"}, nil
-	})
-	is.False(service2.isShutdowner())
-	_, _ = service2.getInstance(nil)
-	is.True(service2.isShutdowner())
-
-	// shutdown ko
-	service3 := newServiceLazy("foobar", func(i Injector) (*lazyTestShutdownerKO, error) {
-		return &lazyTestShutdownerKO{foobar: "foobar"}, nil
-	})
-	is.False(service3.isShutdowner())
-	_, _ = service3.getInstance(nil)
-	is.True(service3.isShutdowner())
 }
 
 func TestServiceLazy_clone(t *testing.T) {
