@@ -27,7 +27,7 @@ func TestStacktrace(t *testing.T) {
 	is.True(ok)
 	is.NotNil(frame)
 	is.NotEmpty(frame)
-	is.True(strings.HasSuffix(frame.File, "github.com/samber/do/stacktrace/stacktrace_test.go"))
+	is.True(strings.HasSuffix(frame.File, "do/stacktrace/stacktrace_test.go"))
 	is.Equal("example1", frame.Function)
 	is.Equal(12, frame.Line)
 }
@@ -39,7 +39,7 @@ func TestNewFrameFromPtr(t *testing.T) {
 	is.True(ok)
 	is.NotNil(frame)
 	is.NotEmpty(frame)
-	is.True(strings.HasSuffix(frame.File, "github.com/samber/do/stacktrace/stacktrace_test.go"))
+	is.True(strings.HasSuffix(frame.File, "do/stacktrace/stacktrace_test.go"))
 	is.Equal("provider", frame.Function)
 	is.Equal(16, frame.Line)
 }
@@ -51,5 +51,5 @@ func TestFrame_String(t *testing.T) {
 	is.True(ok)
 	is.NotNil(frame)
 	is.NotEmpty(frame)
-	is.True(strings.Contains(frame.String(), "github.com/samber/do/stacktrace/stacktrace_test.go:example1:12"))
+	is.True(strings.Contains(frame.String(), "do/stacktrace/stacktrace_test.go:example1:12"))
 }
