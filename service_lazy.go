@@ -10,9 +10,9 @@ import (
 )
 
 var _ Service[int] = (*ServiceLazy[int])(nil)
-var _ healthcheckerService = (*ServiceLazy[int])(nil)
-var _ shutdownerService = (*ServiceLazy[int])(nil)
-var _ clonerService = (*ServiceLazy[int])(nil)
+var _ serviceHealthcheck = (*ServiceLazy[int])(nil)
+var _ serviceShutdown = (*ServiceLazy[int])(nil)
+var _ serviceClone = (*ServiceLazy[int])(nil)
 
 type ServiceLazy[T any] struct {
 	mu       sync.RWMutex
@@ -50,6 +50,14 @@ func (s *ServiceLazy[T]) getName() string {
 
 func (s *ServiceLazy[T]) getType() ServiceType {
 	return ServiceTypeLazy
+}
+
+func (s *ServiceLazy[T]) getEmptyInstance() any {
+	return empty[T]()
+}
+
+func (s *ServiceLazy[T]) getInstanceAny(i Injector) (any, error) {
+	return s.getInstance(i)
 }
 
 func (s *ServiceLazy[T]) getInstance(i Injector) (T, error) {

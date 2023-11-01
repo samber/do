@@ -2,6 +2,30 @@ package do
 
 import "context"
 
+type Healthchecker interface {
+	HealthCheck() error
+}
+
+type HealthcheckerWithContext interface {
+	HealthCheckWithContext(context.Context) error
+}
+
+type Shutdowner interface {
+	Shutdown()
+}
+
+type ShutdownerWithError interface {
+	Shutdown() error
+}
+
+type ShutdownerWithContext interface {
+	Shutdown(context.Context)
+}
+
+type ShutdownerWithContextAndError interface {
+	Shutdown(context.Context) error
+}
+
 // HealthCheck returns a service status, using type inference to determine the service name.
 func HealthCheck[T any](i Injector) error {
 	name := inferServiceName[T]()

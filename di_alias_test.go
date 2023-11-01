@@ -6,6 +6,10 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+/////////////////////////////////////////////////////////////////////////////
+// 							Explicit aliases
+/////////////////////////////////////////////////////////////////////////////
+
 func TestAs(t *testing.T) {
 	is := assert.New(t)
 
@@ -36,4 +40,36 @@ func TestAsNamed(t *testing.T) {
 
 func TestMustAsNamed(t *testing.T) {
 	// @TODO
+}
+
+/////////////////////////////////////////////////////////////////////////////
+// 							Implicit aliases
+/////////////////////////////////////////////////////////////////////////////
+
+func TestInvokeAs(t *testing.T) {
+	is := assert.New(t)
+
+	i := New()
+	Provide(i, func(i Injector) (*lazyTestHeathcheckerOK, error) {
+		return &lazyTestHeathcheckerOK{foobar: "hello world"}, nil
+	})
+
+	// found
+	svc0, err := InvokeAs[*lazyTestHeathcheckerOK](i)
+	is.EqualValues(&lazyTestHeathcheckerOK{foobar: "hello world"}, svc0)
+	is.Nil(err)
+
+	// found via interface
+	svc1, err := InvokeAs[Healthchecker](i)
+	is.EqualValues(&lazyTestHeathcheckerOK{foobar: "hello world"}, svc1)
+	is.Nil(err)
+
+	// not found
+	svc2, err := InvokeAs[Shutdowner](i)
+	is.Empty(svc2)
+	is.EqualError(err, "DI: could not find service `*github.com/samber/do/v2.Shutdowner`, available services: `*github.com/samber/do/v2.lazyTestHeathcheckerOK`")
+}
+
+func TestMustInvokeAs(t *testing.T) {
+	// is := assert.New(t)
 }
