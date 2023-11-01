@@ -217,7 +217,7 @@ func (s *Scope) ShutdownWithContext(ctx context.Context) error {
 		}
 
 		s.mu.Lock()
-		delete(s.childScopes, k)
+		delete(s.childScopes, k) // scope is removed from DI container
 		s.mu.Unlock()
 	}
 
@@ -401,7 +401,7 @@ func (s *Scope) serviceShutdown(ctx context.Context, name string) error {
 	}
 
 	s.mu.Lock()
-	delete(s.services, name)
+	delete(s.services, name) // service is removed from DI container
 	delete(s.orderedInvocation, name)
 	s.mu.Unlock()
 
