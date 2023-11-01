@@ -37,46 +37,16 @@ type Service[T any] interface {
 	source() (stacktrace.Frame, []stacktrace.Frame)
 }
 
-type serviceGetName interface {
-	getName() string
-}
-
-type serviceGetType interface {
-	getType() ServiceType
-}
-
-type serviceGetEmptyInstance interface {
-	getEmptyInstance() any
-}
-
-type serviceGetInstanceAny interface {
-	getInstanceAny(Injector) (any, error)
-}
-
-type serviceGetInstance[T any] interface {
-	getInstance(Injector) (T, error)
-}
-
-type serviceIsHealthchecker interface {
-	isHealthchecker() bool
-}
-
-type serviceHealthcheck interface {
-	healthcheck(context.Context) error
-}
-
-type serviceIsShutdowner interface {
-	isShutdowner() bool
-}
-
-type serviceShutdown interface {
-	shutdown(context.Context) error
-}
-
-type serviceClone interface {
-	clone() any
-}
-
+type serviceGetName interface{ getName() string }
+type serviceGetType interface{ getType() ServiceType }
+type serviceGetEmptyInstance interface{ getEmptyInstance() any }
+type serviceGetInstanceAny interface{ getInstanceAny(Injector) (any, error) }
+type serviceGetInstance[T any] interface{ getInstance(Injector) (T, error) } //nolint:unused
+type serviceIsHealthchecker interface{ isHealthchecker() bool }
+type serviceHealthcheck interface{ healthcheck(context.Context) error }
+type serviceIsShutdowner interface{ isShutdowner() bool }
+type serviceShutdown interface{ shutdown(context.Context) error }
+type serviceClone interface{ clone() any }
 type serviceSource interface {
 	source() (stacktrace.Frame, []stacktrace.Frame)
 }
