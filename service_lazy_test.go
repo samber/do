@@ -32,6 +32,16 @@ func (t *lazyTestHeathcheckerKO) HealthCheck() error {
 	return assert.AnError
 }
 
+var _ HealthcheckerWithContext = (*lazyTestHeathcheckerKOCtx)(nil)
+
+type lazyTestHeathcheckerKOCtx struct {
+	foobar string
+}
+
+func (t *lazyTestHeathcheckerKOCtx) HealthCheck(ctx context.Context) error {
+	return assert.AnError
+}
+
 var _ ShutdownerWithContextAndError = (*lazyTestShutdownerOK)(nil)
 
 type lazyTestShutdownerOK struct {
@@ -49,6 +59,16 @@ type lazyTestShutdownerKO struct {
 }
 
 func (t *lazyTestShutdownerKO) Shutdown() error {
+	return assert.AnError
+}
+
+var _ ShutdownerWithContextAndError = (*lazyTestShutdownerKOCtx)(nil)
+
+type lazyTestShutdownerKOCtx struct {
+	foobar string
+}
+
+func (t *lazyTestShutdownerKOCtx) Shutdown(ctx context.Context) error {
 	return assert.AnError
 }
 
