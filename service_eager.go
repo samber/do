@@ -8,9 +8,9 @@ import (
 )
 
 var _ Service[int] = (*ServiceEager[int])(nil)
-var _ healthcheckerService = (*ServiceEager[int])(nil)
-var _ shutdownerService = (*ServiceEager[int])(nil)
-var _ clonerService = (*ServiceEager[int])(nil)
+var _ serviceHealthcheck = (*ServiceEager[int])(nil)
+var _ serviceShutdown = (*ServiceEager[int])(nil)
+var _ serviceClone = (*ServiceEager[int])(nil)
 
 type ServiceEager[T any] struct {
 	mu       sync.RWMutex
@@ -40,6 +40,14 @@ func (s *ServiceEager[T]) getName() string {
 
 func (s *ServiceEager[T]) getType() ServiceType {
 	return ServiceTypeEager
+}
+
+func (s *ServiceEager[T]) getEmptyInstance() any {
+	return empty[T]()
+}
+
+func (s *ServiceEager[T]) getInstanceAny(i Injector) (any, error) {
+	return s.getInstance(i)
 }
 
 func (s *ServiceEager[T]) getInstance(i Injector) (T, error) {

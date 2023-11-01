@@ -65,13 +65,16 @@ func (s *RootScope) Shutdown() error { return s.self.Shutdown() }
 func (s *RootScope) ShutdownWithContext(ctx context.Context) error {
 	return s.self.ShutdownWithContext(ctx)
 }
-func (s *RootScope) clone(root *RootScope, parent *Scope) *Scope   { return s.self.clone(root, parent) }
-func (s *RootScope) serviceExist(name string) bool                 { return s.self.serviceExist(name) }
-func (s *RootScope) serviceExistRec(name string) bool              { return s.self.serviceExistRec(name) }
-func (s *RootScope) serviceGet(name string) (any, bool)            { return s.self.serviceGet(name) }
-func (s *RootScope) serviceGetRec(name string) (any, *Scope, bool) { return s.self.serviceGetRec(name) }
-func (s *RootScope) serviceSet(name string, service any)           { s.self.serviceSet(name, service) }
-func (s *RootScope) serviceForEach(cb func(string, any))           { s.self.serviceForEach(cb) }
+func (s *RootScope) clone(root *RootScope, parent *Scope) *Scope      { return s.self.clone(root, parent) }
+func (s *RootScope) serviceExist(name string) bool                    { return s.self.serviceExist(name) }
+func (s *RootScope) serviceExistRec(name string) bool                 { return s.self.serviceExistRec(name) }
+func (s *RootScope) serviceGet(name string) (any, bool)               { return s.self.serviceGet(name) }
+func (s *RootScope) serviceGetRec(name string) (any, *Scope, bool)    { return s.self.serviceGetRec(name) }
+func (s *RootScope) serviceSet(name string, service any)              { s.self.serviceSet(name, service) }
+func (s *RootScope) serviceForEach(cb func(string, *Scope, any) bool) { s.self.serviceForEach(cb) }
+func (s *RootScope) serviceForEachRec(cb func(string, *Scope, any) bool) {
+	s.self.serviceForEachRec(cb)
+}
 func (s *RootScope) serviceHealthCheck(ctx context.Context, name string) error {
 	return s.self.serviceHealthCheck(ctx, name)
 }

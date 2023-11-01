@@ -332,11 +332,11 @@ func TestScope_ListInvokedServices(t *testing.T) {
 	child3.serviceSet("child3-a", newServiceLazy("child3-a", func(i Injector) (int, error) { return 5, nil }))
 
 	// invokeImplem[int](rootScope, "root-a")	// root-a is not invoked
-	_, _ = invoke[int](child1, "child1-a")
-	_, _ = invoke[int](child2a, "child2a-a")
-	_, _ = invoke[int](child2a, "child2a-b")
-	_, _ = invoke[int](child2b, "child2b-a")
-	_, _ = invoke[int](child3, "child3-a")
+	_, _ = invokeByName[int](child1, "child1-a")
+	_, _ = invokeByName[int](child2a, "child2a-a")
+	_, _ = invokeByName[int](child2a, "child2a-b")
+	_, _ = invokeByName[int](child2b, "child2b-a")
+	_, _ = invokeByName[int](child3, "child3-a")
 
 	is.ElementsMatch([]EdgeService{}, rootScope.ListInvokedServices())
 	is.ElementsMatch([]EdgeService{newEdgeService(child1.ID(), child1.Name(), "child1-a")}, child1.ListInvokedServices())
@@ -383,12 +383,12 @@ func TestScope_HealthCheckWithContext(t *testing.T) {
 
 	is.EqualValues(map[string]error{"child1-a": nil, "child2a-a": nil, "child2a-b": nil, "root-a": nil}, child2a.HealthCheck())
 
-	_, _ = invoke[*lazyTestHeathcheckerKO](rootScope, "root-a")
-	_, _ = invoke[*lazyTestHeathcheckerOK](child1, "child1-a")
-	_, _ = invoke[*lazyTestHeathcheckerOK](child2a, "child2a-a")
-	_, _ = invoke[*lazyTestHeathcheckerKO](child2a, "child2a-b")
-	_, _ = invoke[*lazyTestHeathcheckerKO](child2b, "child2b-a")
-	_, _ = invoke[*lazyTestHeathcheckerKO](child3, "child3-a")
+	_, _ = invokeByName[*lazyTestHeathcheckerKO](rootScope, "root-a")
+	_, _ = invokeByName[*lazyTestHeathcheckerOK](child1, "child1-a")
+	_, _ = invokeByName[*lazyTestHeathcheckerOK](child2a, "child2a-a")
+	_, _ = invokeByName[*lazyTestHeathcheckerKO](child2a, "child2a-b")
+	_, _ = invokeByName[*lazyTestHeathcheckerKO](child2b, "child2b-a")
+	_, _ = invokeByName[*lazyTestHeathcheckerKO](child3, "child3-a")
 
 	is.EqualValues(map[string]error{"child1-a": nil, "child2a-a": nil, "child2a-b": assert.AnError, "root-a": assert.AnError}, child2a.HealthCheck())
 	is.EqualValues(map[string]error{"root-a": assert.AnError}, rootScope.HealthCheckWithContext(context.Background()))
@@ -423,11 +423,11 @@ func TestScope_ShutdownWithContext(t *testing.T) {
 	child2a.serviceSet("child2a-b", newServiceLazy("child2a-b", provider2))
 	child2b.serviceSet("child2b-a", newServiceLazy("child2b-a", provider2))
 
-	_, _ = invoke[*lazyTestHeathcheckerKO](rootScope, "root-a")
-	_, _ = invoke[*lazyTestHeathcheckerOK](child1, "child1-a")
-	_, _ = invoke[*lazyTestHeathcheckerOK](child2a, "child2a-a")
-	_, _ = invoke[*lazyTestHeathcheckerKO](child2a, "child2a-b")
-	_, _ = invoke[*lazyTestHeathcheckerKO](child2b, "child2b-a")
+	_, _ = invokeByName[*lazyTestHeathcheckerKO](rootScope, "root-a")
+	_, _ = invokeByName[*lazyTestHeathcheckerOK](child1, "child1-a")
+	_, _ = invokeByName[*lazyTestHeathcheckerOK](child2a, "child2a-a")
+	_, _ = invokeByName[*lazyTestHeathcheckerKO](child2a, "child2a-b")
+	_, _ = invokeByName[*lazyTestHeathcheckerKO](child2b, "child2b-a")
 
 	// from rootScope POV
 	is.Equal(assert.AnError, rootScope.serviceHealthCheck(ctx, "root-a"))
@@ -478,8 +478,8 @@ func TestScope_clone(t *testing.T) {
 	is.Len(cloneRoot.childScopes["child1"].services, 2)
 
 	// invoke some services from initial scope -> must not be invoked in clone
-	_, _ = invoke[string](child, "child-a")
-	_, _ = invoke[string](child, "child-b")
+	_, _ = invokeByName[string](child, "child-a")
+	_, _ = invokeByName[string](child, "child-b")
 
 	// invoked list is not cloned
 	is.NotEqual(cloneRoot.childScopes["child1"].orderedInvocation, rootScope.self.childScopes["child1"].orderedInvocation)
@@ -508,11 +508,11 @@ func TestScope_serviceHealthCheck(t *testing.T) {
 	child3.serviceSet("child3-a", newServiceLazy("child3-a", func(i Injector) (int, error) { return 5, nil }))
 
 	// invokeImplem[int](rootScope, "root-a")	// root-a is not invoked
-	_, _ = invoke[int](child1, "child1-a")
-	_, _ = invoke[int](child2a, "child2a-a")
-	_, _ = invoke[int](child2a, "child2a-b")
-	_, _ = invoke[int](child2b, "child2b-a")
-	_, _ = invoke[int](child3, "child3-a")
+	_, _ = invokeByName[int](child1, "child1-a")
+	_, _ = invokeByName[int](child2a, "child2a-a")
+	_, _ = invokeByName[int](child2a, "child2a-b")
+	_, _ = invokeByName[int](child2b, "child2b-a")
+	_, _ = invokeByName[int](child3, "child3-a")
 
 	is.ElementsMatch([]EdgeService{newEdgeService(child3.id, child3.name, "child3-a"), newEdgeService(child2a.id, child2a.name, "child2a-a"), newEdgeService(child2a.id, child2a.name, "child2a-b"), newEdgeService(child1.id, child1.name, "child1-a")}, child3.ListInvokedServices())
 	is.Nil(child1.Shutdown())
@@ -651,17 +651,24 @@ func TestScope_serviceForEach(t *testing.T) {
 	child.serviceSet("child-b", svc3)
 
 	// from rootScope POV
-	rootScope.serviceForEach(func(name string, service any) {
+	counter := 0
+	rootScope.serviceForEach(func(name string, scope *Scope, service any) bool {
+		counter++
 		switch name {
 		case "root-a":
 			is.Equal(svc1, service)
 		default:
 			is.Fail("should not be called")
 		}
+		is.Equal(rootScope.ID(), scope.ID())
+		return true
 	})
+	is.Equal(1, counter)
 
 	// from child POV
-	child.serviceForEach(func(name string, service any) {
+	counter = 0
+	child.serviceForEach(func(name string, scope *Scope, service any) bool {
+		counter++
 		switch name {
 		case "child-a":
 			is.Equal(svc2, service)
@@ -670,7 +677,61 @@ func TestScope_serviceForEach(t *testing.T) {
 		default:
 			is.Fail("should not be called")
 		}
+		is.Equal(child.ID(), scope.ID())
+		return true
 	})
+	is.Equal(2, counter)
+}
+
+func TestScope_serviceForEachRec(t *testing.T) {
+	is := assert.New(t)
+
+	rootScope := New()
+	child := rootScope.Scope("child1")
+
+	svc1 := newServiceEager("root-a", "root-a")
+	svc2 := newServiceEager("child-a", "child-a")
+	svc3 := newServiceEager("child-b", "child-b")
+
+	rootScope.serviceSet("root-a", svc1)
+	child.serviceSet("child-a", svc2)
+	child.serviceSet("child-b", svc3)
+
+	// from rootScope POV
+	counter := 0
+	rootScope.serviceForEachRec(func(name string, scope *Scope, service any) bool {
+		counter++
+		switch name {
+		case "root-a":
+			is.Equal(svc1, service)
+		default:
+			is.Fail("should not be called")
+		}
+		is.Equal(rootScope.ID(), scope.ID())
+		return true
+	})
+	is.Equal(1, counter)
+
+	// from child POV
+	counter = 0
+	child.serviceForEachRec(func(name string, scope *Scope, service any) bool {
+		counter++
+		switch name {
+		case "root-a":
+			is.Equal(svc1, service)
+			is.Equal(rootScope.ID(), scope.ID())
+		case "child-a":
+			is.Equal(svc2, service)
+			is.Equal(child.ID(), scope.ID())
+		case "child-b":
+			is.Equal(svc3, service)
+			is.Equal(child.ID(), scope.ID())
+		default:
+			is.Fail("should not be called")
+		}
+		return true
+	})
+	is.Equal(3, counter)
 }
 
 func TestScope_serviceShutdown(t *testing.T) {

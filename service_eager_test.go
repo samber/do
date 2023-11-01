@@ -79,6 +79,14 @@ func TestServiceEager_getType(t *testing.T) {
 	is.Equal(ServiceTypeEager, service2.getType())
 }
 
+func TestServiceEager_getEmptyInstance(t *testing.T) {
+	is := assert.New(t)
+
+	svc := newServiceEager("foobar", &eagerTest{foobar: "foobar"})
+	is.Empty(svc.getEmptyInstance())
+	is.EqualValues((*eagerTest)(nil), svc.getEmptyInstance())
+}
+
 func TestServiceEager_getInstance(t *testing.T) {
 	is := assert.New(t)
 

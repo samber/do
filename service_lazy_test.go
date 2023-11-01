@@ -94,6 +94,16 @@ func TestServiceLazy_getType(t *testing.T) {
 	is.Equal(ServiceTypeLazy, service2.getType())
 }
 
+func TestServiceLazy_getEmptyInstance(t *testing.T) {
+	is := assert.New(t)
+
+	svc := newServiceLazy("foobar", func(i Injector) (*lazyTest, error) {
+		return &lazyTest{foobar: "foobar"}, nil
+	})
+	is.Empty(svc.getEmptyInstance())
+	is.EqualValues((*lazyTest)(nil), svc.getEmptyInstance())
+}
+
 func TestServiceLazy_getInstance(t *testing.T) {
 	is := assert.New(t)
 

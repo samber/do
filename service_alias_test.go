@@ -36,6 +36,14 @@ func TestServiceAlias_getType(t *testing.T) {
 	is.Equal(ServiceTypeAlias, service1.getType())
 }
 
+func TestServiceAlias_getEmptyInstance(t *testing.T) {
+	is := assert.New(t)
+
+	svc := newServiceAlias[string, lazyTest]("foo", nil, "bar")
+	is.Empty(svc.getEmptyInstance())
+	is.EqualValues(lazyTest{}, svc.getEmptyInstance())
+}
+
 func TestServiceAlias_getInstance(t *testing.T) {
 	is := assert.New(t)
 

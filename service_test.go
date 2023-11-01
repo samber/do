@@ -23,3 +23,15 @@ func TestInferServiceProviderStacktrace(t *testing.T) {
 func TestInferServiceInfo(t *testing.T) {
 	// @TODO
 }
+
+func TestServiceIsAssignable(t *testing.T) {
+	is := assert.New(t)
+
+	svc1 := newServiceLazy("foobar", func(i Injector) (*lazyTestHeathcheckerOK, error) {
+		return &lazyTestHeathcheckerOK{foobar: "foobar"}, nil
+	})
+	is.True(serviceIsAssignable[*lazyTestHeathcheckerOK](svc1))
+	is.True(serviceIsAssignable[Healthchecker](svc1))
+	is.False(serviceIsAssignable[Shutdowner](svc1))
+	is.False(serviceIsAssignable[*lazyTestHeathcheckerKO](svc1))
+}

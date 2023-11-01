@@ -246,7 +246,7 @@ func (s *Scope) clone(root *RootScope, parent *Scope) *Scope {
 	defer s.mu.Unlock()
 
 	for name, serviceAny := range s.services {
-		if service, ok := serviceAny.(clonerService); ok {
+		if service, ok := serviceAny.(serviceClone); ok {
 			clone.services[name] = service.clone()
 		} else {
 			clone.services[name] = service
@@ -325,12 +325,31 @@ func (s *Scope) serviceSet(name string, service any) {
 	defer s.onServiceRegistration(name)
 }
 
-func (s *Scope) serviceForEach(cb func(name string, service any)) {
+func (s *Scope) serviceForEach(cb func(name string, scope *Scope, service any) bool) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
 	for name, service := range s.services {
-		cb(name, service)
+		keepGoing := cb(name, s, service)
+		if !keepGoing {
+			break
+		}
+	}
+}
+
+func (s *Scope) serviceForEachRec(cb func(name string, scope *Scope, service any) bool) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	for name, service := range s.services {
+		keepGoing := cb(name, s, service)
+		if !keepGoing {
+			return
+		}
+	}
+
+	if s.parentScope != nil {
+		s.parentScope.serviceForEachRec(cb)
 	}
 }
 
@@ -345,7 +364,7 @@ func (s *Scope) serviceHealthCheck(ctx context.Context, name string) error {
 
 	s.mu.RUnlock()
 
-	service, ok := serviceAny.(healthcheckerService)
+	service, ok := serviceAny.(serviceHealthcheck)
 	if ok {
 		s.logf("requested healthcheck for service %s", name)
 
@@ -369,7 +388,7 @@ func (s *Scope) serviceShutdown(ctx context.Context, name string) error {
 
 	s.mu.RUnlock()
 
-	service, ok := serviceAny.(shutdownerService)
+	service, ok := serviceAny.(serviceShutdown)
 	if ok {
 		s.logf("requested shutdown for service %s", name)
 

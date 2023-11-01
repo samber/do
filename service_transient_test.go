@@ -93,6 +93,16 @@ func TestServiceTransient_getType(t *testing.T) {
 	is.Equal(ServiceTypeTransient, service2.getType())
 }
 
+func TestServiceTransient_getEmptyInstance(t *testing.T) {
+	is := assert.New(t)
+
+	svc := newServiceTransient("foobar", func(i Injector) (*transientTest, error) {
+		return &transientTest{foobar: "foobar"}, nil
+	})
+	is.Empty(svc.getEmptyInstance())
+	is.EqualValues((*transientTest)(nil), svc.getEmptyInstance())
+}
+
 func TestServiceTransient_getInstance(t *testing.T) {
 	is := assert.New(t)
 
