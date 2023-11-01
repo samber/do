@@ -1,51 +1,55 @@
 package stacktrace
 
-// func a() *Stacktrace {
-// 	return b()
-// }
+import (
+	"reflect"
+	"strings"
+	"testing"
 
-// func b() *Stacktrace {
-// 	return c()
-// }
+	"github.com/stretchr/testify/assert"
+)
 
-// func c() *Stacktrace {
-// 	return d()
-// }
+func example1() (Frame, bool) {
+	return NewFrameFromCaller()
+}
 
-// func d() *Stacktrace {
-// 	return e()
-// }
+func provider(i any) (int, error) {
+	return 42, nil
+}
 
-// func e() *Stacktrace {
-// 	return f()
-// }
+func example2() (Frame, bool) {
+	return NewFrameFromPtr(reflect.ValueOf(provider).Pointer())
+}
 
-// func f() *Stacktrace {
-// 	return NewStacktrace()
-// }
+func TestStacktrace(t *testing.T) {
+	is := assert.New(t)
 
-// func TestStacktrace(t *testing.T) {
-// 	is := assert.New(t)
+	frame, ok := example1()
+	is.True(ok)
+	is.NotNil(frame)
+	is.NotEmpty(frame)
+	is.True(strings.HasSuffix(frame.File, "github.com/samber/do/stacktrace/stacktrace_test.go"))
+	is.Equal("example1", frame.Function)
+	is.Equal(12, frame.Line)
+}
 
-// 	st := a()
+func TestNewFrameFromPtr(t *testing.T) {
+	is := assert.New(t)
 
-// 	is.NotNil(st)
+	frame, ok := example2()
+	is.True(ok)
+	is.NotNil(frame)
+	is.NotEmpty(frame)
+	is.True(strings.HasSuffix(frame.File, "github.com/samber/do/stacktrace/stacktrace_test.go"))
+	is.Equal("provider", frame.Function)
+	is.Equal(16, frame.Line)
+}
 
-// 	if st.frames != nil {
-// 		for _, f := range st.frames {
-// 			is.True(strings.Contains(f.file, "do/debug/stacktrace_test.go"))
-// 		}
+func TestFrame_String(t *testing.T) {
+	is := assert.New(t)
 
-// 		is.Len(st.frames, 7, "expected 7 frames")
-
-// 		if len(st.frames) == 7 {
-// 			is.Equal("f", (st.frames)[0].function)
-// 			is.Equal("e", (st.frames)[1].function)
-// 			is.Equal("d", (st.frames)[2].function)
-// 			is.Equal("c", (st.frames)[3].function)
-// 			is.Equal("b", (st.frames)[4].function)
-// 			is.Equal("a", (st.frames)[5].function)
-// 			is.Equal("TestStacktrace", (st.frames)[6].function)
-// 		}
-// 	}
-// }
+	frame, ok := example1()
+	is.True(ok)
+	is.NotNil(frame)
+	is.NotEmpty(frame)
+	is.True(strings.Contains(frame.String(), "github.com/samber/do/stacktrace/stacktrace_test.go:example1:12"))
+}
