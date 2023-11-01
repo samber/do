@@ -2,7 +2,6 @@ package stacktrace
 
 import (
 	"fmt"
-	"reflect"
 	"runtime"
 	"strings"
 )
@@ -16,10 +15,10 @@ import (
 type fake struct{}
 
 var (
-	// StackTraceMaxDepth int = 10
-	packageName = reflect.TypeOf(fake{}).PkgPath()
-	// packageName         = "samber/do"
-	packageNameExamples = packageName + "/examples/"
+	// packageName = reflect.TypeOf(fake{}).PkgPath()
+	packageName           = "samber/do"
+	packageNameStacktrace = packageName + "/stacktrace/"
+	packageNameExamples   = packageName + "/examples/"
 )
 
 func NewFrameFromCaller() (Frame, bool) {
@@ -37,12 +36,13 @@ func NewFrameFromCaller() (Frame, bool) {
 		}
 		function := shortFuncName(f.Name())
 
-		isGoPkg := strings.Contains(file, runtime.GOROOT())         // skip frames in GOROOT
-		isDoPkg := strings.Contains(file, packageName)              // skip frames in this package
-		isExamplePkg := strings.Contains(file, packageNameExamples) // do not skip frames in this package examples
-		isTestPkg := strings.Contains(file, "_test.go")             // do not skip frames in tests
+		isGoPkg := strings.Contains(file, runtime.GOROOT())                // skip frames in GOROOT
+		isDoPkg := strings.Contains(file, packageName)                     // skip frames in this package
+		isDoStacktracePkg := strings.Contains(file, packageNameStacktrace) // skip frames in this package
+		isExamplePkg := strings.Contains(file, packageNameExamples)        // do not skip frames in this package examples
+		isTestPkg := strings.Contains(file, "_test.go")                    // do not skip frames in tests
 
-		if !isGoPkg && (!isDoPkg || isExamplePkg || isTestPkg) {
+		if !isGoPkg && (!isDoPkg || !isDoStacktracePkg || isExamplePkg || isTestPkg) {
 			return Frame{
 				PC:       pc,
 				File:     file,
