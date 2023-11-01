@@ -125,7 +125,7 @@ func MustInvoke[T any](i Injector) T {
 
 // InvokeNamed invokes a named service in the DI container.
 func InvokeNamed[T any](i Injector, name string) (T, error) {
-	return invoke[T](i, name)
+	return invokeByName[T](i, name)
 }
 
 // MustInvokeNamed invokes a named service in the DI container. It panics on error.

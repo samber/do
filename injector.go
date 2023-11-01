@@ -27,7 +27,8 @@ type Injector interface {
 	serviceGet(string) (any, bool)
 	serviceGetRec(string) (any, *Scope, bool)
 	serviceSet(string, any)
-	serviceForEach(func(string, any))
+	serviceForEach(func(string, *Scope, any) bool)
+	serviceForEachRec(func(string, *Scope, any) bool)
 	serviceHealthCheck(context.Context, string) error
 	serviceShutdown(context.Context, string) error
 	onServiceInvoke(string)

@@ -7,9 +7,9 @@ import (
 )
 
 var _ Service[int] = (*ServiceTransient[int])(nil)
-var _ healthcheckerService = (*ServiceTransient[int])(nil)
-var _ shutdownerService = (*ServiceTransient[int])(nil)
-var _ clonerService = (*ServiceTransient[int])(nil)
+var _ serviceHealthcheck = (*ServiceTransient[int])(nil)
+var _ serviceShutdown = (*ServiceTransient[int])(nil)
+var _ serviceClone = (*ServiceTransient[int])(nil)
 
 type ServiceTransient[T any] struct {
 	name string
@@ -32,6 +32,14 @@ func (s *ServiceTransient[T]) getName() string {
 
 func (s *ServiceTransient[T]) getType() ServiceType {
 	return ServiceTypeTransient
+}
+
+func (s *ServiceTransient[T]) getEmptyInstance() any {
+	return empty[T]()
+}
+
+func (s *ServiceTransient[T]) getInstanceAny(i Injector) (any, error) {
+	return s.getInstance(i)
 }
 
 func (s *ServiceTransient[T]) getInstance(i Injector) (T, error) {

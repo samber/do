@@ -9,9 +9,9 @@ import (
 )
 
 var _ Service[int] = (*ServiceAlias[int, int])(nil)
-var _ healthcheckerService = (*ServiceAlias[int, int])(nil)
-var _ shutdownerService = (*ServiceAlias[int, int])(nil)
-var _ clonerService = (*ServiceAlias[int, int])(nil)
+var _ serviceHealthcheck = (*ServiceAlias[int, int])(nil)
+var _ serviceShutdown = (*ServiceAlias[int, int])(nil)
+var _ serviceClone = (*ServiceAlias[int, int])(nil)
 
 type ServiceAlias[Initial any, Alias any] struct {
 	mu         sync.RWMutex
@@ -45,6 +45,14 @@ func (s *ServiceAlias[Initial, Alias]) getType() ServiceType {
 	return ServiceTypeAlias
 }
 
+func (s *ServiceAlias[Initial, Alias]) getEmptyInstance() any {
+	return empty[Alias]()
+}
+
+func (s *ServiceAlias[Initial, Alias]) getInstanceAny(i Injector) (any, error) {
+	return s.getInstance(i)
+}
+
 func (s *ServiceAlias[Initial, Alias]) getInstance(i Injector) (Alias, error) {
 	frame, ok := stacktrace.NewFrameFromCaller()
 	if ok {
@@ -53,7 +61,7 @@ func (s *ServiceAlias[Initial, Alias]) getInstance(i Injector) (Alias, error) {
 		s.mu.Unlock()
 	}
 
-	instance, err := invoke[Initial](s.scope, s.targetName)
+	instance, err := invokeByName[Initial](s.scope, s.targetName)
 	if err != nil {
 		return empty[Alias](), err
 	}
