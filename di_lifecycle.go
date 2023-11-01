@@ -7,7 +7,7 @@ type Healthchecker interface {
 }
 
 type HealthcheckerWithContext interface {
-	HealthCheckWithContext(context.Context) error
+	HealthCheck(context.Context) error
 }
 
 type Shutdowner interface {
