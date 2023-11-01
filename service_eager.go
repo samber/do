@@ -69,7 +69,7 @@ func (s *ServiceEager[T]) isHealthchecker() bool {
 
 func (s *ServiceEager[T]) healthcheck(ctx context.Context) error {
 	if instance, ok := any(s.instance).(HealthcheckerWithContext); ok {
-		return instance.HealthCheckWithContext(ctx)
+		return instance.HealthCheck(ctx)
 	} else if instance, ok := any(s.instance).(Healthchecker); ok {
 		return instance.HealthCheck()
 	}
