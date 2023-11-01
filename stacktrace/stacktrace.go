@@ -12,11 +12,11 @@ import (
 /// -> Apache 2.0 LICENSE
 ///
 
-type fake struct{}
+// type fake struct{}
 
 var (
 	// packageName = reflect.TypeOf(fake{}).PkgPath()
-	packageName           = "samber/do"
+	packageName           = "do"
 	packageNameStacktrace = packageName + "/stacktrace/"
 	packageNameExamples   = packageName + "/examples/"
 )
