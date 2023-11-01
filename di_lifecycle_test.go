@@ -35,7 +35,9 @@ func TestHealthCheckWithContext(t *testing.T) {
 	i := New()
 	ctx := context.Background()
 
-	Provide(i, func(i Injector) (*lazyTestHeathcheckerKOCtx, error) { return &lazyTestHeathcheckerKOCtx{}, nil })
+	Provide(i, func(i Injector) (*lazyTestHeathcheckerKOCtx, error) {
+		return &lazyTestHeathcheckerKOCtx{foobar: "foobar"}, nil
+	})
 	is.Nil(HealthCheckWithContext[*lazyTestHeathcheckerKOCtx](ctx, i))
 	_, _ = Invoke[*lazyTestHeathcheckerKOCtx](i)
 
@@ -60,7 +62,9 @@ func TestHealthCheckNamedWithContext(t *testing.T) {
 	i := New()
 	ctx := context.Background()
 
-	ProvideNamed(i, "foobar", func(i Injector) (*lazyTestHeathcheckerKOCtx, error) { return &lazyTestHeathcheckerKOCtx{}, nil })
+	ProvideNamed(i, "foobar", func(i Injector) (*lazyTestHeathcheckerKOCtx, error) {
+		return &lazyTestHeathcheckerKOCtx{foobar: "foobar"}, nil
+	})
 	is.Nil(HealthCheckNamedWithContext(ctx, i, "foobar"))
 	_, _ = InvokeNamed[*lazyTestHeathcheckerKOCtx](i, "foobar")
 
@@ -101,7 +105,9 @@ func TestShutdownWithContext(t *testing.T) {
 	i := New()
 	ctx := context.Background()
 
-	Provide(i, func(i Injector) (*lazyTestShutdownerKOCtx, error) { return &lazyTestShutdownerKOCtx{}, nil })
+	Provide(i, func(i Injector) (*lazyTestShutdownerKOCtx, error) {
+		return &lazyTestShutdownerKOCtx{foobar: "foobar"}, nil
+	})
 	is.Nil(ShutdownWithContext[*lazyTestShutdownerKOCtx](ctx, i))
 	_, _ = Invoke[*lazyTestShutdownerKOCtx](i)
 
@@ -144,7 +150,9 @@ func TestMustShutdownWithContext(t *testing.T) {
 	i := New()
 	ctx := context.Background()
 
-	Provide(i, func(i Injector) (*lazyTestShutdownerKOCtx, error) { return &lazyTestShutdownerKOCtx{}, nil })
+	Provide(i, func(i Injector) (*lazyTestShutdownerKOCtx, error) {
+		return &lazyTestShutdownerKOCtx{foobar: "foobar"}, nil
+	})
 	is.NotPanics(func() {
 		MustShutdownWithContext[*lazyTestShutdownerKOCtx](ctx, i)
 	})
@@ -183,7 +191,9 @@ func TestShutdownNamedWithContext(t *testing.T) {
 	i := New()
 	ctx := context.Background()
 
-	ProvideNamed(i, "foobar", func(i Injector) (*lazyTestShutdownerKOCtx, error) { return &lazyTestShutdownerKOCtx{}, nil })
+	ProvideNamed(i, "foobar", func(i Injector) (*lazyTestShutdownerKOCtx, error) {
+		return &lazyTestShutdownerKOCtx{foobar: "foobar"}, nil
+	})
 	is.Nil(ShutdownNamedWithContext(ctx, i, "foobar"))
 	_, _ = Invoke[*lazyTestShutdownerKOCtx](i)
 
@@ -220,7 +230,9 @@ func TestMustShutdownNamedWithContext(t *testing.T) {
 	i := New()
 	ctx := context.Background()
 
-	ProvideNamed(i, "foobar", func(i Injector) (*lazyTestShutdownerKOCtx, error) { return &lazyTestShutdownerKOCtx{}, nil })
+	ProvideNamed(i, "foobar", func(i Injector) (*lazyTestShutdownerKOCtx, error) {
+		return &lazyTestShutdownerKOCtx{foobar: "foobar"}, nil
+	})
 	is.NotPanics(func() {
 		MustShutdownNamedWithContext(ctx, i, "foobar")
 	})
