@@ -2,6 +2,10 @@ package do
 
 import "fmt"
 
+/////////////////////////////////////////////////////////////////////////////
+// 							Explicit aliases
+/////////////////////////////////////////////////////////////////////////////
+
 // As declares an alias for a service.
 func As[Initial any, Alias any](i Injector) error {
 	initialName := Name[Initial]()
@@ -38,4 +42,20 @@ func AsNamed[Initial any, Alias any](i Injector, initial string, alias string) e
 // AsNamed declares a named alias for a named service. It panics on error.
 func MustAsNamed[Initial any, Alias any](i Injector, initial string, alias string) {
 	must0(AsNamed[Initial, Alias](i, initial, alias))
+}
+
+/////////////////////////////////////////////////////////////////////////////
+// 							Implicit aliases
+/////////////////////////////////////////////////////////////////////////////
+
+// InvokeAs invokes a service in the DI container. The first service matching the provided type or interface will be invoked.
+func InvokeAs[T any](i Injector) (T, error) {
+	return invokeByGenericType[T](i)
+}
+
+// MustInvokeAs invokes a service in the DI container. The first service matching the provided type or interface will be invoked. It panics on error.
+func MustInvokeAs[T any](i Injector) T {
+	s, err := InvokeAs[T](i)
+	must0(err)
+	return s
 }
