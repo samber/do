@@ -1,6 +1,7 @@
 package do
 
 import (
+	"context"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -29,15 +30,41 @@ func TestHealthCheck(t *testing.T) {
 }
 
 func TestHealthCheckWithContext(t *testing.T) {
-	// @TODO
+	is := assert.New(t)
+
+	i := New()
+	ctx := context.Background()
+
+	Provide(i, func(i Injector) (*lazyTestHeathcheckerKOCtx, error) { return &lazyTestHeathcheckerKOCtx{}, nil })
+	is.Nil(HealthCheckWithContext[*lazyTestHeathcheckerKOCtx](ctx, i))
+	_, _ = Invoke[*lazyTestHeathcheckerKOCtx](i)
+
+	is.Error(assert.AnError, HealthCheckWithContext[*lazyTestHeathcheckerKOCtx](ctx, i))
 }
 
 func TestHealthCheckNamed(t *testing.T) {
-	// @TODO
+	is := assert.New(t)
+
+	i := New()
+
+	ProvideNamed(i, "foobar", func(i Injector) (*lazyTestHeathcheckerKO, error) { return &lazyTestHeathcheckerKO{}, nil })
+	is.Nil(HealthCheckNamed(i, "foobar"))
+	_, _ = InvokeNamed[*lazyTestHeathcheckerKO](i, "foobar")
+
+	is.Error(assert.AnError, HealthCheckNamed(i, "foobar"))
 }
 
 func TestHealthCheckNamedWithContext(t *testing.T) {
-	// @TODO
+	is := assert.New(t)
+
+	i := New()
+	ctx := context.Background()
+
+	ProvideNamed(i, "foobar", func(i Injector) (*lazyTestHeathcheckerKOCtx, error) { return &lazyTestHeathcheckerKOCtx{}, nil })
+	is.Nil(HealthCheckNamedWithContext(ctx, i, "foobar"))
+	_, _ = InvokeNamed[*lazyTestHeathcheckerKOCtx](i, "foobar")
+
+	is.Error(assert.AnError, HealthCheckNamedWithContext(ctx, i, "foobar"))
 }
 
 func TestShutdown(t *testing.T) {
@@ -69,7 +96,16 @@ func TestShutdown(t *testing.T) {
 }
 
 func TestShutdownWithContext(t *testing.T) {
-	// @TODO
+	is := assert.New(t)
+
+	i := New()
+	ctx := context.Background()
+
+	Provide(i, func(i Injector) (*lazyTestShutdownerKOCtx, error) { return &lazyTestShutdownerKOCtx{}, nil })
+	is.Nil(ShutdownWithContext[*lazyTestShutdownerKOCtx](ctx, i))
+	_, _ = Invoke[*lazyTestShutdownerKOCtx](i)
+
+	is.Error(assert.AnError, ShutdownWithContext[*lazyTestShutdownerKOCtx](ctx, i))
 }
 
 func TestMustShutdown(t *testing.T) {
@@ -103,7 +139,20 @@ func TestMustShutdown(t *testing.T) {
 }
 
 func TestMustShutdownWithContext(t *testing.T) {
-	// @TODO
+	is := assert.New(t)
+
+	i := New()
+	ctx := context.Background()
+
+	Provide(i, func(i Injector) (*lazyTestShutdownerKOCtx, error) { return &lazyTestShutdownerKOCtx{}, nil })
+	is.NotPanics(func() {
+		MustShutdownWithContext[*lazyTestShutdownerKOCtx](ctx, i)
+	})
+	_, _ = Invoke[*lazyTestShutdownerKOCtx](i)
+
+	is.PanicsWithError("DI: could not find service `*github.com/samber/do/v2.lazyTestShutdownerKOCtx`, no service available", func() {
+		MustShutdownWithContext[*lazyTestShutdownerKOCtx](ctx, i)
+	})
 }
 
 func TestShutdownNamed(t *testing.T) {
@@ -129,7 +178,16 @@ func TestShutdownNamed(t *testing.T) {
 }
 
 func TestShutdownNamedWithContext(t *testing.T) {
-	// @TODO
+	is := assert.New(t)
+
+	i := New()
+	ctx := context.Background()
+
+	ProvideNamed(i, "foobar", func(i Injector) (*lazyTestShutdownerKOCtx, error) { return &lazyTestShutdownerKOCtx{}, nil })
+	is.Nil(ShutdownNamedWithContext(ctx, i, "foobar"))
+	_, _ = Invoke[*lazyTestShutdownerKOCtx](i)
+
+	is.EqualError(ShutdownNamedWithContext(ctx, i, "foobar"), "DI: could not find service `foobar`, no service available")
 }
 
 func TestMustShutdownNamed(t *testing.T) {
@@ -157,7 +215,20 @@ func TestMustShutdownNamed(t *testing.T) {
 }
 
 func TestMustShutdownNamedWithContext(t *testing.T) {
-	// @TODO
+	is := assert.New(t)
+
+	i := New()
+	ctx := context.Background()
+
+	ProvideNamed(i, "foobar", func(i Injector) (*lazyTestShutdownerKOCtx, error) { return &lazyTestShutdownerKOCtx{}, nil })
+	is.NotPanics(func() {
+		MustShutdownNamedWithContext(ctx, i, "foobar")
+	})
+	_, _ = InvokeNamed[*lazyTestShutdownerKOCtx](i, "foobar")
+
+	is.PanicsWithError("DI: could not find service `foobar`, no service available", func() {
+		MustShutdownNamedWithContext(ctx, i, "foobar")
+	})
 }
 
 func TestDoubleInjection(t *testing.T) {
