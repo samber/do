@@ -27,3 +27,9 @@ This command generates static content into the `build` directory and can be serv
 ### Deployment
 
 Deployed on Vercel.
+
+### Illustrations 🎨
+
+- https://github.com/egonelbre/gophers
+- https://github.com/MariaLetta/free-gophers-pack
+- https://github.com/ashleymcnamara/gophers
