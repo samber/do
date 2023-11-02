@@ -1,4 +1,6 @@
 ---
+title: my hello page title
+description: my hello page description
 sidebar_position: 1
 ---
 
@@ -44,8 +46,6 @@ export default {
 ```
 
 The docs version dropdown appears in your navbar:
-
-![Docs Version Dropdown](./img/docsVersionDropdown.png)
 
 ## Update an existing version
 

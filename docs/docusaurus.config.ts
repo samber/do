@@ -61,16 +61,12 @@ const config: Config = {
           type: 'docSidebar',
           sidebarId: 'docSidebar',
           position: 'left',
-          label: 'Doc',
+          label: 'Guides',
+          // label: 'Docs',
         },
         {
-          to: 'https://github.com/samber/do/tree/master/examples',
+          to: 'examples',
           label: 'Examples',
-          position: 'left',
-        },
-        {
-          to: 'https://github.com/samber/do/releases',
-          label: 'Changelog',
           position: 'left',
         },
         {
@@ -82,6 +78,11 @@ const config: Config = {
           to: 'community',
           label: 'Community',
           position: 'left',
+        },
+        {
+          to: 'https://github.com/samber/do/releases',
+          label: 'Changelog',
+          position: 'right',
         },
         {
           to: 'https://github.com/samber/do',

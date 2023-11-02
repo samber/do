@@ -1,4 +1,6 @@
 ---
+title: Getting started
+description: Let's discover samber/do in less than 5 minutes.
 sidebar_position: 1
 ---
 

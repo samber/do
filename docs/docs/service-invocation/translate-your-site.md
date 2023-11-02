@@ -1,4 +1,6 @@
 ---
+title: my hello page title
+description: my hello page description
 sidebar_position: 2
 ---
 
@@ -70,8 +72,6 @@ export default {
 ```
 
 The locale dropdown now appears in your navbar:
-
-![Locale Dropdown](./img/localeDropdown.png)
 
 ## Build your localized site
 
