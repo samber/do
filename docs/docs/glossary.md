@@ -31,6 +31,10 @@ Kind of module. It contains many declaration singleton and service providers. It
 
 Top-level scope.
 
+## Virtual scope
+
+A chain of Service invocation will instantiate many VirtualScope, to track dependency cycles.
+
 ## Child scope
 
 A scope that is nested within another scope. Variables defined in a child scope are only accessible within that scope and any nested scopes.
