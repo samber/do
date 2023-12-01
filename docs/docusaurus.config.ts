@@ -152,6 +152,9 @@ const config: Config = {
     //   contextualSearch: false
     // },
   } satisfies Preset.ThemeConfig,
+
+  plugins: [
+  ],
 };
 
 export default config;
