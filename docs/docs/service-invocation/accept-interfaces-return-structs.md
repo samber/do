@@ -4,13 +4,16 @@ description: Accept interfaces, return structs
 sidebar_position: 2
 ---
 
-# What the hell?
+# Service aliasing
 
 You have probably already heard the Go proverb "Accept interfaces, return structs". The basic idea is to let the consumer define the interfaces it uses while the producer returns concrete types.
 
 This library offers a great API for assembling a large number of modules with loose coupling and a nice separation of concern.
 
-Aliases must be interface and can be declared explicitly on injection using `do.As()`, or can be invoked implicitly using `do.InvokeAs()`.
+Aliases must be Go interfaces. It can be declared explicitly on injection using `do.As()`, or invoked implicitly using `do.InvokeAs()`.
+
+1. **Implicit alias invocation**: `do.InvokeAs()`
+2. **Explicit alias injection**: `do.As()`
 
 ## Implicit invocation (prefered)
 
@@ -27,19 +30,19 @@ type Metric interface {
     Inc()
 }
 
-type ReqPerSecond struct {
+type RequestPerSecond struct {
     counter int
 }
 
-func (r *ReqPerSecond) Inc() {
+func (r *RequestPerSecond) Inc() {
     m.counter++
 }
 
 i := do.New()
 
 // inject the struct
-Provide(i, func(i do.Injector) (*ReqPerSecond, error) {
-    return &ReqPerSecond{}, nil
+Provide(i, func(i do.Injector) (*RequestPerSecond, error) {
+    return &RequestPerSecond{}, nil
 })
 
 // invoke using the Metric interface
@@ -70,23 +73,23 @@ type Metric interface {
     Inc()
 }
 
-type ReqPerSecond struct {
+type RequestPerSecond struct {
     counter int
 }
 
-func (r *ReqPerSecond) Inc() {
+func (r *RequestPerSecond) Inc() {
     m.counter++
 }
 
 i := do.New()
 
 // inject the struct
-Provide(i, func(i do.Injector) (*ReqPerSecond, error) {
-    return &ReqPerSecond{}, nil
+Provide(i, func(i do.Injector) (*RequestPerSecond, error) {
+    return &RequestPerSecond{}, nil
 })
 
 // explicit aliasing
-err := do.As[*ReqPerSecond, Metric](injector)
+err := do.As[*RequestPerSecond, Metric](injector)
 if err != nil {
     // ...
 }

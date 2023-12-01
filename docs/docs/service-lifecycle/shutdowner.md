@@ -1,5 +1,5 @@
 ---
-title: Shutdownable services
+title: Services shutdown
 description: Graceful service shutdown
 sidebar_position: 2
 ---
@@ -12,10 +12,10 @@ When the `injector.Shutdown()` function is called, the framework triggers `Shutd
 
 ## Trigger shutdown
 
-A shutdown can be triggered for a root injector:
+A shutdown can be triggered on a root injector:
 
 ```go
-// proactive
+// on demand
 injector.Shutdown() error
 injector.ShutdownWithContext(context.Context) error
 
@@ -24,19 +24,19 @@ injector.ShutdownOnSignals(...os.Signal) (os.Signal, error)
 injector.ShutdownOnSignalsWithContext(context.Context, ...os.Signal) (os.Signal, error)
 ```
 
-...or a single service:
+...on a single service:
 
 ```go
 // returns error on failure
 do.Shutdown[T any](do.Injector) error
-do.ShutdownNamed[T any](do.Injector, string) error
 do.ShutdownWithContext[T any](context.Context, do.Injector) error
+do.ShutdownNamed[T any](do.Injector, string) error
 do.ShutdownNamedWithContext[T any](context.Context, do.Injector, string) error
 
 // panics on failure
 do.MustShutdown[T any](do.Injector)
-do.MustShutdownNamed[T any](do.Injector, string)
 do.MustShutdownWithContext[T any](context.Context, do.Injector)
+do.MustShutdownNamed[T any](do.Injector, string)
 do.MustShutdownNamedWithContext[T any](context.Context, do.Injector, string)
 ```
 
@@ -77,7 +77,6 @@ i := do.New()
 Provide(i, ...)
 Invoke(i, ...)
 
-ctx := context.WithTimeout(1 * time.Second)
+ctx := context.WithTimeout(10 * time.Second)
 i.ShutdownWithContext(ctx)
 ```
-
