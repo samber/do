@@ -60,13 +60,13 @@ The first matching service in the scope tree is returned.
 
 Explicit injection will be used in rare cases when you need to adapt to legacy code or change the catalog of services at runtime.
 
-If you rely a lot on `do.Scope`, explicit injection might be used to define custom aliases in the scope tree branchs.
+If you rely a lot on `do.Scope`, explicit injection might be used to define custom aliases in the scope tree branches.
 
 4 methods are available for explicit aliasing:
 - `do.As`
 - `do.MustAs`
-- `do.NamedAs`
-- `do.MustNamedAs`
+- `do.AsNamed`
+- `do.MustAsNamed`
 
 ```go
 type Metric interface {

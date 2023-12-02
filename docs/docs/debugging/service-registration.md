@@ -1,10 +1,10 @@
 ---
-title: Service registry
-description: Learn how to troubleshoot service registry
+title: Service registration
+description: Learn how to troubleshoot service registration
 sidebar_position: 3
 ---
 
-# Service registry
+# Service registration
 
 ## Service name
 
