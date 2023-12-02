@@ -1,7 +1,7 @@
 ---
 title: "Scopes (a.k.a modules)"
 description: Group services into independent modules
-sidebar_position: 2
+sidebar_position: 1
 ---
 
 # Scopes (a.k.a modules)
