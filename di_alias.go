@@ -8,8 +8,8 @@ import "fmt"
 
 // As declares an alias for a service.
 func As[Initial any, Alias any](i Injector) error {
-	initialName := Name[Initial]()
-	aliasName := Name[Alias]()
+	initialName := NameOf[Initial]()
+	aliasName := NameOf[Alias]()
 
 	return AsNamed[Initial, Alias](i, initialName, aliasName)
 }

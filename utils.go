@@ -6,6 +6,10 @@ import (
 	"io"
 )
 
+//
+// This file could be replaced with a dependency on a library like samber/lo, but I wanted to keep the dependencies to a minimum.
+//
+
 func empty[T any]() (t T) {
 	return
 }

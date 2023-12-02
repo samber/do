@@ -2,6 +2,8 @@ package do
 
 import (
 	"context"
+	"fmt"
+	"sync"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -79,6 +81,20 @@ func TestScope_Scope(t *testing.T) {
 	is.Equal(make(map[string]any), child2.services)
 	is.Equal(map[string]int{}, child2.orderedInvocation)
 	is.Equal(0, child2.orderedInvocationIndex)
+}
+
+func TestScope_Scope_race(t *testing.T) {
+	injector := New()
+
+	var wg sync.WaitGroup
+	wg.Add(5)
+	for i := 0; i < 5; i++ {
+		go func(j int) {
+			injector.Scope(fmt.Sprintf("test-%d", j))
+			wg.Done()
+		}(i)
+	}
+	wg.Wait()
 }
 
 func TestScope_RootScope(t *testing.T) {
