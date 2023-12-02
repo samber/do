@@ -4,10 +4,10 @@ import (
 	"fmt"
 )
 
-// Name returns the name of the service in the DI container.
+// NameOf returns the name of the service in the DI container.
 // This is higly discouraged to use this function, as your code
 // should not declare any dependency explicitly.
-func Name[T any]() string {
+func NameOf[T any]() string {
 	return inferServiceName[T]()
 }
 
