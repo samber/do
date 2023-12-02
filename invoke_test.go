@@ -1,7 +1,9 @@
 package do
 
 import (
+	"sync"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -118,6 +120,68 @@ func TestInvokeByGenericType(t *testing.T) {
 	is.EqualError(err, "DI: circular dependency detected: *github.com/samber/do/v2.eagerTest -> bar -> *github.com/samber/do/v2.eagerTest")
 
 	// @TODO
+}
+
+func TestInvokeByName_race(t *testing.T) {
+	is := assert.New(t)
+
+	injector := New()
+	child := injector.Scope("child")
+
+	Provide(injector, func(i Injector) (int, error) {
+		time.Sleep(3 * time.Millisecond)
+		return 42, nil
+	})
+	Provide(injector, func(i Injector) (*lazyTest, error) {
+		time.Sleep(3 * time.Millisecond)
+		return &lazyTest{}, nil
+	})
+
+	var wg sync.WaitGroup
+	wg.Add(5)
+	for i := 0; i < 5; i++ {
+		go func(j int) {
+			_, err1 := invokeByName[int](injector, NameOf[int]())
+			_, err2 := invokeByName[*lazyTest](child, NameOf[*lazyTest]())
+
+			is.Nil(err1)
+			is.Nil(err2)
+
+			wg.Done()
+		}(i)
+	}
+	wg.Wait()
+}
+
+func TestInvokeByGenericType_race(t *testing.T) {
+	is := assert.New(t)
+
+	injector := New()
+	child := injector.Scope("child")
+
+	Provide(injector, func(i Injector) (int, error) {
+		time.Sleep(3 * time.Millisecond)
+		return 42, nil
+	})
+	Provide(injector, func(i Injector) (*lazyTest, error) {
+		time.Sleep(3 * time.Millisecond)
+		return &lazyTest{}, nil
+	})
+
+	var wg sync.WaitGroup
+	wg.Add(5)
+	for i := 0; i < 5; i++ {
+		go func(j int) {
+			_, err1 := invokeByGenericType[int](injector)
+			_, err2 := invokeByGenericType[*lazyTest](child)
+
+			is.Nil(err1)
+			is.Nil(err2)
+
+			wg.Done()
+		}(i)
+	}
+	wg.Wait()
 }
 
 func TestServiceNotFound(t *testing.T) {
