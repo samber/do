@@ -55,7 +55,7 @@ do.ProvideNamed(i, "my.really.cool.service", NewMyService)
 
 ## Error handling
 
-On invocation, panics are cought by the framework and returned as an error.
+On invocation, panics are caught by the framework and returned as an error.
 
 ## Hot service replacement
 

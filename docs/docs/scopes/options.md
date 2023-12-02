@@ -1,7 +1,7 @@
 ---
 title: Injector options
 description: Injector options
-sidebar_position: 1
+sidebar_position: 2
 ---
 
 # Injector options
