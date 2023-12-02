@@ -118,9 +118,7 @@ func Invoke[T any](i Injector) (T, error) {
 
 // MustInvoke invokes a service in the DI container, using type inference to determine the service name. It panics on error.
 func MustInvoke[T any](i Injector) T {
-	s, err := Invoke[T](i)
-	must0(err)
-	return s
+	return must1(Invoke[T](i))
 }
 
 // InvokeNamed invokes a named service in the DI container.
@@ -130,7 +128,5 @@ func InvokeNamed[T any](i Injector, name string) (T, error) {
 
 // MustInvokeNamed invokes a named service in the DI container. It panics on error.
 func MustInvokeNamed[T any](i Injector, name string) T {
-	s, err := InvokeNamed[T](i, name)
-	must0(err)
-	return s
+	return must1(InvokeNamed[T](i, name))
 }

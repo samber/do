@@ -12,20 +12,20 @@ func TestInvokeByName(t *testing.T) {
 	// test default injector vs scope
 	ProvideNamedValue(DefaultRootScope, "foo", "bar")
 	svc, err := invokeByName[string](nil, "foo")
-	is.Equal("bar", svc)
 	is.Nil(err)
+	is.Equal("bar", svc)
 
 	// test default injector vs scope
 	i := New()
 	ProvideNamedValue(i, "foo", "baz")
 	svc, err = invokeByName[string](i, "foo")
-	is.Equal("baz", svc)
 	is.Nil(err)
+	is.Equal("baz", svc)
 
 	// service not found
 	svc, err = invokeByName[string](nil, "not_found")
-	is.Empty(svc)
 	is.NotNil(err)
+	is.Empty(svc)
 	is.Contains(err.Error(), "DI: could not find service `not_found`, available services: ")
 
 	// test virtual scope wrapper
@@ -52,9 +52,12 @@ func TestInvokeByName(t *testing.T) {
 
 	// test circular dependency
 	vs := virtualScope{invokerChain: []string{"foo", "bar"}, self: i}
+
 	svc, err = invokeByName[string](&vs, "foo")
-	is.Empty(svc)
 	is.Error(err)
+
+	is.Empty(svc)
+	is.ErrorIs(err, ErrCircularDependency)
 	is.EqualError(err, "DI: circular dependency detected: foo -> bar -> foo")
 
 	// @TODO
@@ -107,8 +110,11 @@ func TestInvokeByGenericType(t *testing.T) {
 	// test circular dependency
 	vs := virtualScope{invokerChain: []string{"*github.com/samber/do/v2.eagerTest", "bar"}, self: i}
 	svc1, err = invokeByGenericType[*eagerTest](&vs)
-	is.Empty(svc1)
 	is.Error(err)
+
+	is.Empty(svc1)
+	is.ErrorIs(err, ErrCircularDependency)
+
 	is.EqualError(err, "DI: circular dependency detected: *github.com/samber/do/v2.eagerTest -> bar -> *github.com/samber/do/v2.eagerTest")
 
 	// @TODO
@@ -125,7 +131,11 @@ func TestServiceNotFound(t *testing.T) {
 	child2b := child1.Scope("child2b")
 	child3 := child2a.Scope("child3")
 
-	is.EqualError(serviceNotFound(child1, "not-found"), "DI: could not find service `not-found`, no service available")
+	err := serviceNotFound(child1, "not-found")
+	is.Error(err)
+
+	is.ErrorIs(err, ErrServiceNotFound)
+	is.EqualError(err, "DI: could not find service `not-found`, no service available")
 
 	rootScope.serviceSet("root-a", newServiceLazy("root-a", func(i Injector) (int, error) { return 0, nil }))
 	child1.serviceSet("child1-a", newServiceLazy("child1-a", func(i Injector) (int, error) { return 1, nil }))
@@ -134,7 +144,11 @@ func TestServiceNotFound(t *testing.T) {
 	child2b.serviceSet("child2b-a", newServiceLazy("child2b-a", func(i Injector) (int, error) { return 4, nil }))
 	child3.serviceSet("child3-a", newServiceLazy("child3-a", func(i Injector) (int, error) { return 5, nil }))
 
-	is.EqualError(serviceNotFound(child1, "not-found"), "DI: could not find service `not-found`, available services: `child1-a`, `root-a`")
+	err = serviceNotFound(child1, "not-found")
+	is.Error(err)
+
+	is.ErrorIs(err, ErrServiceNotFound)
+	is.EqualError(err, "DI: could not find service `not-found`, available services: `child1-a`, `root-a`")
 
 	// @TODO: test service ordering
 }

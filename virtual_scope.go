@@ -1,6 +1,10 @@
 package do
 
-import "context"
+import (
+	"context"
+	"fmt"
+	"strings"
+)
 
 var _ Injector = (*virtualScope)(nil)
 
@@ -48,3 +52,25 @@ func (s *virtualScope) serviceShutdown(ctx context.Context, name string) error {
 	return s.self.serviceShutdown(ctx, name)
 }
 func (s *virtualScope) onServiceInvoke(name string) { s.self.onServiceInvoke(name) }
+
+// detectCircularDependency checks for circular dependencies in the virtualScope.
+// It returns ErrCircularDependency if the provided service name creates a circular dependency in the invoker chain.
+func (s *virtualScope) detectCircularDependency(name string) error {
+	if contains(s.invokerChain, name) {
+		return fmt.Errorf("%w: %s -> %s", ErrCircularDependency, strings.Join(s.invokerChain, " -> "), name)
+	}
+	return nil
+}
+
+// addDependency adds a dependency to the DAG in the virtualScope.
+func (s *virtualScope) addDependency(injector Injector, name string, serviceScope *Scope) {
+	injector.RootScope().dag.addDependency(injector.ID(), injector.Name(), s.getLastInvokerName(), serviceScope.ID(), serviceScope.Name(), name)
+}
+
+// getLastInvokerName retrieves the last invoker name from the invoker chain in the virtualScope.
+func (s *virtualScope) getLastInvokerName() string {
+	if len(s.invokerChain) > 0 {
+		return s.invokerChain[len(s.invokerChain)-1]
+	}
+	return ""
+}
