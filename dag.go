@@ -4,6 +4,7 @@ import (
 	"sync"
 )
 
+// newEdgeService creates a new EdgeService with the provided scope ID, scope name, and service name.
 func newEdgeService(scopeID string, scopeName string, serviceName string) EdgeService {
 	return EdgeService{
 		ScopeID:   scopeID,
@@ -12,64 +13,69 @@ func newEdgeService(scopeID string, scopeName string, serviceName string) EdgeSe
 	}
 }
 
-// EdgeService represents a service in the DAG.
+// EdgeService represents a service in the DAG, identified by scope ID, scope name, and service name.
 type EdgeService struct {
 	ScopeID   string
 	ScopeName string
 	Service   string
 }
 
+// newDAG creates a new DAG (Directed Acyclic Graph) with initialized dependencies and dependents maps.
 func newDAG() *DAG {
 	return &DAG{
-		mu:           sync.RWMutex{},
-		dependencies: map[EdgeService]map[EdgeService]struct{}{},
-		dependents:   map[EdgeService]map[EdgeService]struct{}{},
+		dependencies: new(sync.Map),
+		dependents:   new(sync.Map),
 	}
 }
 
-// DAG represents a directed acyclic graph of services, with dependencies and dependents.
+// DAG represents a Directed Acyclic Graph of services, tracking dependencies and dependents.
 type DAG struct {
-	mu           sync.RWMutex
-	dependencies map[EdgeService]map[EdgeService]struct{}
-	dependents   map[EdgeService]map[EdgeService]struct{}
+	dependencies *sync.Map
+	dependents   *sync.Map
 }
 
-func (d *DAG) addDependency(fromScopeID string, fromScopeName string, fromServiceName string, toScopeID string, toScopeName string, toServiceName string) {
+// addDependency adds a dependency relationship from one service to another in the DAG.
+func (d *DAG) addDependency(fromScopeID, fromScopeName, fromServiceName, toScopeID, toScopeName, toServiceName string) {
 	from := newEdgeService(fromScopeID, fromScopeName, fromServiceName)
 	to := newEdgeService(toScopeID, toScopeName, toServiceName)
 
-	d.mu.Lock()
-	defer d.mu.Unlock()
-
-	// from -> to
-	if _, ok := d.dependencies[from]; !ok {
-		d.dependencies[from] = map[EdgeService]struct{}{}
-	}
-	d.dependencies[from][to] = struct{}{}
-
-	// from <- to
-	if _, ok := d.dependents[to]; !ok {
-		d.dependents[to] = map[EdgeService]struct{}{}
-	}
-	d.dependents[to][from] = struct{}{}
+	d.addToMap(d.dependencies, from, to)
+	d.addToMap(d.dependents, to, from)
 }
 
-func (d *DAG) explainService(scopeID string, scopeName string, serviceName string) (dependencies []EdgeService, dependents []EdgeService) {
+// addToMap is a helper function to add a key-value pair to a sync.Map, creating a new sync.Map for the value if necessary.
+func (d *DAG) addToMap(dependencyMap *sync.Map, key, value interface{}) {
+	valueMap := new(sync.Map)
+	valueMap.Store(value, struct{}{})
+
+	if actual, loaded := dependencyMap.LoadOrStore(key, valueMap); loaded {
+		actual.(*sync.Map).Store(value, struct{}{})
+	}
+}
+
+// explainService provides information about a service's dependencies and dependents in the DAG.
+func (d *DAG) explainService(scopeID, scopeName, serviceName string) (dependencies, dependents []EdgeService) {
 	edge := newEdgeService(scopeID, scopeName, serviceName)
 
-	dependencies = []EdgeService{}
-	dependents = []EdgeService{}
-
-	d.mu.RLock()
-	defer d.mu.RUnlock()
-
-	if kv, ok := d.dependencies[edge]; ok {
-		dependencies = keys(kv)
-	}
-
-	if kv, ok := d.dependents[edge]; ok {
-		dependents = keys(kv)
-	}
+	dependencies = d.getServicesFromMap(d.dependencies, edge)
+	dependents = d.getServicesFromMap(d.dependents, edge)
 
 	return dependencies, dependents
+}
+
+// getServicesFromMap is a helper function to retrieve services related to a specific key from a sync.Map.
+func (d *DAG) getServicesFromMap(serviceMap *sync.Map, edge EdgeService) []EdgeService {
+	var services []EdgeService
+
+	if kv, ok := serviceMap.Load(edge); ok {
+		kv.(*sync.Map).Range(func(key, value interface{}) bool {
+			edgeService, ok := key.(EdgeService)
+			if ok {
+				services = append(services, edgeService)
+			}
+			return ok
+		})
+	}
+
+	return services
 }
