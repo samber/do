@@ -20,22 +20,59 @@ In the context of the Go code you're working with, there are several helper func
 
 :::note
 
-The dependency cycle is not allowed. Services must be invoked in a Directed Acyclic Graph way.
+Circular dependencies are not allowed. Services must be invoked in a Directed Acyclic Graph way.
 
 :::
+
+When multiple [scopes](../scopes/scope.md) are assembled into a big application, the service lookup is recursive from the current nested scope to the root scope.
 
 ## Example
 
 ```go
+type MyService struct {
+    IP string
+}
+
 i := do.New()
 
 do.ProvideNamedValue(i, "config.ip", "127.0.0.1")
 do.Provide(i, func(i do.Injector) (*MyService, error) {
     return &MyService{
-      // in case of error, the panic will be handled by Invoke() and an error returned
       IP: do.MustInvokeNamed(i, "config.ip"),
     }, nil
 })
 
 myService, err := do.Invoke[*MyService](i)
 ```
+
+## Other services as dependencies
+
+A service might rely on other services. In that case, you should invoke dependencies in the service provider instead of storing the injector for later.
+
+```go
+// ❌ bad
+type MyService struct {
+  injector do.Injector
+}
+func NewMyService(i do.Injector) (*MyService, error) {
+  return &MyService{
+    injector: i,
+  }, nil
+}
+
+// ✅ good
+type MyService struct {
+  dependency *MyDependency
+}
+func NewMyService(i do.Injector) (*MyService, error) {
+  return &MyService{
+    dep: do.MustInvoke[*MyDependency](i),   // <- recursive invocation on service construction
+  }, nil
+}
+```
+
+## Error handling
+
+Any panic during lazy loading is converted into a Go `error`.
+
+An error is returned on missing service.
