@@ -2,10 +2,21 @@ package do
 
 import (
 	"fmt"
+	"sync"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 )
+
+func TestNameOf(t *testing.T) {
+	is := assert.New(t)
+
+	is.Equal("int", NameOf[int]())
+	is.Equal("github.com/samber/do/v2.eagerTest", NameOf[eagerTest]())
+	is.Equal("*github.com/samber/do/v2.eagerTest", NameOf[*eagerTest]())
+	is.Equal("*map[int]bool", NameOf[*map[int]bool]())
+	is.Equal("*github.com/samber/do/v2.Service[int]", NameOf[Service[int]]())
+}
 
 func TestProvide(t *testing.T) {
 	is := assert.New(t)
@@ -292,6 +303,29 @@ func TestProvideNamedTransient(t *testing.T) {
 	is.False(ok3)
 
 	// @TODO: check that all services share the same references
+}
+
+func TestProvide_race(t *testing.T) {
+	injector := New()
+
+	var wg sync.WaitGroup
+	wg.Add(2)
+
+	go func() {
+		Provide(injector, func(i Injector) (int, error) {
+			return 42, nil
+		})
+		wg.Done()
+	}()
+
+	go func() {
+		Provide(injector, func(i Injector) (*lazyTest, error) {
+			return &lazyTest{}, nil
+		})
+		wg.Done()
+	}()
+
+	wg.Wait()
 }
 
 func TestOverride(t *testing.T) {
