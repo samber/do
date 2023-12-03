@@ -7,6 +7,7 @@ import (
 )
 
 func TestHandleProviderPanic(t *testing.T) {
+	t.Parallel()
 	is := assert.New(t)
 
 	is.NotPanics(func() {
