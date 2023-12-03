@@ -53,6 +53,17 @@ func TestUtilsKeys(t *testing.T) {
 	is.Empty(value2)
 }
 
+func TestUtilsValues(t *testing.T) {
+	is := assert.New(t)
+
+	value1 := values[int, string](map[int]string{1: "foo", 2: "bar"})
+	sort.StringSlice(value1).Sort()
+	is.Equal([]string{"bar", "foo"}, value1)
+
+	value2 := values[int, string](map[int]string{})
+	is.Empty(value2)
+}
+
 func TestUtilsMap(t *testing.T) {
 	is := assert.New(t)
 
@@ -116,4 +127,11 @@ func TestUtilsContains(t *testing.T) {
 
 	is.True(contains([]string{"a", "b", "c"}, "a"))
 	is.False(contains([]string{"a", "b", "c"}, "z"))
+}
+
+func TestUtilsJobPool(t *testing.T) {
+	is := assert.New(t)
+
+	p := newJobPool[error](42)
+	is.Equal(p.parallelism, uint(42))
 }
