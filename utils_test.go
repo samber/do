@@ -10,6 +10,7 @@ import (
 )
 
 func TestUtilsEmpty(t *testing.T) {
+	t.Parallel()
 	is := assert.New(t)
 
 	value1 := empty[int]()
@@ -21,6 +22,7 @@ func TestUtilsEmpty(t *testing.T) {
 }
 
 func TestUtilsMust0(t *testing.T) {
+	t.Parallel()
 	is := assert.New(t)
 
 	is.Panics(func() {
@@ -32,6 +34,7 @@ func TestUtilsMust0(t *testing.T) {
 }
 
 func TestUtilsMust1(t *testing.T) {
+	t.Parallel()
 	is := assert.New(t)
 
 	is.Panics(func() {
@@ -43,6 +46,7 @@ func TestUtilsMust1(t *testing.T) {
 }
 
 func TestUtilsKeys(t *testing.T) {
+	t.Parallel()
 	is := assert.New(t)
 
 	value1 := keys[int, string](map[int]string{1: "foo", 2: "bar"})
@@ -54,6 +58,7 @@ func TestUtilsKeys(t *testing.T) {
 }
 
 func TestUtilsValues(t *testing.T) {
+	t.Parallel()
 	is := assert.New(t)
 
 	value1 := values[int, string](map[int]string{1: "foo", 2: "bar"})
@@ -65,6 +70,7 @@ func TestUtilsValues(t *testing.T) {
 }
 
 func TestUtilsMap(t *testing.T) {
+	t.Parallel()
 	is := assert.New(t)
 
 	result1 := mAp([]int{1, 2, 3, 4}, func(x int, index int) string {
@@ -83,6 +89,7 @@ func TestUtilsMap(t *testing.T) {
 }
 
 func TestUtilsInvertMap(t *testing.T) {
+	t.Parallel()
 	is := assert.New(t)
 
 	result1 := invertMap(map[string]int{"a": 1, "b": 2, "c": 3})
@@ -111,6 +118,7 @@ func TestFilter(t *testing.T) {
 	is.Equal(r2, []string{"foo", "bar"})
 }
 func TestUtilsOrderedUniq(t *testing.T) {
+	t.Parallel()
 	is := assert.New(t)
 
 	result1 := orderedUniq([]string{"a", "b", "c"})
@@ -123,6 +131,7 @@ func TestUtilsOrderedUniq(t *testing.T) {
 }
 
 func TestUtilsContains(t *testing.T) {
+	t.Parallel()
 	is := assert.New(t)
 
 	is.True(contains([]string{"a", "b", "c"}, "a"))
@@ -130,6 +139,7 @@ func TestUtilsContains(t *testing.T) {
 }
 
 func TestUtilsJobPool(t *testing.T) {
+	t.Parallel()
 	is := assert.New(t)
 
 	p := newJobPool[error](42)

@@ -185,6 +185,7 @@ func TestInvokeByGenericType_race(t *testing.T) {
 }
 
 func TestServiceNotFound(t *testing.T) {
+	t.Parallel()
 	is := assert.New(t)
 
 	rootScope := New()

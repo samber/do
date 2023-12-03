@@ -21,6 +21,7 @@ func example2() (Frame, bool) {
 }
 
 func TestStacktrace(t *testing.T) {
+	t.Parallel()
 	is := assert.New(t)
 
 	frame, ok := example1()
@@ -33,6 +34,7 @@ func TestStacktrace(t *testing.T) {
 }
 
 func TestNewFrameFromPtr(t *testing.T) {
+	t.Parallel()
 	is := assert.New(t)
 
 	frame, ok := example2()
@@ -45,6 +47,7 @@ func TestNewFrameFromPtr(t *testing.T) {
 }
 
 func TestFrame_String(t *testing.T) {
+	t.Parallel()
 	is := assert.New(t)
 
 	frame, ok := example1()

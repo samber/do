@@ -103,7 +103,7 @@ func (s *RootScope) queueServiceHealthcheck(ctx context.Context, scope *Scope, s
 	}
 
 	// when no pooling policy has been defined
-	if s.opts.HealthCheckParallelism <= 0 || s.healthCheckPool == nil {
+	if s.opts.HealthCheckParallelism == 0 || s.healthCheckPool == nil {
 		err := make(chan error, 1) // a single message will be sent (nil or error)
 
 		go func() {

@@ -57,6 +57,7 @@ func TestNewServiceTransient(t *testing.T) {
 }
 
 func TestServiceTransient_getName(t *testing.T) {
+	t.Parallel()
 	is := assert.New(t)
 
 	test := transientTest{foobar: "foobar"}
@@ -76,6 +77,7 @@ func TestServiceTransient_getName(t *testing.T) {
 }
 
 func TestServiceTransient_getType(t *testing.T) {
+	t.Parallel()
 	is := assert.New(t)
 
 	test := transientTest{foobar: "foobar"}
@@ -95,6 +97,7 @@ func TestServiceTransient_getType(t *testing.T) {
 }
 
 func TestServiceTransient_getEmptyInstance(t *testing.T) {
+	t.Parallel()
 	is := assert.New(t)
 
 	svc := newServiceTransient("foobar", func(i Injector) (*transientTest, error) {
@@ -105,6 +108,7 @@ func TestServiceTransient_getEmptyInstance(t *testing.T) {
 }
 
 func TestServiceTransient_getInstanceAny(t *testing.T) {
+	t.Parallel()
 	is := assert.New(t)
 
 	test := transientTest{foobar: "foobar"}
@@ -167,6 +171,7 @@ func TestServiceTransient_getInstanceAny(t *testing.T) {
 }
 
 func TestServiceTransient_getInstance(t *testing.T) {
+	t.Parallel()
 	is := assert.New(t)
 
 	test := transientTest{foobar: "foobar"}
@@ -230,6 +235,7 @@ func TestServiceTransient_getInstance(t *testing.T) {
 
 // @TODO: missing tests for context
 func TestServiceTransient_isHealthchecker(t *testing.T) {
+	t.Parallel()
 	is := assert.New(t)
 
 	// no healthcheck
@@ -257,6 +263,7 @@ func TestServiceTransient_isHealthchecker(t *testing.T) {
 
 // @TODO: missing tests for context
 func TestServiceTransient_healthcheck(t *testing.T) {
+	t.Parallel()
 	is := assert.New(t)
 
 	ctx := context.Background()
@@ -288,6 +295,7 @@ func TestServiceTransient_healthcheck(t *testing.T) {
 
 // @TODO: missing tests for context
 func TestServiceTransient_isShutdowner(t *testing.T) {
+	t.Parallel()
 	is := assert.New(t)
 
 	// no shutdown
@@ -315,6 +323,7 @@ func TestServiceTransient_isShutdowner(t *testing.T) {
 
 // @TODO: missing tests for context
 func TestServiceTransient_shutdown(t *testing.T) {
+	t.Parallel()
 	is := assert.New(t)
 
 	ctx := context.Background()
@@ -345,8 +354,9 @@ func TestServiceTransient_shutdown(t *testing.T) {
 }
 
 func TestServiceTransient_clone(t *testing.T) {
-	// @TODO
+	t.Parallel()
 	is := assert.New(t)
+	// @TODO
 
 	// initial
 	service1 := newServiceTransient("foobar", func(i Injector) (transientTest, error) {
@@ -366,6 +376,7 @@ func TestServiceTransient_clone(t *testing.T) {
 }
 
 func TestServiceTransient_source(t *testing.T) {
+	t.Parallel()
 	is := assert.New(t)
 
 	service1 := newServiceTransient("foobar", func(i Injector) (transientTest, error) {

@@ -9,6 +9,7 @@ import (
 
 // TestNewEdgeService checks the creation of a new EdgeService.
 func TestNewEdgeService(t *testing.T) {
+	t.Parallel()
 	is := assert.New(t)
 
 	expected := EdgeService{"foo", "bar", "baz"}
@@ -19,6 +20,7 @@ func TestNewEdgeService(t *testing.T) {
 
 // TestNewDAG checks the initialization of a new DAG.
 func TestNewDAG(t *testing.T) {
+	t.Parallel()
 	is := assert.New(t)
 
 	dag := newDAG()
@@ -31,6 +33,7 @@ func TestNewDAG(t *testing.T) {
 
 // TestDAG_addDependency checks the addition of dependencies to the DAG.
 func TestDAG_addDependency(t *testing.T) {
+	t.Parallel()
 	is := assert.New(t)
 
 	edge1 := newEdgeService("scope1", "scope1", "service1")
@@ -58,6 +61,7 @@ func TestDAG_addDependency(t *testing.T) {
 
 // TestDAG_explainService checks the explanation of dependencies for a service in the DAG.
 func TestDAG_explainService(t *testing.T) {
+	t.Parallel()
 	is := assert.New(t)
 
 	edge1 := newEdgeService("scope1", "scope1", "service1")

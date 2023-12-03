@@ -16,6 +16,8 @@ import (
 )
 
 func TestRemoveGoPath(t *testing.T) {
+	t.Parallel()
+
 	for _, testcase := range []struct {
 		gopath   []string
 		path     string
