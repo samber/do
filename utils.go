@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"io"
 	"sync"
-	"time"
 )
 
 //
@@ -174,10 +173,8 @@ func (p jobPool[R]) stop() {
 }
 
 func raceWithTimeout(ctx context.Context, fn func(context.Context) error) error {
-	deadline, ok := ctx.Deadline()
-	if ok && deadline.Before(time.Now()) {
-		return fmt.Errorf("%w: %w", ErrHealthCheckTimeout, context.DeadlineExceeded)
-	} else if !ok {
+	_, ok := ctx.Deadline()
+	if !ok {
 		return fn(ctx)
 	}
 

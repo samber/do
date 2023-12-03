@@ -56,6 +56,7 @@ func TestNewServiceEager(t *testing.T) {
 }
 
 func TestServiceEager_getName(t *testing.T) {
+	t.Parallel()
 	is := assert.New(t)
 
 	test := eagerTest{foobar: "foobar"}
@@ -68,6 +69,7 @@ func TestServiceEager_getName(t *testing.T) {
 }
 
 func TestServiceEager_getType(t *testing.T) {
+	t.Parallel()
 	is := assert.New(t)
 
 	test := eagerTest{foobar: "foobar"}
@@ -80,6 +82,7 @@ func TestServiceEager_getType(t *testing.T) {
 }
 
 func TestServiceEager_getEmptyInstance(t *testing.T) {
+	t.Parallel()
 	is := assert.New(t)
 
 	svc := newServiceEager("foobar", &eagerTest{foobar: "foobar"})
@@ -88,6 +91,7 @@ func TestServiceEager_getEmptyInstance(t *testing.T) {
 }
 
 func TestServiceEager_getInstanceAny(t *testing.T) {
+	t.Parallel()
 	is := assert.New(t)
 
 	test := eagerTest{foobar: "foobar"}
@@ -104,6 +108,7 @@ func TestServiceEager_getInstanceAny(t *testing.T) {
 }
 
 func TestServiceEager_getInstance(t *testing.T) {
+	t.Parallel()
 	is := assert.New(t)
 
 	test := eagerTest{foobar: "foobar"}
@@ -120,6 +125,7 @@ func TestServiceEager_getInstance(t *testing.T) {
 }
 
 func TestServiceEager_isHealthchecker(t *testing.T) {
+	t.Parallel()
 	is := assert.New(t)
 
 	// no healthcheck
@@ -137,6 +143,7 @@ func TestServiceEager_isHealthchecker(t *testing.T) {
 
 // @TODO: missing tests for context
 func TestServiceEager_healthcheck(t *testing.T) {
+	t.Parallel()
 	is := assert.New(t)
 
 	ctx := context.Background()
@@ -160,6 +167,7 @@ func TestServiceEager_healthcheck(t *testing.T) {
 }
 
 func TestServiceEager_isShutdowner(t *testing.T) {
+	t.Parallel()
 	is := assert.New(t)
 
 	// no shutdown
@@ -177,6 +185,7 @@ func TestServiceEager_isShutdowner(t *testing.T) {
 
 // @TODO: missing tests for context
 func TestServiceEager_shutdown(t *testing.T) {
+	t.Parallel()
 	is := assert.New(t)
 
 	ctx := context.Background()
@@ -200,6 +209,7 @@ func TestServiceEager_shutdown(t *testing.T) {
 }
 
 func TestServiceEager_clone(t *testing.T) {
+	t.Parallel()
 	is := assert.New(t)
 
 	test := eagerTest{foobar: "foobar"}

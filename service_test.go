@@ -7,6 +7,7 @@ import (
 )
 
 func TestInferServiceName(t *testing.T) {
+	t.Parallel()
 	is := assert.New(t)
 
 	// more tests in the package
@@ -25,6 +26,7 @@ func TestInferServiceInfo(t *testing.T) {
 }
 
 func TestServiceIsAssignable(t *testing.T) {
+	t.Parallel()
 	is := assert.New(t)
 
 	svc1 := newServiceLazy("foobar", func(i Injector) (*lazyTestHeathcheckerOK, error) {
