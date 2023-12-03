@@ -50,7 +50,7 @@ type lazyTestHeathcheckerOKTimeout struct {
 }
 
 func (t *lazyTestHeathcheckerOKTimeout) HealthCheck() error {
-	time.Sleep(50 * time.Millisecond)
+	time.Sleep(20 * time.Millisecond)
 	return nil
 }
 
@@ -89,6 +89,7 @@ func TestNewServiceLazy(t *testing.T) {
 }
 
 func TestServiceLazy_getName(t *testing.T) {
+	t.Parallel()
 	is := assert.New(t)
 
 	test := lazyTest{foobar: "foobar"}
@@ -108,6 +109,7 @@ func TestServiceLazy_getName(t *testing.T) {
 }
 
 func TestServiceLazy_getType(t *testing.T) {
+	t.Parallel()
 	is := assert.New(t)
 
 	test := lazyTest{foobar: "foobar"}
@@ -127,6 +129,7 @@ func TestServiceLazy_getType(t *testing.T) {
 }
 
 func TestServiceLazy_getEmptyInstance(t *testing.T) {
+	t.Parallel()
 	is := assert.New(t)
 
 	svc := newServiceLazy("foobar", func(i Injector) (*lazyTest, error) {
@@ -137,6 +140,7 @@ func TestServiceLazy_getEmptyInstance(t *testing.T) {
 }
 
 func TestServiceLazy_getInstanceAny(t *testing.T) {
+	t.Parallel()
 	is := assert.New(t)
 
 	test := lazyTest{foobar: "foobar"}
@@ -199,6 +203,7 @@ func TestServiceLazy_getInstanceAny(t *testing.T) {
 }
 
 func TestServiceLazy_getInstance(t *testing.T) {
+	t.Parallel()
 	is := assert.New(t)
 
 	test := lazyTest{foobar: "foobar"}
@@ -261,6 +266,7 @@ func TestServiceLazy_getInstance(t *testing.T) {
 }
 
 func TestServiceLazy_build(t *testing.T) {
+	t.Parallel()
 	is := assert.New(t)
 
 	test := lazyTest{foobar: "foobar"}
@@ -337,6 +343,7 @@ func TestServiceLazy_build(t *testing.T) {
 }
 
 func TestServiceLazy_isHealthchecker(t *testing.T) {
+	t.Parallel()
 	is := assert.New(t)
 
 	// no healthcheck
@@ -364,6 +371,7 @@ func TestServiceLazy_isHealthchecker(t *testing.T) {
 
 // @TODO: missing tests for context
 func TestServiceLazy_healthcheck(t *testing.T) {
+	t.Parallel()
 	is := assert.New(t)
 
 	ctx := context.Background()
@@ -395,6 +403,7 @@ func TestServiceLazy_healthcheck(t *testing.T) {
 
 // @TODO: missing tests for context
 func TestServiceLazy_isShutdowner(t *testing.T) {
+	t.Parallel()
 	is := assert.New(t)
 
 	// no shutdown
@@ -422,6 +431,7 @@ func TestServiceLazy_isShutdowner(t *testing.T) {
 
 // @TODO: missing tests for context
 func TestServiceLazy_shutdown(t *testing.T) {
+	t.Parallel()
 	is := assert.New(t)
 
 	ctx := context.Background()
@@ -461,6 +471,7 @@ func TestServiceLazy_shutdown(t *testing.T) {
 }
 
 func TestServiceLazy_clone(t *testing.T) {
+	t.Parallel()
 	is := assert.New(t)
 
 	// initial
