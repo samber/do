@@ -1,9 +1,12 @@
 package do
 
 import (
+	"context"
 	"crypto/rand"
 	"fmt"
 	"io"
+	"sync"
+	"time"
 )
 
 //
@@ -33,6 +36,16 @@ func keys[K comparable, V any](in map[K]V) []K {
 
 	for k := range in {
 		result = append(result, k)
+	}
+
+	return result
+}
+
+func values[K comparable, V any](in map[K]V) []V {
+	result := make([]V, 0, len(in))
+
+	for _, v := range in {
+		result = append(result, v)
 	}
 
 	return result
@@ -112,4 +125,71 @@ func newUUID() (string, error) {
 	// version 4 (pseudo-random); see section 4.1.3
 	uuid[6] = uuid[6]&^0xf0 | 0x40
 	return fmt.Sprintf("%x-%x-%x-%x-%x", uuid[0:4], uuid[4:6], uuid[6:8], uuid[8:10], uuid[10:]), nil
+}
+
+func newJobPool[R any](parallelism uint) *jobPool[R] {
+	return &jobPool[R]{
+		parallelism: parallelism,
+		jobs:        make(chan func(), 1000), // 🤮 @TODO: change that
+
+		startOnce: &sync.Once{},
+		stopOnce:  &sync.Once{},
+	}
+}
+
+type jobPool[R any] struct {
+	parallelism uint
+	jobs        chan func()
+
+	startOnce *sync.Once
+	stopOnce  *sync.Once
+}
+
+func (p jobPool[R]) rpc(f func() R) <-chan R {
+	c := make(chan R, 1) // a single message will be sent before closing
+
+	p.jobs <- func() {
+		c <- f()
+	}
+
+	return c
+}
+
+func (p jobPool[R]) start() {
+	p.startOnce.Do(func() {
+		for i := 0; i < int(p.parallelism); i++ {
+			go func() {
+				for job := range p.jobs {
+					job()
+				}
+			}()
+		}
+	})
+}
+
+func (p jobPool[R]) stop() {
+	p.stopOnce.Do(func() {
+		close(p.jobs)
+	})
+}
+
+func raceWithTimeout(ctx context.Context, fn func(context.Context) error) error {
+	deadline, ok := ctx.Deadline()
+	if ok && deadline.Before(time.Now()) {
+		return fmt.Errorf("%w: %w", ErrHealthCheckTimeout, context.DeadlineExceeded)
+	} else if !ok {
+		return fn(ctx)
+	}
+
+	err := make(chan error, 1)
+	go func() {
+		err <- fn(ctx)
+	}()
+
+	select {
+	case e := <-err:
+		return e
+	case <-ctx.Done():
+		return fmt.Errorf("%w: %w", ErrHealthCheckTimeout, ctx.Err())
+	}
 }

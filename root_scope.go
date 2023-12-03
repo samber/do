@@ -24,11 +24,17 @@ func NewWithOpts(opts *InjectorOpts) *RootScope {
 	}
 
 	root := &RootScope{
-		self: newScope(DefaultRootScopeName, nil, nil),
-		opts: opts,
-		dag:  newDAG(),
+		self:            newScope(DefaultRootScopeName, nil, nil),
+		opts:            opts,
+		dag:             newDAG(),
+		healthCheckPool: nil,
 	}
 	root.self.rootScope = root
+
+	if opts.HealthCheckParallelism > 0 {
+		root.healthCheckPool = newJobPool[error](opts.HealthCheckParallelism)
+		root.healthCheckPool.start()
+	}
 
 	root.opts.Logf("DI: injector created")
 
@@ -39,11 +45,10 @@ var _ Injector = (*RootScope)(nil)
 
 // RootScope is the first level of scope tree.
 type RootScope struct {
-	self *Scope
-
-	opts *InjectorOpts
-
-	dag *DAG
+	self            *Scope
+	opts            *InjectorOpts
+	dag             *DAG
+	healthCheckPool *jobPool[error]
 }
 
 // pass through
@@ -61,8 +66,15 @@ func (s *RootScope) HealthCheck() map[string]error          { return s.self.Heal
 func (s *RootScope) HealthCheckWithContext(ctx context.Context) map[string]error {
 	return s.self.HealthCheckWithContext(ctx)
 }
-func (s *RootScope) Shutdown() error { return s.self.Shutdown() }
+func (s *RootScope) Shutdown() error { return s.ShutdownWithContext(context.Background()) }
 func (s *RootScope) ShutdownWithContext(ctx context.Context) error {
+	defer func() {
+		if s.healthCheckPool != nil {
+			s.healthCheckPool.stop()
+			s.healthCheckPool = nil
+		}
+	}()
+
 	return s.self.ShutdownWithContext(ctx)
 }
 func (s *RootScope) clone(root *RootScope, parent *Scope) *Scope      { return s.self.clone(root, parent) }
@@ -82,6 +94,35 @@ func (s *RootScope) serviceShutdown(ctx context.Context, name string) error {
 	return s.self.serviceShutdown(ctx, name)
 }
 func (s *RootScope) onServiceInvoke(name string) { s.self.onServiceInvoke(name) }
+
+func (s *RootScope) queueServiceHealthcheck(ctx context.Context, scope *Scope, serviceName string) <-chan error {
+	cancel := func() {}
+	if s.opts.HealthCheckTimeout > 0 {
+		// `ctx` might already contain a timeout, but we add another one
+		ctx, cancel = context.WithTimeout(ctx, s.opts.HealthCheckTimeout)
+	}
+
+	// when no pooling policy has been defined
+	if s.opts.HealthCheckParallelism <= 0 || s.healthCheckPool == nil {
+		err := make(chan error, 1) // a single message will be sent (nil or error)
+
+		go func() {
+			defer cancel()
+
+			ctx.Done()
+			err <- scope.serviceHealthCheck(ctx, serviceName)
+			close(err)
+		}()
+
+		return err
+	}
+
+	// delegate execution to the healthcheck pool
+	return s.healthCheckPool.rpc(func() error {
+		defer cancel()
+		return scope.serviceHealthCheck(ctx, serviceName)
+	})
+}
 
 // Clone clones injector with provided services but not with invoked instances.
 func (s *RootScope) Clone() *RootScope {

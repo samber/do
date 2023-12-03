@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -40,6 +41,17 @@ type lazyTestHeathcheckerKOCtx struct {
 
 func (t *lazyTestHeathcheckerKOCtx) HealthCheck(ctx context.Context) error {
 	return assert.AnError
+}
+
+var _ Healthchecker = (*lazyTestHeathcheckerOKTimeout)(nil)
+
+type lazyTestHeathcheckerOKTimeout struct {
+	foobar string
+}
+
+func (t *lazyTestHeathcheckerOKTimeout) HealthCheck() error {
+	time.Sleep(50 * time.Millisecond)
+	return nil
 }
 
 var _ ShutdownerWithContextAndError = (*lazyTestShutdownerOK)(nil)

@@ -169,29 +169,46 @@ func (s *Scope) HealthCheck() map[string]error {
 
 // HealthCheckWithContext returns the healthcheck results of the scope, in a map of service name to error.
 func (s *Scope) HealthCheckWithContext(ctx context.Context) map[string]error {
-	results := map[string]error{}
-
-	s.mu.RLock()
-	for _, name := range keys(s.services) {
-		results[name] = s.serviceHealthCheck(ctx, name)
-	}
-	s.mu.RUnlock()
-
 	s.logf("requested healthcheck")
 
-	// @TODO: we should not check status of services that are not inherited (overriden in a child tree)
-	for _, ancestor := range s.Ancestors() {
-		heath := ancestor.HealthCheck()
-		for name, err := range heath {
-			if _, ok := results[name]; !ok {
-				results[name] = err
-			}
-		}
+	if s.rootScope.opts.HealthCheckGlobalTimeout > 0 {
+		var cancel context.CancelFunc
+		ctx, cancel = context.WithTimeout(ctx, s.rootScope.opts.HealthCheckGlobalTimeout)
+		defer cancel()
+	}
+
+	results := map[string]error{}
+
+	asyncResults := s.asyncHealthCheckWithContext(ctx)
+	for name, err := range asyncResults {
+		results[name] = <-err
 	}
 
 	s.logf("got healthcheck results: %v", results)
 
 	return results
+}
+
+func (s *Scope) asyncHealthCheckWithContext(ctx context.Context) map[string]<-chan error {
+	asyncResults := map[string]<-chan error{}
+
+	s.mu.RLock()
+	for _, name := range keys(s.services) {
+		asyncResults[name] = s.rootScope.queueServiceHealthcheck(ctx, s, name)
+	}
+	s.mu.RUnlock()
+
+	// @TODO: we should not check status of services that are not inherited (overriden in a child tree)
+	for _, ancestor := range s.Ancestors() {
+		heath := ancestor.asyncHealthCheckWithContext(ctx)
+		for name, err := range heath {
+			if _, ok := asyncResults[name]; !ok {
+				asyncResults[name] = err
+			}
+		}
+	}
+
+	return asyncResults
 }
 
 // Shutdown shutdowns the scope and all its children.
@@ -368,10 +385,12 @@ func (s *Scope) serviceHealthCheck(ctx context.Context, name string) error {
 	if ok {
 		s.logf("requested healthcheck for service %s", name)
 
-		err := service.healthcheck(ctx)
-		if err != nil {
-			return err
-		}
+		// Timeout error is not triggered when the service is not an healthchecker.
+		// If healthchecker does not support context.Timeout, error will be triggered raceWithTimeout().
+		return raceWithTimeout(
+			ctx,
+			service.healthcheck,
+		)
 	}
 
 	return nil
