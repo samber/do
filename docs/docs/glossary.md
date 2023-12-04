@@ -1,6 +1,6 @@
 ---
 id: glossary
-title: Glossary
+title: 📚 Glossary
 description: Dependency injection glossary
 sidebar_position: 6
 ---
@@ -18,6 +18,8 @@ A design principle where the flow of control is inverted compared to traditional
 ## Injector
 
 In Dependency Injection (DI), an injector is a component that creates instances of classes and manages their dependencies. It's also known as the DI container or IoC (Inversion of Control) container.
+
+`do.Injector` is either a `*do.RootScope`, a `*do.Scope` or a `*do.VirtualScope`.
 
 ## DI Container
 
