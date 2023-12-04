@@ -8,6 +8,10 @@ sidebar_position: 1
 
 Lazy loading limits the number of components that load in an app.
 
+🚀 Lazy services are loaded in invocation order.
+
+🐎 Lazy service invocation is protected against concurrent loading.
+
 ## Provider
 
 A lazy service must be defined with a `provider` (kind of constructor). This provider will be called once and must return the singleton or an error.
