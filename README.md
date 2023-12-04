@@ -22,7 +22,7 @@ This library implements the Dependency Injection design pattern. It may replace 
 
 **Why this name?**
 
-I love the **short name** for such a utility library. This name is the sum of `DI` and `Go` and no Go package currently uses this name.
+I love the **short name** for such a utility library. This name is the sum of `DI` and `Go` and no Go package uses this name.
 
 ## 🔥 Migration from v1 to v2
 
@@ -30,31 +30,31 @@ I love the **short name** for such a utility library. This name is the sum of `D
 
 ## 💡 Features
 
-- Service registration:
+- **📒 Service registration**
   - By type inference
   - By name
-- Service invocation
+- **🪃 Service invocation**
   - Eager loading
   - Lazy loading
   - Transient loading
-- Service aliasing
+- **🧙‍♂️ Service aliasing**
   - Implicit (provide struct, invoke interface)
   - Explicit (provide struct, bind interface, invoke interface)
-- Service lifecycle:
+- **🔁 Service lifecycle**
   - Health check
   - Graceful unload (shutdown)
   - Lifecycle hooks
-- Scope (a.k.a module) tree
+- **📦 Scope (a.k.a module) tree**
   - Visibility control
   - Dependency grouping
-- Injector
+- **📤 Injector**
   - Dependency graph resolution and visualization
   - Default injector
   - Injector cloning
   - Service override
-- Lightweight, no dependencies
-- No code generation
-- Typesafe API
+- **🌈 Lightweight, no dependencies**
+- **🔅 No code generation**
+- **😷 Typesafe API**
 
 ## 🚀 Install
 
