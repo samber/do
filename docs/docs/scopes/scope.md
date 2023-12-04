@@ -73,7 +73,7 @@ svc := do.MustInvokeNamed[*Passenger](passengersModule, "passenger-3")
 
 ## Debug
 
-A debugging toolchain has been added to illustrate the service [dependency](../debugging/service-dependencies.md) chain and [scope tree](../debugging/scope-tree.md).
+A debugging toolchain has been added to illustrate the service [dependency](../troubleshooting/service-dependencies.md) chain and [scope tree](../troubleshooting/scope-tree.md).
 
 ## Examples
 
