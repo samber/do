@@ -32,6 +32,9 @@ const config: Config = {
   headTags: [
     {
       tagName: 'script',
+      attributes:{
+        type: "application/javascript",
+      },
       innerHTML: `
 (function (s,c,r,ee,b) {
   s['ScreebObject']=r;s[r]=s[r]||function(){var d=arguments;return new Promise(function(a,b){(s[r].q=s[r].q||[]).push({v:1,args:d,ok:a,ko:b})})};
