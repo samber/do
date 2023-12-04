@@ -38,10 +38,14 @@ const config: Config = {
           // Please change this to your repo.
           // Remove this to remove the "edit this page" links.
           editUrl:
-            'https://github.com/samber/do/tree/main/docs/',
+            'https://github.com/samber/do/tree/master/docs/',
         },
         theme: {
           customCss: './src/css/custom.css',
+        },
+        gtag: {
+          trackingID: 'G-ZQ0MR5WG9T',
+          anonymizeIP: false,
         },
       } satisfies Preset.Options,
     ],
