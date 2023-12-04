@@ -1,5 +1,5 @@
 ---
-title: Getting started
+title: 🚀 Getting started
 description: Let's discover samber/do in less than 5 minutes.
 sidebar_position: 1
 ---
@@ -10,7 +10,9 @@ Let's discover **samber/do in less than 5 minutes**.
 
 ## What you'll need
 
-[Go](https://go.dev/doc/install/) 18 or more.
+Compatible with [Go](https://go.dev/doc/install/) 1.18 or more.
+
+This library has no dependencies except the Go std lib.
 
 Import package:
 
@@ -31,6 +33,28 @@ injector := do.New()
 ## Service provider and invocation
 
 Services can be declared as a singleton or a factory. In this example, we will create 2 services `Car` and `Engine`, with a simple dependency relation.
+
+```go
+func main() {
+    // create DI container
+    i := do.New()
+
+    // inject both services into DI container
+    Provide[*Car](i, NewCar)
+    Provide[*Engine](i, NewEngine)
+
+    // invoking car will instantiate Car services and its Engine dependency
+    car, err := Invoke[*Car](i)
+    if err != nil {
+        log.Fatal(err.Error())
+    }
+
+    car.Start()  // that's all folk 🤗
+
+    // handle ctrl-c and shutdown services
+    i.ShutdownOnSignals(syscall.SIGTERM, os.Interrupt)
+}
+```
 
 Engine:
 
@@ -71,29 +95,5 @@ func NewCar(i do.Injector) (*Car, error) {
         // import dependency
         Engine: do.MustInvoke[*Engine](i),
     }, nil
-}
-```
-
-Now, let's start the application:
-
-```go
-func main() {
-    // create DI container
-    i := do.New()
-
-    // inject both services into DI container
-    Provide[*Car](i, NewCar)
-    Provide[*Engine](i, NewEngine)
-
-    // invoking car will instantiate Car services and its Engine dependency
-    car, err := Invoke[*Car](i)
-    if err != nil {
-        log.Fatal(err.Error())
-    }
-
-    car.Start()  // that's all folk 🤗
-
-    // handle ctrl-c and shutdown services
-    i.ShutdownOnSignals(syscall.SIGTERM, os.Interrupt)
 }
 ```

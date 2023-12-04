@@ -18,13 +18,18 @@ In the context of the Go code you're working with, there are several helper func
 
 - `do.MustInvokeNamed[T any](do.Injector, string) T`: This function is a variant of `do.InvokeNamed` that also panics if the service cannot be created.
 
-:::note
+🚀 Lazy services are loaded in invocation order.
+
+🐎 Lazy service invocation is protected against concurrent loading.
+
+🧙‍♂️ When multiple [scopes](../scopes/scope.md) are assembled into a big application, the service lookup is recursive from the current nested scope to the root scope.
+
+:::warning
 
 Circular dependencies are not allowed. Services must be invoked in a Directed Acyclic Graph way.
 
 :::
 
-When multiple [scopes](../scopes/scope.md) are assembled into a big application, the service lookup is recursive from the current nested scope to the root scope.
 
 ## Example
 

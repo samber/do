@@ -1,16 +1,16 @@
 ---
-title: To samber/do v2
-description: Upgrade to samber/do v2
+title: From v1.x to v2
+description: Upgrade samber/do from v1.x to v2
 sidebar_position: 1
 ---
 
-# To samber/do v2
+# Upgrade samber/do from v1.x to v2
 
 This documentation will help you upgrade your application from `samber/do` v1 to `samber/do` v2.
 
-`samber/do` v2 is a new major version, including breaking changes requiring you to adjust your applications accordingly. We will guide to during this process, and also mention a few optional recommendations.
+`samber/do` v2 is a new major version, including breaking changes requiring you to adjust your applications accordingly. We will guide to during this process and also mention a few optional recommendations.
 
-This release is large rewrite, but the breaking changes are relatively easy to handle. Some updates can be done with a simple `sed` command.
+This release is a large rewrite, but the breaking changes are relatively easy to handle. Some updates can be done with a simple `sed` command.
 
 Check the release notes [here](https://github.com/samber/do/releases).
 

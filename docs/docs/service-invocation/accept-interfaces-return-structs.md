@@ -12,8 +12,12 @@ This library offers a great API for assembling a large number of modules with lo
 
 Aliases must be Go interfaces. It can be declared explicitly on injection using `do.As()`, or invoked implicitly using `do.InvokeAs()`.
 
-1. **Implicit alias invocation**: `do.InvokeAs()`
-2. **Explicit alias injection**: `do.As()`
+1. **Implicit alias invocation**:
+   - provide struct, invoke interface
+   - `do.InvokeAs()`
+2. **Explicit alias injection**:
+   - provide struct, bind interface, invoke interface
+   - `do.As()`
 
 ## Implicit invocation (prefered)
 
