@@ -145,12 +145,13 @@ const config: Config = {
       theme: prismThemes.github,
       darkTheme: prismThemes.dracula,
     },
-    // algolia: {
-    //   appId: '',
-    //   apiKey: '',
-    //   indexName: '',
-    //   contextualSearch: false
-    // },
+    algolia: {
+      appId: 'VDJWQ4V7HW',
+      apiKey: '529072f02f10644f56797297725f57db',
+      externalUrlRegex: 'do\\.samber\\.dev',
+      indexName: 'doc',
+      contextualSearch: true,
+    },
   } satisfies Preset.ThemeConfig,
 
   plugins: [
