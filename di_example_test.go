@@ -11,7 +11,7 @@ func ExampleProvide() {
 		foobar string
 	}
 
-	Provide(injector, func(i *Injector) (*test, error) {
+	Provide(injector, func(i Injector) (*test, error) {
 		return &test{foobar: "foobar"}, nil
 	})
 	value, err := Invoke[*test](injector)
@@ -21,42 +21,6 @@ func ExampleProvide() {
 	// Output:
 	// &{foobar}
 	// <nil>
-}
-
-func ExampleInvoke() {
-	injector := New()
-
-	type test struct {
-		foobar string
-	}
-
-	Provide(injector, func(i *Injector) (*test, error) {
-		return &test{foobar: "foobar"}, nil
-	})
-	value, err := Invoke[*test](injector)
-
-	fmt.Println(value)
-	fmt.Println(err)
-	// Output:
-	// &{foobar}
-	// <nil>
-}
-
-func ExampleMustInvoke() {
-	injector := New()
-
-	type test struct {
-		foobar string
-	}
-
-	Provide(injector, func(i *Injector) (*test, error) {
-		return &test{foobar: "foobar"}, nil
-	})
-	value := MustInvoke[*test](injector)
-
-	fmt.Println(value)
-	// Output:
-	// &{foobar}
 }
 
 func ExampleProvideNamed() {
@@ -66,7 +30,7 @@ func ExampleProvideNamed() {
 		foobar string
 	}
 
-	ProvideNamed(injector, "my_service", func(i *Injector) (*test, error) {
+	ProvideNamed(injector, "my_service", func(i Injector) (*test, error) {
 		return &test{foobar: "foobar"}, nil
 	})
 	value, err := InvokeNamed[*test](injector, "my_service")
@@ -76,42 +40,6 @@ func ExampleProvideNamed() {
 	// Output:
 	// &{foobar}
 	// <nil>
-}
-
-func ExampleInvokeNamed() {
-	injector := New()
-
-	type test struct {
-		foobar string
-	}
-
-	ProvideNamed(injector, "my_service", func(i *Injector) (*test, error) {
-		return &test{foobar: "foobar"}, nil
-	})
-	value, err := InvokeNamed[*test](injector, "my_service")
-
-	fmt.Println(value)
-	fmt.Println(err)
-	// Output:
-	// &{foobar}
-	// <nil>
-}
-
-func ExampleMustInvokeNamed() {
-	injector := New()
-
-	type test struct {
-		foobar string
-	}
-
-	ProvideNamed(injector, "my_service", func(i *Injector) (*test, error) {
-		return &test{foobar: "foobar"}, nil
-	})
-	value := MustInvokeNamed[*test](injector, "my_service")
-
-	fmt.Println(value)
-	// Output:
-	// &{foobar}
 }
 
 func ExampleProvideValue() {
@@ -155,10 +83,10 @@ func ExampleOverride() {
 		foobar string
 	}
 
-	Provide(injector, func(i *Injector) (*test, error) {
+	Provide(injector, func(i Injector) (*test, error) {
 		return &test{foobar: "foobar1"}, nil
 	})
-	Override(injector, func(i *Injector) (*test, error) {
+	Override(injector, func(i Injector) (*test, error) {
 		return &test{foobar: "foobar2"}, nil
 	})
 	value, err := Invoke[*test](injector)
@@ -177,10 +105,10 @@ func ExampleOverrideNamed() {
 		foobar string
 	}
 
-	ProvideNamed(injector, "my_service", func(i *Injector) (*test, error) {
+	ProvideNamed(injector, "my_service", func(i Injector) (*test, error) {
 		return &test{foobar: "foobar1"}, nil
 	})
-	OverrideNamed(injector, "my_service", func(i *Injector) (*test, error) {
+	OverrideNamed(injector, "my_service", func(i Injector) (*test, error) {
 		return &test{foobar: "foobar2"}, nil
 	})
 	value, err := InvokeNamed[*test](injector, "my_service")
@@ -208,4 +136,76 @@ func ExampleOverrideNamedValue() {
 	// Output:
 	// &{foobar2}
 	// <nil>
+}
+
+func ExampleInvoke() {
+	injector := New()
+
+	type test struct {
+		foobar string
+	}
+
+	Provide(injector, func(i Injector) (*test, error) {
+		return &test{foobar: "foobar"}, nil
+	})
+	value, err := Invoke[*test](injector)
+
+	fmt.Println(value)
+	fmt.Println(err)
+	// Output:
+	// &{foobar}
+	// <nil>
+}
+
+func ExampleMustInvoke() {
+	injector := New()
+
+	type test struct {
+		foobar string
+	}
+
+	Provide(injector, func(i Injector) (*test, error) {
+		return &test{foobar: "foobar"}, nil
+	})
+	value := MustInvoke[*test](injector)
+
+	fmt.Println(value)
+	// Output:
+	// &{foobar}
+}
+
+func ExampleInvokeNamed() {
+	injector := New()
+
+	type test struct {
+		foobar string
+	}
+
+	ProvideNamed(injector, "my_service", func(i Injector) (*test, error) {
+		return &test{foobar: "foobar"}, nil
+	})
+	value, err := InvokeNamed[*test](injector, "my_service")
+
+	fmt.Println(value)
+	fmt.Println(err)
+	// Output:
+	// &{foobar}
+	// <nil>
+}
+
+func ExampleMustInvokeNamed() {
+	injector := New()
+
+	type test struct {
+		foobar string
+	}
+
+	ProvideNamed(injector, "my_service", func(i Injector) (*test, error) {
+		return &test{foobar: "foobar"}, nil
+	})
+	value := MustInvokeNamed[*test](injector, "my_service")
+
+	fmt.Println(value)
+	// Output:
+	// &{foobar}
 }

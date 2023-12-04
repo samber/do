@@ -1,15 +1,26 @@
 package main
 
 import (
+	"context"
 	"log"
 
-	"github.com/samber/do"
+	"github.com/samber/do/v2"
 )
 
 /**
  * Wheel
  */
 type Wheel struct {
+}
+
+/**
+ * AutoPilot
+ */
+type AutoPilot struct {
+}
+
+func (a *AutoPilot) ShutdownWithContext(ctx context.Context) error {
+	return nil
 }
 
 /**
@@ -27,8 +38,9 @@ func (c *Engine) Shutdown() error {
  * Car
  */
 type Car struct {
-	Engine *Engine
-	Wheels []*Wheel
+	AutoPilot *AutoPilot
+	Engine    *Engine
+	Wheels    []*Wheel
 }
 
 func (c *Car) Shutdown() error {
@@ -53,9 +65,10 @@ func main() {
 	do.ProvideNamedValue(injector, "wheel-4", &Wheel{})
 
 	// provide car
-	do.Provide(injector, func(i *do.Injector) (*Car, error) {
+	do.Provide(injector, func(i do.Injector) (*Car, error) {
 		car := Car{
-			Engine: do.MustInvoke[*Engine](i),
+			AutoPilot: do.MustInvoke[*AutoPilot](i),
+			Engine:    do.MustInvoke[*Engine](i),
 			Wheels: []*Wheel{
 				do.MustInvokeNamed[*Wheel](i, "wheel-1"),
 				do.MustInvokeNamed[*Wheel](i, "wheel-2"),
@@ -68,15 +81,20 @@ func main() {
 	})
 
 	// provide engine
-	do.Provide(injector, func(i *do.Injector) (*Engine, error) {
+	do.Provide(injector, func(i do.Injector) (*Engine, error) {
 		return &Engine{}, nil
+	})
+
+	// provide autopilot
+	do.Provide(injector, func(i do.Injector) (*AutoPilot, error) {
+		return &AutoPilot{}, nil
 	})
 
 	// start car
 	car := do.MustInvoke[*Car](injector)
 	car.Start()
 
-	err := injector.ShutdownOnSIGTERM()
+	_, err := injector.ShutdownOnSIGTERM()
 	if err != nil {
 		log.Fatal(err.Error())
 	}

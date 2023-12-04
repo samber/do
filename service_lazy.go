@@ -1,10 +1,18 @@
 package do
 
 import (
+	"context"
+	"reflect"
 	"sync"
+	"time"
+
+	"github.com/samber/do/v2/stacktrace"
 )
 
-type Provider[T any] func(*Injector) (T, error)
+var _ Service[int] = (*ServiceLazy[int])(nil)
+var _ serviceHealthcheck = (*ServiceLazy[int])(nil)
+var _ serviceShutdown = (*ServiceLazy[int])(nil)
+var _ serviceClone = (*ServiceLazy[int])(nil)
 
 type ServiceLazy[T any] struct {
 	mu       sync.RWMutex
@@ -12,28 +20,55 @@ type ServiceLazy[T any] struct {
 	instance T
 
 	// lazy loading
-	built    bool
-	provider Provider[T]
+	built     bool
+	buildTime time.Duration // @TODO: shoud be exported ?
+	provider  Provider[T]
+
+	providerFrame    stacktrace.Frame
+	invokationFrames []stacktrace.Frame
 }
 
-func newServiceLazy[T any](name string, provider Provider[T]) Service[T] {
+func newServiceLazy[T any](name string, provider Provider[T]) *ServiceLazy[T] {
+	providerFrame, _ := stacktrace.NewFrameFromPtr(reflect.ValueOf(provider).Pointer())
+
 	return &ServiceLazy[T]{
+		mu:   sync.RWMutex{},
 		name: name,
 
-		built:    false,
-		provider: provider,
+		built:     false,
+		buildTime: 0,
+		provider:  provider,
+
+		providerFrame:    providerFrame,
+		invokationFrames: []stacktrace.Frame{},
 	}
 }
 
-//nolint:unused
 func (s *ServiceLazy[T]) getName() string {
 	return s.name
 }
 
-//nolint:unused
-func (s *ServiceLazy[T]) getInstance(i *Injector) (T, error) {
+func (s *ServiceLazy[T]) getType() ServiceType {
+	return ServiceTypeLazy
+}
+
+func (s *ServiceLazy[T]) getEmptyInstance() any {
+	return empty[T]()
+}
+
+func (s *ServiceLazy[T]) getInstanceAny(i Injector) (any, error) {
+	return s.getInstance(i)
+}
+
+func (s *ServiceLazy[T]) getInstance(i Injector) (T, error) {
+	frame, ok := stacktrace.NewFrameFromCaller()
+
 	s.mu.Lock()
 	defer s.mu.Unlock()
+
+	if ok {
+		s.invokationFrames = append(s.invokationFrames, frame) // @TODO: potential memory leak
+	}
 
 	if !s.built {
 		err := s.build(i)
@@ -45,30 +80,35 @@ func (s *ServiceLazy[T]) getInstance(i *Injector) (T, error) {
 	return s.instance, nil
 }
 
-//nolint:unused
-func (s *ServiceLazy[T]) build(i *Injector) (err error) {
-	defer func() {
-		if r := recover(); r != nil {
-			if e, ok := r.(error); ok {
-				err = e
-			} else {
-				panic(r)
-			}
-		}
-	}()
+func (s *ServiceLazy[T]) build(i Injector) (err error) {
+	start := time.Now()
 
-	instance, err := s.provider(i)
+	instance, err := handleProviderPanic(s.provider, i)
 	if err != nil {
 		return err
 	}
 
 	s.instance = instance
 	s.built = true
+	s.buildTime = time.Since(start)
 
 	return nil
 }
 
-func (s *ServiceLazy[T]) healthcheck() error {
+func (s *ServiceLazy[T]) isHealthchecker() bool {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	if !s.built {
+		return false
+	}
+
+	_, ok1 := any(s.instance).(HealthcheckerWithContext)
+	_, ok2 := any(s.instance).(Healthchecker)
+	return ok1 || ok2
+}
+
+func (s *ServiceLazy[T]) healthcheck(ctx context.Context) error {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
@@ -76,32 +116,55 @@ func (s *ServiceLazy[T]) healthcheck() error {
 		return nil
 	}
 
-	instance, ok := any(s.instance).(Healthcheckable)
-	if ok {
+	if instance, ok := any(s.instance).(HealthcheckerWithContext); ok {
+		return instance.HealthCheck(ctx)
+	} else if instance, ok := any(s.instance).(Healthchecker); ok {
 		return instance.HealthCheck()
 	}
 
 	return nil
 }
 
-func (s *ServiceLazy[T]) shutdown() error {
+func (s *ServiceLazy[T]) isShutdowner() bool {
 	s.mu.Lock()
 	defer s.mu.Unlock()
+
+	if !s.built {
+		return false
+	}
+
+	_, ok1 := any(s.instance).(ShutdownerWithContextAndError)
+	_, ok2 := any(s.instance).(ShutdownerWithError)
+	_, ok3 := any(s.instance).(ShutdownerWithContext)
+	_, ok4 := any(s.instance).(Shutdowner)
+	return ok1 || ok2 || ok3 || ok4
+}
+
+func (s *ServiceLazy[T]) shutdown(ctx context.Context) error {
+	s.mu.Lock()
+
+	defer func() {
+		// whatever the outcome, reset `build` flag and instance
+		s.built = false
+		s.instance = empty[T]()
+		s.mu.Unlock()
+	}()
 
 	if !s.built {
 		return nil
 	}
 
-	instance, ok := any(s.instance).(Shutdownable)
-	if ok {
-		err := instance.Shutdown()
-		if err != nil {
-			return err
-		}
+	if instance, ok := any(s.instance).(ShutdownerWithContextAndError); ok {
+		return instance.Shutdown(ctx)
+	} else if instance, ok := any(s.instance).(ShutdownerWithError); ok {
+		return instance.Shutdown()
+	} else if instance, ok := any(s.instance).(ShutdownerWithContext); ok {
+		instance.Shutdown(ctx)
+		return nil
+	} else if instance, ok := any(s.instance).(Shutdowner); ok {
+		instance.Shutdown()
+		return nil
 	}
-
-	s.built = false
-	s.instance = empty[T]()
 
 	return nil
 }
@@ -109,9 +172,18 @@ func (s *ServiceLazy[T]) shutdown() error {
 func (s *ServiceLazy[T]) clone() any {
 	// reset `build` flag and instance
 	return &ServiceLazy[T]{
+		mu:   sync.RWMutex{},
 		name: s.name,
 
 		built:    false,
 		provider: s.provider,
+
+		providerFrame:    s.providerFrame,
+		invokationFrames: []stacktrace.Frame{},
 	}
+}
+
+//nolint:unused
+func (s *ServiceLazy[T]) source() (stacktrace.Frame, []stacktrace.Frame) {
+	return s.providerFrame, s.invokationFrames
 }
