@@ -4,7 +4,7 @@ import type * as Preset from '@docusaurus/preset-classic';
 
 const config: Config = {
   title: 'do',
-  tagline: 'Dependency injection for Go',
+  tagline: 'Typesafe dependency injection for Go',
   favicon: 'img/favicon.ico',
 
   // Set the production url of your site here

@@ -8,7 +8,9 @@ sidebar_position: 2
 
 If your service brings a state such as a connection pool, a buffer, etc... you might want to close or flush it gracefully on the application exit.
 
-When the `injector.Shutdown()` function is called, the framework triggers `Shutdown` method of each service implementing a `Shutdowner` interface, in reverse invocation order.
+When the `do.Shutdown[type]()` or the `injector.Shutdown()` function is called, the framework triggers `Shutdown` method of each service implementing a `do.Shutdowner` interface, in reverse invocation order.
+
+🛑 Services can be shutdowned properly, in back-initialization order. Requesting a shutdown on a (root?) scope shutdowns its children recursively.
 
 ## Trigger shutdown
 

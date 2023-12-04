@@ -18,6 +18,8 @@ A chain of service invocation instantiates many virtual scopes, to track depende
 
 Scopes are almost invisible to developers: services keep using Injector API without awareness of the underlying implementation, whether it's a root scope, scope or virtual scope.
 
+`do.Injector` interface is either a `*do.RootScope`, a `*do.Scope` or a `*do.VirtualScope`.
+
 ## New scope
 
 A root scope is created when calling `do.New()`. Multiple layers of child scopes can be added. Each nested scope shares the same root scope.

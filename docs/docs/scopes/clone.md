@@ -6,6 +6,8 @@ sidebar_position: 3
 
 # Clone
 
+Clone has the same service registrations as its parent, but it doesn't share the invoked service state.
+
 Cloning an injector can be very useful for test purposes.
 
 ```go
@@ -21,16 +23,16 @@ injector = injector.Clone()
 ## Clone with options
 
 ```go
-injector = injector.CloneWithOpts(&do.InjectorOpts{
-    HookAfterRegistration func(scope *do.Scope, serviceName string) {
-        // ...
-    },
-    HookAfterShutdown     func(scope *do.Scope, serviceName string) {
-        // ...
-    },
+injector := do.New()
 
-    Logf func(format string, args ...any) {
-        // ...
-    },
+Provide[*Car](i, NewCar)
+Provide[Engine](i, NewEngine)
+
+// clone
+injector = injector.Clone()
+
+// replace Engine by *MockEngine
+do.Override[Engine](injector, func (i do.Injector) (Engine, error) {
+    return &MockEngine{}, nil
 })
 ```

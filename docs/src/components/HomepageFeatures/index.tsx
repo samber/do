@@ -35,7 +35,7 @@ const FeatureList: FeatureItem[] = [
     description: (
       <>
         Debugging IoC can be painful.
-        DO offer an API to describe application layout easily, and visualize
+        DO offers an API to describe application layout easily, and visualize
         a service with all its dependency tree.
       </>
     ),
