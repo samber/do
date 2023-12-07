@@ -27,7 +27,7 @@ go get -u github.com/samber/do/v2
 Replace package import:
 
 ```sh
-find . -type f -exec sed -i 's#samber/do"#samber/do/v2"#g' {} \;
+find . -name '*.go' -type f -exec sed -i '' 's#samber/do"$#samber/do/v2"#g' {} \;
 ```
 
 Cleanup previous dependencies:
@@ -41,7 +41,7 @@ go mod tidy
 `do.Injector` has been transformed into an interface. Replace `*do.Injector` by `do.Injector`.
 
 ```sh
-find . -type f -exec sed -i "s/*do.Injector/do.Injector/g" {} \;
+find . -name '*.go' -type f -exec sed -i '' "s/*do.Injector/do.Injector/g" {} \;
 ```
 
 ## 3- `do.Shutdown****` output
