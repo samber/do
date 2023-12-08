@@ -198,8 +198,7 @@ DAG:
               * 😴 SERVICE-F
                
 `
-	output, ok := DescribeInjector(i)
-	is.True(ok)
+	output := DescribeInjector(i)
 	is.Equal(expected, output)
 
 	// from scope0 POV
@@ -240,8 +239,7 @@ DAG:
               * 😴 SERVICE-F
                
 `
-	output, ok = DescribeInjector(scope0)
-	is.True(ok)
+	output = DescribeInjector(scope0)
 	is.Equal(expected, output)
 
 	// from scope1a POV
@@ -278,8 +276,7 @@ DAG:
                    * 😴 SERVICE-LAZY-SHUTDOWN 🙅
                     
 `
-	output, ok = DescribeInjector(scope1a)
-	is.True(ok)
+	output = DescribeInjector(scope1a)
 	is.Equal(expected, output)
 
 	// from scope1b POV
@@ -302,8 +299,7 @@ DAG:
               * 😴 SERVICE-F
                
 `
-	output, ok = DescribeInjector(scope1b)
-	is.True(ok)
+	output = DescribeInjector(scope1b)
 	is.Equal(expected, output)
 
 	// from scope2a POV
@@ -336,8 +332,7 @@ DAG:
                    * 🏭 SERVICE-TRANSIENT-SIMPLE
                     
 `
-	output, ok = DescribeInjector(scope2a)
-	is.True(ok)
+	output = DescribeInjector(scope2a)
 	is.Equal(expected, output)
 
 	// from scope2b POV
@@ -368,7 +363,6 @@ DAG:
                    * 😴 SERVICE-LAZY-SHUTDOWN 🙅
                     
 `
-	output, ok = DescribeInjector(scope2b)
-	is.True(ok)
+	output = DescribeInjector(scope2b)
 	is.Equal(expected, output)
 }
