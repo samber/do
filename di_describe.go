@@ -40,13 +40,13 @@ Dependents:{{.Dependents}}
 // Please call Invoke[T] before DescribeService[T] to ensure that the service is registered.
 func DescribeService[T any](i Injector) (output string, ok bool) {
 	name := inferServiceName[T]()
-	return DescribeNamedService[T](i, name)
+	return DescribeNamedService(i, name)
 }
 
 // DescribeNamedService returns a human readable description of the service.
 // It returns false if the service is not found.
 // Please call Invoke[T] before DescribeNamedService[T] to ensure that the service is registered.
-func DescribeNamedService[T any](scope Injector, name string) (output string, ok bool) {
+func DescribeNamedService(scope Injector, name string) (output string, ok bool) {
 	_i := getInjectorOrDefault(scope)
 
 	serviceAny, serviceScope, ok := _i.serviceGetRec(name)
@@ -54,13 +54,13 @@ func DescribeNamedService[T any](scope Injector, name string) (output string, ok
 		return "", false
 	}
 
-	service, ok := serviceAny.(Service[T])
+	service, ok := serviceAny.(ServiceAny)
 	if !ok {
 		return "", false
 	}
 
 	invoked := ""
-	frame, ok := inferServiceProviderStacktrace[T](service)
+	frame, ok := inferServiceProviderStacktrace(service)
 	if ok {
 		invoked = frame.String()
 	}

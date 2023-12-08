@@ -10,7 +10,7 @@ sidebar_position: 2
 
 ```go
 do.DescribeService[T any](do.Injector) (string, bool)
-do.DescribeNamedService[T any](do.Injector, string) (string, bool)
+do.DescribeNamedService(do.Injector, string) (string, bool)
 
 do.ExplainService[T any](do.Injector) (dependencies []do.EdgeService, dependents []do.EdgeService, found bool)
 do.ExplainNamedService(do.Injector, string) (dependencies []do.EdgeService, dependents []do.EdgeService, found bool)
