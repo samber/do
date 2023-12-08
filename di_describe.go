@@ -142,7 +142,7 @@ DAG:{{.DAG}}
 const scopePrefixTemplate = "    "
 
 // DescribeInjector returns a human readable description of the injector, with services and scope tree.
-func DescribeInjector(scope Injector) (output string, ok bool) {
+func DescribeInjector(scope Injector) string {
 	_i := getInjectorOrDefault(scope)
 
 	ancestors := append([]Injector{scope}, castScopesToInjectors(scope.Ancestors())...)
@@ -155,7 +155,7 @@ func DescribeInjector(scope Injector) (output string, ok bool) {
 			"ScopeName": _i.Name(),
 			"DAG":       buildInjectorScopes(ancestors, castScopesToInjectors(scope.Children())),
 		},
-	), true
+	)
 }
 
 var describeInjectorItemTemplate = `{{range .}}

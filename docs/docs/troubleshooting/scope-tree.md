@@ -50,12 +50,8 @@ _ = MustInvokeNamed[*MyService3](scope2b, "SERVICE-LAZY-SHUTDOWN")
 ### Print scope tree
 
 ```go
-output, found := do.DescribeInjector[int](scope)
-if found {
-    println(output)
-} else {
-    println("service not found")
-}
+output := do.DescribeInjector[int](scope)
+println(output)
 ```
 
 Output:
