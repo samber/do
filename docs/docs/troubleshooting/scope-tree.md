@@ -9,7 +9,7 @@ sidebar_position: 1
 ## Spec
 
 ```go
-do.DescribeInjector(do.Injector) (string, bool)
+do.DescribeInjector(do.Injector) string
 ```
 
 ## Example
