@@ -108,17 +108,12 @@ Dependencies:
 Dependents:
 * SERVICE-F from scope scope-child
 `
-	output, ok := DescribeNamedService[int](scope, "SERVICE-E")
+	output, ok := DescribeNamedService(scope, "SERVICE-E")
 	is.True(ok)
 	is.Equal(expected, output)
 
 	// service not found
-	output, ok = DescribeNamedService[int](scope, "not_found")
-	is.False(ok)
-	is.Equal("", output)
-
-	// wrong service type
-	output, ok = DescribeNamedService[string](i, "SERVICE-A1")
+	output, ok = DescribeNamedService(scope, "not_found")
 	is.False(ok)
 	is.Equal("", output)
 }
