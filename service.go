@@ -37,6 +37,21 @@ type Service[T any] interface {
 	source() (stacktrace.Frame, []stacktrace.Frame)
 }
 
+// Like Service[T] but without the generic type.
+type ServiceAny interface {
+	getName() string
+	getType() ServiceType
+	getEmptyInstance() any
+	getInstanceAny(Injector) (any, error)
+	// getInstance(Injector) (T, error)
+	isHealthchecker() bool
+	healthcheck(context.Context) error
+	isShutdowner() bool
+	shutdown(context.Context) error
+	clone() any
+	source() (stacktrace.Frame, []stacktrace.Frame)
+}
+
 type serviceGetName interface{ getName() string }
 type serviceGetType interface{ getType() ServiceType }
 type serviceGetEmptyInstance interface{ getEmptyInstance() any }
@@ -66,7 +81,7 @@ func inferServiceName[T any]() string {
 	return typetostring.GetType[T]()
 }
 
-func inferServiceProviderStacktrace[T any](service Service[T]) (stacktrace.Frame, bool) {
+func inferServiceProviderStacktrace(service ServiceAny) (stacktrace.Frame, bool) {
 	if service.getType() == ServiceTypeTransient {
 		return stacktrace.Frame{}, false
 	} else {
