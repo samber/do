@@ -1,4 +1,4 @@
-package do
+package di
 
 func empty[T any]() (t T) {
 	return

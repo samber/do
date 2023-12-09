@@ -1,4 +1,4 @@
-package do
+package di
 
 import (
 	"database/sql"
@@ -116,7 +116,7 @@ func ExampleInjector_HealthCheck() {
 
 	fmt.Println(health)
 	// Output:
-	// map[*do.dbService:<nil>]
+	// map[*di.dbService:<nil>]
 }
 
 func ExampleInjector_Shutdown() {

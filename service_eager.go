@@ -1,4 +1,4 @@
-package do
+package di
 
 type ServiceEager[T any] struct {
 	name     string

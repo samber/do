@@ -1,4 +1,4 @@
-module github.com/samber/do
+module github.com/cryptoniumX/di
 
 go 1.18
 

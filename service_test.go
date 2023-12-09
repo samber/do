@@ -1,4 +1,4 @@
-package do
+package di
 
 import (
 	"testing"
@@ -12,10 +12,10 @@ func TestGenerateServiceName(t *testing.T) {
 	type test struct{} //nolint:unused
 
 	name := generateServiceName[test]()
-	is.Equal("do.test", name)
+	is.Equal("di.test", name)
 
 	name = generateServiceName[*test]()
-	is.Equal("*do.test", name)
+	is.Equal("*di.test", name)
 
 	name = generateServiceName[int]()
 	is.Equal("int", name)

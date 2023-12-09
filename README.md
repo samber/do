@@ -1,11 +1,11 @@
 
 # do - Dependency Injection
 
-[![tag](https://img.shields.io/github/tag/samber/do.svg)](https://github.com/samber/do/releases)
+[![tag](https://img.shields.io/github/tag/samber/di.svg)](https://github.com/cryptoniumX/di/releases)
 ![Go Version](https://img.shields.io/badge/Go-%3E%3D%201.18-%23007d9c)
-[![GoDoc](https://godoc.org/github.com/samber/do?status.svg)](https://pkg.go.dev/github.com/samber/do)
-![Build Status](https://github.com/samber/do/actions/workflows/test.yml/badge.svg)
-[![Go report](https://goreportcard.com/badge/github.com/samber/do)](https://goreportcard.com/report/github.com/samber/do)
+[![GoDoc](https://godoc.org/github.com/cryptoniumX/di?status.svg)](https://pkg.go.dev/github.com/cryptoniumX/di)
+![Build Status](https://github.com/cryptoniumX/di/actions/workflows/test.yml/badge.svg)
+[![Go report](https://goreportcard.com/badge/github.com/cryptoniumX/di)](https://goreportcard.com/report/github.com/cryptoniumX/di)
 [![Coverage](https://img.shields.io/codecov/c/github/samber/do)](https://codecov.io/gh/samber/do)
 [![License](https://img.shields.io/github/license/samber/do)](./LICENSE)
 
@@ -41,14 +41,14 @@ I love **short name** for such a utility library. This name is the sum of `DI` a
 
 🚀 Services are loaded in invocation order.
 
-🕵️ Service health can be checked individually or globally. Services implementing `do.Healthcheckable` interface will be called via `do.HealthCheck[type]()` or `injector.HealthCheck()`.
+🕵️ Service health can be checked individually or globally. Services implementing `di.Healthcheckable` interface will be called via `di.HealthCheck[type]()` or `injector.HealthCheck()`.
 
-🛑 Services can be shutdowned properly, in back-initialization order. Services implementing `do.Shutdownable` interface will be called via `do.Shutdown[type]()` or `injector.Shutdown()`.
+🛑 Services can be shutdowned properly, in back-initialization order. Services implementing `di.Shutdownable` interface will be called via `di.Shutdown[type]()` or `injector.Shutdown()`.
 
 ## 🚀 Install
 
 ```sh
-go get github.com/samber/do@v1
+go get github.com/cryptoniumX/di@v1
 ```
 
 This library is v1 and follows SemVer strictly.
@@ -63,7 +63,7 @@ You can import `do` using:
 
 ```go
 import (
-    "github.com/samber/do"
+    "github.com/cryptoniumX/di"
 )
 ```
 
@@ -71,19 +71,19 @@ Then instanciate services:
 
 ```go
 func main() {
-    injector := do.New()
+    injector := di.New()
 
     // provides CarService
-    do.Provide(injector, NewCarService)
+    di.Provide(injector, NewCarService)
 
     // provides EngineService
-    do.Provide(injector, NewEngineService)
+    di.Provide(injector, NewEngineService)
 
-    car := do.MustInvoke[*CarService](injector)
+    car := di.MustInvoke[*CarService](injector)
     car.Start()
     // prints "car starting"
 
-    do.HealthCheck[EngineService](injector)
+    di.HealthCheck[EngineService](injector)
     // returns "engine broken"
 
     // injector.ShutdownOnSIGTERM()    // will block until receiving sigterm signal
@@ -97,21 +97,21 @@ Services:
 ```go
 type EngineService interface{}
 
-func NewEngineService(i *do.Injector) (EngineService, error) {
+func NewEngineService(i *di.Injector) (EngineService, error) {
     return &engineServiceImplem{}, nil
 }
 
 type engineServiceImplem struct {}
 
-// [Optional] Implements do.Healthcheckable.
+// [Optional] Implements di.Healthcheckable.
 func (c *engineServiceImplem) HealthCheck() error {
 	return fmt.Errorf("engine broken")
 }
 ```
 
 ```go
-func NewCarService(i *do.Injector) (*CarService, error) {
-    engine := do.MustInvoke[EngineService](i)
+func NewCarService(i *di.Injector) (*CarService, error) {
+    engine := di.MustInvoke[EngineService](i)
     car := CarService{Engine: engine}
     return &car, nil
 }
@@ -124,7 +124,7 @@ func (c *CarService) Start() {
 	println("car starting")
 }
 
-// [Optional] Implements do.Shutdownable.
+// [Optional] Implements di.Shutdownable.
 func (c *CarService) Shutdown() error {
 	println("car stopped")
 	return nil
@@ -133,64 +133,64 @@ func (c *CarService) Shutdown() error {
 
 ## 🤠 Spec
 
-[GoDoc: https://godoc.org/github.com/samber/do](https://godoc.org/github.com/samber/do)
+[GoDoc: https://godoc.org/github.com/cryptoniumX/di](https://godoc.org/github.com/cryptoniumX/di)
 
 Injector:
 
-- [do.New](https://pkg.go.dev/github.com/samber/do#New)
-- [do.NewWithOpts](https://pkg.go.dev/github.com/samber/do#NewWithOpts)
-  - [injector.Clone](https://pkg.go.dev/github.com/samber/do#injector.Clone)
-  - [injector.CloneWithOpts](https://pkg.go.dev/github.com/samber/do#injector.CloneWithOpts)
-  - [injector.HealthCheck](https://pkg.go.dev/github.com/samber/do#injector.HealthCheck)
-  - [injector.Shutdown](https://pkg.go.dev/github.com/samber/do#injector.Shutdown)
-  - [injector.ShutdownOnSIGTERM](https://pkg.go.dev/github.com/samber/do#injector.ShutdownOnSIGTERM)
-  - [injector.ShutdownOnSignals](https://pkg.go.dev/github.com/samber/do#injector.ShutdownOnSignals)
-  - [injector.ListProvidedServices](https://pkg.go.dev/github.com/samber/do#injector.ListProvidedServices)
-  - [injector.ListInvokedServices](https://pkg.go.dev/github.com/samber/do#injector.ListInvokedServices)
-- [do.HealthCheck](https://pkg.go.dev/github.com/samber/do#HealthCheck)
-- [do.HealthCheckNamed](https://pkg.go.dev/github.com/samber/do#HealthCheckNamed)
-- [do.Shutdown](https://pkg.go.dev/github.com/samber/do#Shutdown)
-- [do.ShutdownNamed](https://pkg.go.dev/github.com/samber/do#ShutdownNamed)
-- [do.MustShutdown](https://pkg.go.dev/github.com/samber/do#MustShutdown)
-- [do.MustShutdownNamed](https://pkg.go.dev/github.com/samber/do#MustShutdownNamed)
+- [di.New](https://pkg.go.dev/github.com/cryptoniumX/di#New)
+- [di.NewWithOpts](https://pkg.go.dev/github.com/cryptoniumX/di#NewWithOpts)
+  - [injector.Clone](https://pkg.go.dev/github.com/cryptoniumX/di#injector.Clone)
+  - [injector.CloneWithOpts](https://pkg.go.dev/github.com/cryptoniumX/di#injector.CloneWithOpts)
+  - [injector.HealthCheck](https://pkg.go.dev/github.com/cryptoniumX/di#injector.HealthCheck)
+  - [injector.Shutdown](https://pkg.go.dev/github.com/cryptoniumX/di#injector.Shutdown)
+  - [injector.ShutdownOnSIGTERM](https://pkg.go.dev/github.com/cryptoniumX/di#injector.ShutdownOnSIGTERM)
+  - [injector.ShutdownOnSignals](https://pkg.go.dev/github.com/cryptoniumX/di#injector.ShutdownOnSignals)
+  - [injector.ListProvidedServices](https://pkg.go.dev/github.com/cryptoniumX/di#injector.ListProvidedServices)
+  - [injector.ListInvokedServices](https://pkg.go.dev/github.com/cryptoniumX/di#injector.ListInvokedServices)
+- [di.HealthCheck](https://pkg.go.dev/github.com/cryptoniumX/di#HealthCheck)
+- [di.HealthCheckNamed](https://pkg.go.dev/github.com/cryptoniumX/di#HealthCheckNamed)
+- [di.Shutdown](https://pkg.go.dev/github.com/cryptoniumX/di#Shutdown)
+- [di.ShutdownNamed](https://pkg.go.dev/github.com/cryptoniumX/di#ShutdownNamed)
+- [di.MustShutdown](https://pkg.go.dev/github.com/cryptoniumX/di#MustShutdown)
+- [di.MustShutdownNamed](https://pkg.go.dev/github.com/cryptoniumX/di#MustShutdownNamed)
 
 Service registration:
 
-- [do.Provide](https://pkg.go.dev/github.com/samber/do#Provide)
-- [do.ProvideNamed](https://pkg.go.dev/github.com/samber/do#ProvideNamed)
-- [do.ProvideNamedValue](https://pkg.go.dev/github.com/samber/do#ProvideNamedValue)
-- [do.ProvideValue](https://pkg.go.dev/github.com/samber/do#ProvideValue)
+- [di.Provide](https://pkg.go.dev/github.com/cryptoniumX/di#Provide)
+- [di.ProvideNamed](https://pkg.go.dev/github.com/cryptoniumX/di#ProvideNamed)
+- [di.ProvideNamedValue](https://pkg.go.dev/github.com/cryptoniumX/di#ProvideNamedValue)
+- [di.ProvideValue](https://pkg.go.dev/github.com/cryptoniumX/di#ProvideValue)
 
 Service invocation:
 
-- [do.Invoke](https://pkg.go.dev/github.com/samber/do#Invoke)
-- [do.MustInvoke](https://pkg.go.dev/github.com/samber/do#MustInvoke)
-- [do.InvokeNamed](https://pkg.go.dev/github.com/samber/do#InvokeNamed)
-- [do.MustInvokeNamed](https://pkg.go.dev/github.com/samber/do#MustInvokeNamed)
+- [di.Invoke](https://pkg.go.dev/github.com/cryptoniumX/di#Invoke)
+- [di.MustInvoke](https://pkg.go.dev/github.com/cryptoniumX/di#MustInvoke)
+- [di.InvokeNamed](https://pkg.go.dev/github.com/cryptoniumX/di#InvokeNamed)
+- [di.MustInvokeNamed](https://pkg.go.dev/github.com/cryptoniumX/di#MustInvokeNamed)
 
 Service override:
 
-- [do.Override](https://pkg.go.dev/github.com/samber/do#Override)
-- [do.OverrideNamed](https://pkg.go.dev/github.com/samber/do#OverrideNamed)
-- [do.OverrideNamedValue](https://pkg.go.dev/github.com/samber/do#OverrideNamedValue)
-- [do.OverrideValue](https://pkg.go.dev/github.com/samber/do#OverrideValue)
+- [di.Override](https://pkg.go.dev/github.com/cryptoniumX/di#Override)
+- [di.OverrideNamed](https://pkg.go.dev/github.com/cryptoniumX/di#OverrideNamed)
+- [di.OverrideNamedValue](https://pkg.go.dev/github.com/cryptoniumX/di#OverrideNamedValue)
+- [di.OverrideValue](https://pkg.go.dev/github.com/cryptoniumX/di#OverrideValue)
 
 ### Injector (DI container)
 
 Build a container for your components. `Injector` is responsible for building services in the right order, and managing service lifecycle.
 
 ```go
-injector := do.New()
+injector := di.New()
 ```
 
 Or use `nil` as the default injector:
 
 ```go
-do.Provide(nil, func (i *Injector) (int, error) {
+di.Provide(nil, func (i *Injector) (int, error) {
     return 42, nil
 })
 
-service := do.MustInvoke[int](nil)
+service := di.MustInvoke[int](nil)
 ```
 
 You can check health of services implementing `func HealthCheck() error`.
@@ -204,9 +204,9 @@ func (s *DBService) HealthCheck() error {
     return s.db.Ping()
 }
 
-injector := do.New()
-do.Provide(injector, ...)
-do.Invoke(injector, ...)
+injector := di.New()
+di.Provide(injector, ...)
+di.Invoke(injector, ...)
 
 statuses := injector.HealthCheck()
 // map[string]error{
@@ -225,9 +225,9 @@ func (s *DBService) Shutdown() error {
     return s.db.Close()
 }
 
-injector := do.New()
-do.Provide(injector, ...)
-do.Invoke(injector, ...)
+injector := di.New()
+di.Provide(injector, ...)
+di.Invoke(injector, ...)
 
 // shutdown all services in reverse order
 injector.Shutdown()
@@ -240,14 +240,14 @@ type DBService struct {
     db *sql.DB
 }
 
-injector := do.New()
+injector := di.New()
 
-do.Provide(injector, ...)
-println(do.ListProvidedServices())
+di.Provide(injector, ...)
+println(di.ListProvidedServices())
 // output: []string{"*DBService"}
 
-do.Invoke(injector, ...)
-println(do.ListInvokedServices())
+di.Invoke(injector, ...)
+println(di.ListInvokedServices())
 // output: []string{"*DBService"}
 ```
 
@@ -267,7 +267,7 @@ type DBService struct {
     db *sql.DB
 }
 
-do.Provide[DBService](injector, func(i *Injector) (*DBService, error) {
+di.Provide[DBService](injector, func(i *Injector) (*DBService, error) {
     db, err := sql.Open(...)
     if err != nil {
         return nil, err
@@ -284,7 +284,7 @@ type DBService struct {
     db *sql.DB
 }
 
-do.ProvideNamed(injector, "dbconn", func(i *Injector) (*DBService, error) {
+di.ProvideNamed(injector, "dbconn", func(i *Injector) (*DBService, error) {
     db, err := sql.Open(...)
     if err != nil {
         return nil, err
@@ -301,7 +301,7 @@ type Config struct {
     uri string
 }
 
-do.ProvideValue[Config](injector, Config{uri: "postgres://user:pass@host:5432/db"})
+di.ProvideValue[Config](injector, Config{uri: "postgres://user:pass@host:5432/db"})
 ```
 
 Named service, loaded eagerly:
@@ -311,7 +311,7 @@ type Config struct {
     uri string
 }
 
-do.ProvideNamedValue(injector, "configuration", Config{uri: "postgres://user:pass@host:5432/db"})
+di.ProvideNamedValue(injector, "configuration", Config{uri: "postgres://user:pass@host:5432/db"})
 ```
 
 ### Service invocation
@@ -323,7 +323,7 @@ type DBService struct {
     db *sql.DB
 }
 
-dbService, err := do.Invoke[DBService](injector)
+dbService, err := di.Invoke[DBService](injector)
 ```
 
 Loads anonymous service or panics if service was not registered:
@@ -333,19 +333,19 @@ type DBService struct {
     db *sql.DB
 }
 
-dbService := do.MustInvoke[DBService](injector)
+dbService := di.MustInvoke[DBService](injector)
 ```
 
 Loads named service:
 
 ```go
-config, err := do.InvokeNamed[Config](injector, "configuration")
+config, err := di.InvokeNamed[Config](injector, "configuration")
 ```
 
 Loads named service or panics if service was not registered:
 
 ```go
-config := do.MustInvokeNamed[Config](injector, "configuration")
+config := di.MustInvokeNamed[Config](injector, "configuration")
 ```
 
 ### Individual service healthcheck
@@ -357,15 +357,15 @@ type DBService struct {
     db *sql.DB
 }
 
-dbService, err := do.Invoke[DBService](injector)
-err = do.HealthCheck[DBService](injector)
+dbService, err := di.Invoke[DBService](injector)
+err = di.HealthCheck[DBService](injector)
 ```
 
 Check health of named service:
 
 ```go
-config, err := do.InvokeNamed[Config](injector, "configuration")
-err = do.HealthCheckNamed(injector, "configuration")
+config, err := di.InvokeNamed[Config](injector, "configuration")
+err = di.HealthCheckNamed(injector, "configuration")
 ```
 
 ### Individual service shutdown
@@ -377,8 +377,8 @@ type DBService struct {
     db *sql.DB
 }
 
-dbService, err := do.Invoke[DBService](injector)
-err = do.Shutdown[DBService](injector)
+dbService, err := di.Invoke[DBService](injector)
+err = di.Shutdown[DBService](injector)
 ```
 
 Unloads anonymous service or panics if service was not registered:
@@ -388,34 +388,34 @@ type DBService struct {
     db *sql.DB
 }
 
-dbService := do.MustInvoke[DBService](injector)
-do.MustShutdown[DBService](injector)
+dbService := di.MustInvoke[DBService](injector)
+di.MustShutdown[DBService](injector)
 ```
 
 Unloads named service:
 
 ```go
-config, err := do.InvokeNamed[Config](injector, "configuration")
-err = do.ShutdownNamed(injector, "configuration")
+config, err := di.InvokeNamed[Config](injector, "configuration")
+err = di.ShutdownNamed(injector, "configuration")
 ```
 
 Unloads named service or panics if service was not registered:
 
 ```go
-config := do.MustInvokeNamed[Config](injector, "configuration")
-do.MustShutdownNamed(injector, "configuration")
+config := di.MustInvokeNamed[Config](injector, "configuration")
+di.MustShutdownNamed(injector, "configuration")
 ```
 
 ### Service override
 
-By default, providing a service twice will panic. Service can be replaced at runtime using `do.Override` helper.
+By default, providing a service twice will panic. Service can be replaced at runtime using `di.Override` helper.
 
 ```go
-do.Provide[Vehicle](injector, func (i *do.Injector) (Vehicle, error) {
+di.Provide[Vehicle](injector, func (i *di.Injector) (Vehicle, error) {
     return &CarImplem{}, nil
 })
 
-do.Override[Vehicle](injector, func (i *do.Injector) (Vehicle, error) {
+di.Override[Vehicle](injector, func (i *di.Injector) (Vehicle, error) {
     return &BusImplem{}, nil
 })
 ```
@@ -427,11 +427,11 @@ do.Override[Vehicle](injector, func (i *do.Injector) (Vehicle, error) {
 - After shutdown
 
 ```go
-injector := do.NewWithOpts(&do.InjectorOpts{
-    HookAfterRegistration: func(injector *do.Injector, serviceName string) {
+injector := di.NewWithOpts(&di.InjectorOpts{
+    HookAfterRegistration: func(injector *di.Injector, serviceName string) {
         fmt.Printf("Service registered: %s\n", serviceName)
     },
-    HookAfterShutdown: func(injector *do.Injector, serviceName string) {
+    HookAfterShutdown: func(injector *di.Injector, serviceName string) {
         fmt.Printf("Service stopped: %s\n", serviceName)
     },
 
@@ -448,13 +448,13 @@ Cloned injector have same service registrations as it's parent, but it doesn't s
 Clones are useful for unit testing by replacing some services to mocks.
 
 ```go
-var injector *do.Injector;
+var injector *di.Injector;
 
 func init() {
-    do.Provide[Service](injector, func (i *do.Injector) (Service, error) {
+    di.Provide[Service](injector, func (i *di.Injector) (Service, error) {
         return &RealService{}, nil
     })
-    do.Provide[*App](injector, func (i *do.Injector) (*App, error) {
+    di.Provide[*App](injector, func (i *di.Injector) (*App, error) {
         return &App{i.MustInvoke[Service](i)}, nil
     })
 }
@@ -464,11 +464,11 @@ func TestService(t *testing.T) {
     defer i.Shutdown()
 
     // replace Service to MockService
-    do.Override[Service](i, func (i *do.Injector) (Service, error) {
+    di.Override[Service](i, func (i *di.Injector) (Service, error) {
         return &MockService{}, nil
     }))
 
-    app := do.Invoke[*App](i)
+    app := di.Invoke[*App](i)
     // do unit testing with mocked service
 }
 ```
@@ -480,8 +480,8 @@ func TestService(t *testing.T) {
 ## 🤝 Contributing
 
 - Ping me on twitter [@samuelberthe](https://twitter.com/samuelberthe) (DMs, mentions, whatever :))
-- Fork the [project](https://github.com/samber/do)
-- Fix [open issues](https://github.com/samber/do/issues) or request new features
+- Fork the [project](https://github.com/cryptoniumX/di)
+- Fix [open issues](https://github.com/cryptoniumX/di/issues) or request new features
 
 Don't hesitate ;)
 

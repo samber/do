@@ -1,6 +1,6 @@
 package main
 
-import "github.com/samber/do"
+import "github.com/cryptoniumX/di"
 
 type Car interface {
 	Start()
@@ -15,15 +15,15 @@ func (c *carImplem) Start() {
 	println("vroooom")
 }
 
-func NewCar(i *do.Injector) (Car, error) {
+func NewCar(i *di.Injector) (Car, error) {
 	wheels := []*Wheel{
-		do.MustInvokeNamed[*Wheel](i, "wheel-1"),
-		do.MustInvokeNamed[*Wheel](i, "wheel-2"),
-		do.MustInvokeNamed[*Wheel](i, "wheel-3"),
-		do.MustInvokeNamed[*Wheel](i, "wheel-4"),
+		di.MustInvokeNamed[*Wheel](i, "wheel-1"),
+		di.MustInvokeNamed[*Wheel](i, "wheel-2"),
+		di.MustInvokeNamed[*Wheel](i, "wheel-3"),
+		di.MustInvokeNamed[*Wheel](i, "wheel-4"),
 	}
 
-	engine := do.MustInvoke[Engine](i)
+	engine := di.MustInvoke[Engine](i)
 
 	car := carImplem{
 		Engine: engine,
