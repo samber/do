@@ -4,9 +4,9 @@ import (
 	"fmt"
 )
 
-type Service[T any] interface {
+type Service interface {
 	getName() string
-	getInstance(*Injector) (T, error)
+	getInstance(*Injector) (any, error)
 	healthcheck() error
 	shutdown() error
 	clone() any

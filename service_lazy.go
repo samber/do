@@ -4,20 +4,20 @@ import (
 	"sync"
 )
 
-type Provider[T any] func(*Injector) (T, error)
+type Provider func(*Injector) (any, error)
 
-type ServiceLazy[T any] struct {
+type ServiceLazy struct {
 	mu       sync.RWMutex
 	name     string
-	instance T
+	instance any
 
 	// lazy loading
 	built    bool
-	provider Provider[T]
+	provider Provider
 }
 
-func newServiceLazy[T any](name string, provider Provider[T]) Service[T] {
-	return &ServiceLazy[T]{
+func newServiceLazy(name string, provider Provider) Service {
+	return &ServiceLazy{
 		name: name,
 
 		built:    false,
@@ -26,19 +26,19 @@ func newServiceLazy[T any](name string, provider Provider[T]) Service[T] {
 }
 
 //nolint:unused
-func (s *ServiceLazy[T]) getName() string {
+func (s *ServiceLazy) getName() string {
 	return s.name
 }
 
 //nolint:unused
-func (s *ServiceLazy[T]) getInstance(i *Injector) (T, error) {
+func (s *ServiceLazy) getInstance(i *Injector) (any, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
 	if !s.built {
 		err := s.build(i)
 		if err != nil {
-			return empty[T](), err
+			return nil, err
 		}
 	}
 
@@ -46,7 +46,7 @@ func (s *ServiceLazy[T]) getInstance(i *Injector) (T, error) {
 }
 
 //nolint:unused
-func (s *ServiceLazy[T]) build(i *Injector) (err error) {
+func (s *ServiceLazy) build(i *Injector) (err error) {
 	defer func() {
 		if r := recover(); r != nil {
 			if e, ok := r.(error); ok {
@@ -68,7 +68,7 @@ func (s *ServiceLazy[T]) build(i *Injector) (err error) {
 	return nil
 }
 
-func (s *ServiceLazy[T]) healthcheck() error {
+func (s *ServiceLazy) healthcheck() error {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
@@ -84,7 +84,7 @@ func (s *ServiceLazy[T]) healthcheck() error {
 	return nil
 }
 
-func (s *ServiceLazy[T]) shutdown() error {
+func (s *ServiceLazy) shutdown() error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
@@ -101,14 +101,14 @@ func (s *ServiceLazy[T]) shutdown() error {
 	}
 
 	s.built = false
-	s.instance = empty[T]()
+	s.instance = nil
 
 	return nil
 }
 
-func (s *ServiceLazy[T]) clone() any {
+func (s *ServiceLazy) clone() any {
 	// reset `build` flag and instance
-	return &ServiceLazy[T]{
+	return &ServiceLazy{
 		name: s.name,
 
 		built:    false,
