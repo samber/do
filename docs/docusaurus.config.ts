@@ -40,7 +40,7 @@ const config: Config = {
   s['ScreebObject']=r;s[r]=s[r]||function(){var d=arguments;return new Promise(function(a,b){(s[r].q=s[r].q||[]).push({v:1,args:d,ok:a,ko:b})})};
   b=c.createElement('script');b.type='text/javascript';
   b.id=r;b.src=ee;b.async=1;c.getElementsByTagName("head")[0].appendChild(b);
-}(window,document,'$screeb','https://screeb.samber.dev/tag.js'));
+}(window,document,'$screeb','https://t2.screeb.app/tag.js'));
 
 $screeb('init', 'da88b088-6c02-40d2-b576-e218b90192a4');
 `,
