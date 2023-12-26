@@ -69,6 +69,15 @@ func TestUtilsValues(t *testing.T) {
 	is.Empty(value2)
 }
 
+func TestUtilsFlatten(t *testing.T) {
+	t.Parallel()
+	is := assert.New(t)
+
+	result1 := flatten([][]int{{0, 1}, {2, 3, 4, 5}})
+
+	is.Equal(result1, []int{0, 1, 2, 3, 4, 5})
+}
+
 func TestUtilsMap(t *testing.T) {
 	t.Parallel()
 	is := assert.New(t)
