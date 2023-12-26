@@ -197,13 +197,13 @@ DAG:
 const describeInjectorScopeTemplate = `{{.ScopeName}} (ID: {{.ScopeID}}){{.Services}}{{.Children}}`
 const describeInjectorServiceTemplate = ` * {{.ServiceType}}{{.ServiceName}}{{.ServiceFeatures}}`
 
-type InjectorDescription struct {
+type DescriptionInjector struct {
 	ScopeID   string                     `json:"scope_id"`
 	ScopeName string                     `json:"scope_name"`
 	DAG       []DescriptionInjectorScope `json:"dag"`
 }
 
-func (id *InjectorDescription) String() string {
+func (id *DescriptionInjector) String() string {
 	dag := mergeScopes(&id.DAG)
 	if strings.HasPrefix(dag, " |\n |\n") {
 		dag = dag[3:]
@@ -325,13 +325,13 @@ func (idss *DescriptionInjectorService) String() string {
 }
 
 // DescribeInjector returns a human readable description of the injector, with services and scope tree.
-func DescribeInjector(scope Injector) InjectorDescription {
+func DescribeInjector(scope Injector) DescriptionInjector {
 	_i := getInjectorOrDefault(scope)
 
 	ancestors := append([]Injector{_i}, castScopesToInjectors(_i.Ancestors())...)
 	reverseSlice(ancestors) // root scope first
 
-	return InjectorDescription{
+	return DescriptionInjector{
 		ScopeID:   _i.ID(),
 		ScopeName: _i.Name(),
 		DAG:       newDescriptionInjectorScopes(ancestors, castScopesToInjectors(_i.Children())),

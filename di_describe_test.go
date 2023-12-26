@@ -169,7 +169,7 @@ Dependents:
 // 							Describe scopes
 /////////////////////////////////////////////////////////////////////////////
 
-func TestInjectorDescription_String(t *testing.T) {
+func TestDescriptionInjector_String(t *testing.T) {
 	// @TODO
 }
 

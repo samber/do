@@ -9,8 +9,8 @@ sidebar_position: 2
 ## Spec
 
 ```go
-do.DescribeService[T any](do.Injector) (string, bool)
-do.DescribeNamedService(do.Injector, string) (string, bool)
+do.DescribeService[T any](do.Injector) (do.DescriptionService, bool)
+do.DescribeNamedService(do.Injector, string) (do.DescriptionService, bool)
 
 do.ExplainService[T any](do.Injector) (dependencies []do.EdgeService, dependents []do.EdgeService, found bool)
 do.ExplainNamedService(do.Injector, string) (dependencies []do.EdgeService, dependents []do.EdgeService, found bool)
@@ -18,34 +18,12 @@ do.ExplainNamedService(do.Injector, string) (dependencies []do.EdgeService, depe
 
 ## Example
 
-Having the following services:
-
-```go
-i := do.New()
-// create scopes
-scope := i.Scope("scope-child")
-
-// inject many services
-do.ProvideNamed(i, "SERVICE-A1", provider1)
-do.ProvideNamed(i, "SERVICE-A2", provider2)
-do.ProvideNamed(i, "SERVICE-B", provider3)
-do.ProvideNamed(scope, "SERVICE-C1", provider4)
-do.ProvideNamed(scope, "SERVICE-C2", provider5)
-do.ProvideNamed(scope, "SERVICE-D", provider6)
-do.ProvideNamed(scope, "SERVICE-E", provider7)
-do.ProvideNamed(scope, "SERVICE-F", provider8)
-do.ProvideNamed(scope, "SERVICE-G", provider9)
-
-// load SERVICE-G and its dependencies
-_ = do.MustInvokeNamed[*MyService](scope, "SERVICE-G")
-```
-
 ### Service description
 
 ```go
-output, found := do.DescribeNamedService[*MyService](scope, "SERVICE-E")
+description, found := do.DescribeNamedService[*MyService](scope, "SERVICE-E")
 if found {
-    println(output)
+    println(description.String())
 } else {
     println("service not found")
 }
