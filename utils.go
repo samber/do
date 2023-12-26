@@ -50,6 +50,20 @@ func values[K comparable, V any](in map[K]V) []V {
 	return result
 }
 
+func flatten[T any](collection [][]T) []T {
+	totalLen := 0
+	for i := range collection {
+		totalLen += len(collection[i])
+	}
+
+	result := make([]T, 0, totalLen)
+	for i := range collection {
+		result = append(result, collection[i]...)
+	}
+
+	return result
+}
+
 func mAp[T any, R any](collection []T, iteratee func(T, int) R) []R {
 	result := make([]R, len(collection))
 

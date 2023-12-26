@@ -64,6 +64,53 @@ func TestFromTemplate(t *testing.T) {
 // 							Describe services
 /////////////////////////////////////////////////////////////////////////////
 
+func TestDescriptionService_String(t *testing.T) {
+	// @TODO
+}
+
+func TestDescriptionServiceDependency_String(t *testing.T) {
+	is := assert.New(t)
+
+	a1 := DescriptionServiceDependency{
+		ScopeID:   "1234",
+		ScopeName: "scope-a",
+		Service:   "service-a1",
+		Recursive: []DescriptionServiceDependency{},
+	}
+	a2 := DescriptionServiceDependency{
+		ScopeID:   "1234",
+		ScopeName: "scope-a",
+		Service:   "service-a2",
+		Recursive: []DescriptionServiceDependency{},
+	}
+	b := DescriptionServiceDependency{
+		ScopeID:   "1234",
+		ScopeName: "scope-a",
+		Service:   "service-b",
+		Recursive: []DescriptionServiceDependency{a1, a2},
+	}
+	c := DescriptionServiceDependency{
+		ScopeID:   "1234",
+		ScopeName: "scope-a",
+		Service:   "service-c",
+		Recursive: []DescriptionServiceDependency{b},
+	}
+
+	expected := `* service-a1 from scope scope-a`
+	is.Equal(expected, a1.String())
+
+	expected = `* service-b from scope scope-a
+  * service-a1 from scope scope-a
+  * service-a2 from scope scope-a`
+	is.Equal(expected, b.String())
+
+	expected = `* service-c from scope scope-a
+  * service-b from scope scope-a
+    * service-a1 from scope scope-a
+    * service-a2 from scope scope-a`
+	is.Equal(expected, c.String())
+}
+
 func TestDescribeService(t *testing.T) {
 	// @TODO
 }
@@ -110,17 +157,41 @@ Dependents:
 `
 	output, ok := DescribeNamedService(scope, "SERVICE-E")
 	is.True(ok)
-	is.Equal(expected, output)
+	is.Equal(expected, output.String())
 
 	// service not found
 	output, ok = DescribeNamedService(scope, "not_found")
 	is.False(ok)
-	is.Equal("", output)
+	is.Equal(DescriptionService{}, output)
 }
 
 /////////////////////////////////////////////////////////////////////////////
 // 							Describe scopes
 /////////////////////////////////////////////////////////////////////////////
+
+func TestInjectorDescription_String(t *testing.T) {
+	// @TODO
+}
+
+func TestDescriptionInjectorScope_String(t *testing.T) {
+	// @TODO
+}
+
+func TestDescriptionInjectorService_String(t *testing.T) {
+	is := assert.New(t)
+
+	svc := DescriptionInjectorService{ServiceName: "service-name", ServiceType: ServiceTypeLazy, IsHealthchecker: true, IsShutdowner: true}
+	expected := ` * 😴 service-name 🏥 🙅`
+	is.Equal(expected, svc.String())
+
+	svc = DescriptionInjectorService{ServiceName: "service-name", ServiceType: ServiceTypeEager, IsHealthchecker: true, IsShutdowner: false}
+	expected = ` * 🔁 service-name 🏥`
+	is.Equal(expected, svc.String())
+
+	svc = DescriptionInjectorService{ServiceName: "service-name", IsHealthchecker: true, IsShutdowner: true}
+	expected = ` * ❓ service-name`
+	is.Equal(expected, svc.String())
+}
 
 func TestDescribeInjector(t *testing.T) {
 	is := assert.New(t)
@@ -156,208 +227,196 @@ func TestDescribeInjector(t *testing.T) {
 	_, _ = InvokeNamed[*lazyTestShutdownerOK](scope2b, "SERVICE-LAZY-SHUTDOWN")
 
 	// from root POV
-	expected := `
-Scope ID: scope-id-root
+	expected := `Scope ID: scope-id-root
 Scope name: [root]
 
 DAG:
-
-\_ [root] (ID: scope-id-root)
-    * 😴 SERVICE-A1
-    * 😴 SERVICE-A2
-    * 😴 SERVICE-B
-    |
-    |
-     \_ scope-0 (ID: scope-id-0)
-         |
-         |
-         |\_ scope-1a (ID: scope-id-1a)
-         |    * 😴 SERVICE-C1
-         |    * 😴 SERVICE-C2
-         |    * 😴 SERVICE-D
-         |    * 😴 SERVICE-E
-         |    * 🔁 SERVICE-EAGER-VALUE
-         |    |
-         |    |
-         |    |\_ scope-2a (ID: scope-id-2a)
-         |    |    * 🔗 SERVICE-ALIAS-HEALTH 🏥
-         |    |    * 😴 SERVICE-LAZY-HEALTH 🏥
-         |    |    * 🏭 SERVICE-TRANSIENT-SIMPLE
-         |    |     
-         |    |
-         |     \_ scope-2b (ID: scope-id-2b)
-         |         * 😴 SERVICE-LAZY-SHUTDOWN 🙅
-         |          
-         |
-          \_ scope-1b (ID: scope-id-1b)
-              * 😴 SERVICE-F
-               
+ |
+  \_ [root] (ID: scope-id-root)
+      * 😴 SERVICE-A1
+      * 😴 SERVICE-A2
+      * 😴 SERVICE-B
+      |
+      |
+       \_ scope-0 (ID: scope-id-0)
+           |
+           |
+           |\_ scope-1a (ID: scope-id-1a)
+           |    * 😴 SERVICE-C1
+           |    * 😴 SERVICE-C2
+           |    * 😴 SERVICE-D
+           |    * 😴 SERVICE-E
+           |    * 🔁 SERVICE-EAGER-VALUE
+           |    |
+           |    |
+           |    |\_ scope-2a (ID: scope-id-2a)
+           |    |    * 🔗 SERVICE-ALIAS-HEALTH 🏥
+           |    |    * 😴 SERVICE-LAZY-HEALTH 🏥
+           |    |    * 🏭 SERVICE-TRANSIENT-SIMPLE
+           |    |
+           |    |
+           |     \_ scope-2b (ID: scope-id-2b)
+           |         * 😴 SERVICE-LAZY-SHUTDOWN 🙅
+           |
+           |
+            \_ scope-1b (ID: scope-id-1b)
+                * 😴 SERVICE-F
 `
 	output := DescribeInjector(i)
-	is.Equal(expected, output)
+	is.Equal(expected, output.String())
 
 	// from scope0 POV
-	expected = `
-Scope ID: scope-id-0
+	expected = `Scope ID: scope-id-0
 Scope name: scope-0
 
 DAG:
-
-\_ [root] (ID: scope-id-root)
-    * 😴 SERVICE-A1
-    * 😴 SERVICE-A2
-    * 😴 SERVICE-B
-    |
-    |
-     \_ scope-0 (ID: scope-id-0)
-         |
-         |
-         |\_ scope-1a (ID: scope-id-1a)
-         |    * 😴 SERVICE-C1
-         |    * 😴 SERVICE-C2
-         |    * 😴 SERVICE-D
-         |    * 😴 SERVICE-E
-         |    * 🔁 SERVICE-EAGER-VALUE
-         |    |
-         |    |
-         |    |\_ scope-2a (ID: scope-id-2a)
-         |    |    * 🔗 SERVICE-ALIAS-HEALTH 🏥
-         |    |    * 😴 SERVICE-LAZY-HEALTH 🏥
-         |    |    * 🏭 SERVICE-TRANSIENT-SIMPLE
-         |    |     
-         |    |
-         |     \_ scope-2b (ID: scope-id-2b)
-         |         * 😴 SERVICE-LAZY-SHUTDOWN 🙅
-         |          
-         |
-          \_ scope-1b (ID: scope-id-1b)
-              * 😴 SERVICE-F
-               
+ |
+  \_ [root] (ID: scope-id-root)
+      * 😴 SERVICE-A1
+      * 😴 SERVICE-A2
+      * 😴 SERVICE-B
+      |
+      |
+       \_ scope-0 (ID: scope-id-0)
+           |
+           |
+           |\_ scope-1a (ID: scope-id-1a)
+           |    * 😴 SERVICE-C1
+           |    * 😴 SERVICE-C2
+           |    * 😴 SERVICE-D
+           |    * 😴 SERVICE-E
+           |    * 🔁 SERVICE-EAGER-VALUE
+           |    |
+           |    |
+           |    |\_ scope-2a (ID: scope-id-2a)
+           |    |    * 🔗 SERVICE-ALIAS-HEALTH 🏥
+           |    |    * 😴 SERVICE-LAZY-HEALTH 🏥
+           |    |    * 🏭 SERVICE-TRANSIENT-SIMPLE
+           |    |
+           |    |
+           |     \_ scope-2b (ID: scope-id-2b)
+           |         * 😴 SERVICE-LAZY-SHUTDOWN 🙅
+           |
+           |
+            \_ scope-1b (ID: scope-id-1b)
+                * 😴 SERVICE-F
 `
 	output = DescribeInjector(scope0)
-	is.Equal(expected, output)
+	is.Equal(expected, output.String())
 
 	// from scope1a POV
-	expected = `
-Scope ID: scope-id-1a
+	expected = `Scope ID: scope-id-1a
 Scope name: scope-1a
 
 DAG:
-
-\_ [root] (ID: scope-id-root)
-    * 😴 SERVICE-A1
-    * 😴 SERVICE-A2
-    * 😴 SERVICE-B
-    |
-    |
-     \_ scope-0 (ID: scope-id-0)
-         |
-         |
-          \_ scope-1a (ID: scope-id-1a)
-              * 😴 SERVICE-C1
-              * 😴 SERVICE-C2
-              * 😴 SERVICE-D
-              * 😴 SERVICE-E
-              * 🔁 SERVICE-EAGER-VALUE
-              |
-              |
-              |\_ scope-2a (ID: scope-id-2a)
-              |    * 🔗 SERVICE-ALIAS-HEALTH 🏥
-              |    * 😴 SERVICE-LAZY-HEALTH 🏥
-              |    * 🏭 SERVICE-TRANSIENT-SIMPLE
-              |     
-              |
-               \_ scope-2b (ID: scope-id-2b)
-                   * 😴 SERVICE-LAZY-SHUTDOWN 🙅
-                    
+ |
+  \_ [root] (ID: scope-id-root)
+      * 😴 SERVICE-A1
+      * 😴 SERVICE-A2
+      * 😴 SERVICE-B
+      |
+      |
+       \_ scope-0 (ID: scope-id-0)
+           |
+           |
+            \_ scope-1a (ID: scope-id-1a)
+                * 😴 SERVICE-C1
+                * 😴 SERVICE-C2
+                * 😴 SERVICE-D
+                * 😴 SERVICE-E
+                * 🔁 SERVICE-EAGER-VALUE
+                |
+                |
+                |\_ scope-2a (ID: scope-id-2a)
+                |    * 🔗 SERVICE-ALIAS-HEALTH 🏥
+                |    * 😴 SERVICE-LAZY-HEALTH 🏥
+                |    * 🏭 SERVICE-TRANSIENT-SIMPLE
+                |
+                |
+                 \_ scope-2b (ID: scope-id-2b)
+                     * 😴 SERVICE-LAZY-SHUTDOWN 🙅
 `
 	output = DescribeInjector(scope1a)
-	is.Equal(expected, output)
+	is.Equal(expected, output.String())
 
 	// from scope1b POV
-	expected = `
-Scope ID: scope-id-1b
+	expected = `Scope ID: scope-id-1b
 Scope name: scope-1b
 
 DAG:
-
-\_ [root] (ID: scope-id-root)
-    * 😴 SERVICE-A1
-    * 😴 SERVICE-A2
-    * 😴 SERVICE-B
-    |
-    |
-     \_ scope-0 (ID: scope-id-0)
-         |
-         |
-          \_ scope-1b (ID: scope-id-1b)
-              * 😴 SERVICE-F
-               
+ |
+  \_ [root] (ID: scope-id-root)
+      * 😴 SERVICE-A1
+      * 😴 SERVICE-A2
+      * 😴 SERVICE-B
+      |
+      |
+       \_ scope-0 (ID: scope-id-0)
+           |
+           |
+            \_ scope-1b (ID: scope-id-1b)
+                * 😴 SERVICE-F
 `
 	output = DescribeInjector(scope1b)
-	is.Equal(expected, output)
+	is.Equal(expected, output.String())
 
 	// from scope2a POV
-	expected = `
-Scope ID: scope-id-2a
+	expected = `Scope ID: scope-id-2a
 Scope name: scope-2a
 
 DAG:
-
-\_ [root] (ID: scope-id-root)
-    * 😴 SERVICE-A1
-    * 😴 SERVICE-A2
-    * 😴 SERVICE-B
-    |
-    |
-     \_ scope-0 (ID: scope-id-0)
-         |
-         |
-          \_ scope-1a (ID: scope-id-1a)
-              * 😴 SERVICE-C1
-              * 😴 SERVICE-C2
-              * 😴 SERVICE-D
-              * 😴 SERVICE-E
-              * 🔁 SERVICE-EAGER-VALUE
-              |
-              |
-               \_ scope-2a (ID: scope-id-2a)
-                   * 🔗 SERVICE-ALIAS-HEALTH 🏥
-                   * 😴 SERVICE-LAZY-HEALTH 🏥
-                   * 🏭 SERVICE-TRANSIENT-SIMPLE
-                    
+ |
+  \_ [root] (ID: scope-id-root)
+      * 😴 SERVICE-A1
+      * 😴 SERVICE-A2
+      * 😴 SERVICE-B
+      |
+      |
+       \_ scope-0 (ID: scope-id-0)
+           |
+           |
+            \_ scope-1a (ID: scope-id-1a)
+                * 😴 SERVICE-C1
+                * 😴 SERVICE-C2
+                * 😴 SERVICE-D
+                * 😴 SERVICE-E
+                * 🔁 SERVICE-EAGER-VALUE
+                |
+                |
+                 \_ scope-2a (ID: scope-id-2a)
+                     * 🔗 SERVICE-ALIAS-HEALTH 🏥
+                     * 😴 SERVICE-LAZY-HEALTH 🏥
+                     * 🏭 SERVICE-TRANSIENT-SIMPLE
 `
 	output = DescribeInjector(scope2a)
-	is.Equal(expected, output)
+	is.Equal(expected, output.String())
 
 	// from scope2b POV
-	expected = `
-Scope ID: scope-id-2b
+	expected = `Scope ID: scope-id-2b
 Scope name: scope-2b
 
 DAG:
-
-\_ [root] (ID: scope-id-root)
-    * 😴 SERVICE-A1
-    * 😴 SERVICE-A2
-    * 😴 SERVICE-B
-    |
-    |
-     \_ scope-0 (ID: scope-id-0)
-         |
-         |
-          \_ scope-1a (ID: scope-id-1a)
-              * 😴 SERVICE-C1
-              * 😴 SERVICE-C2
-              * 😴 SERVICE-D
-              * 😴 SERVICE-E
-              * 🔁 SERVICE-EAGER-VALUE
-              |
-              |
-               \_ scope-2b (ID: scope-id-2b)
-                   * 😴 SERVICE-LAZY-SHUTDOWN 🙅
-                    
+ |
+  \_ [root] (ID: scope-id-root)
+      * 😴 SERVICE-A1
+      * 😴 SERVICE-A2
+      * 😴 SERVICE-B
+      |
+      |
+       \_ scope-0 (ID: scope-id-0)
+           |
+           |
+            \_ scope-1a (ID: scope-id-1a)
+                * 😴 SERVICE-C1
+                * 😴 SERVICE-C2
+                * 😴 SERVICE-D
+                * 😴 SERVICE-E
+                * 🔁 SERVICE-EAGER-VALUE
+                |
+                |
+                 \_ scope-2b (ID: scope-id-2b)
+                     * 😴 SERVICE-LAZY-SHUTDOWN 🙅
 `
 	output = DescribeInjector(scope2b)
-	is.Equal(expected, output)
+	is.Equal(expected, output.String())
 }
