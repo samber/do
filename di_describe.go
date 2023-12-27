@@ -255,6 +255,7 @@ func mergeScopes(scopes *[]DescriptionInjectorScope) string {
 type DescriptionInjectorScope struct {
 	ScopeID   string                       `json:"scope_id"`
 	ScopeName string                       `json:"scope_name"`
+	Scope     Injector                     `json:"scope"`
 	Services  []DescriptionInjectorService `json:"services"`
 	Children  []DescriptionInjectorScope   `json:"children"`
 
@@ -292,6 +293,7 @@ func (ids *DescriptionInjectorScope) String() string {
 type DescriptionInjectorService struct {
 	ServiceName     string      `json:"service_name"`
 	ServiceType     ServiceType `json:"service_type"`
+	ServiceTypeIcon string      `json:"service_type_icon"`
 	IsHealthchecker bool        `json:"is_healthchecker"`
 	IsShutdowner    bool        `json:"is_shutdowner"`
 }
@@ -302,11 +304,12 @@ func (idss *DescriptionInjectorService) String() string {
 
 	if idss.ServiceType != empty[ServiceType]() {
 		// @TODO: differenciate status of lazy services (built, not built). Such as: "😴 (✅)"
-		prefix += serviceTypeToIcon[idss.ServiceType] + " "
+		prefix += idss.ServiceTypeIcon + " "
 
 		if idss.IsHealthchecker {
-			suffix += " 🏥"
+			suffix += " 🫀"
 		}
+
 		if idss.IsShutdowner {
 			suffix += " 🙅"
 		}
@@ -366,6 +369,7 @@ func newDescriptionInjectorScopes(ancestors []Injector, children []Injector) []D
 		return DescriptionInjectorScope{
 			ScopeID:   item.ID(),
 			ScopeName: item.Name(),
+			Scope:     item,
 			Services:  newDescriptionInjectorServices(item),
 			Children:  newDescriptionInjectorScopes(ancestors, nextChildren),
 
@@ -388,12 +392,14 @@ func newDescriptionInjectorServices(i Injector) []DescriptionInjectorService {
 
 	return mAp(services, func(item EdgeService, _ int) DescriptionInjectorService {
 		var serviceType ServiceType
+		var serviceTypeIcon string
 		var isHealthchecker bool
 		var isShutdowner bool
 
 		if info, ok := inferServiceInfo(i, item.Service); ok {
 			// @TODO: differenciate status of lazy services (built, not built). Such as: "😴 (✅)"
 			serviceType = info.serviceType
+			serviceTypeIcon = serviceTypeToIcon[info.serviceType]
 			isHealthchecker = info.healthchecker
 			isShutdowner = info.shutdowner
 		}
@@ -401,6 +407,7 @@ func newDescriptionInjectorServices(i Injector) []DescriptionInjectorService {
 		return DescriptionInjectorService{
 			ServiceName:     item.Service,
 			ServiceType:     serviceType,
+			ServiceTypeIcon: serviceTypeIcon,
 			IsHealthchecker: isHealthchecker,
 			IsShutdowner:    isShutdowner,
 		}

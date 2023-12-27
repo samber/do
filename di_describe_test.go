@@ -181,11 +181,11 @@ func TestDescriptionInjectorService_String(t *testing.T) {
 	is := assert.New(t)
 
 	svc := DescriptionInjectorService{ServiceName: "service-name", ServiceType: ServiceTypeLazy, IsHealthchecker: true, IsShutdowner: true}
-	expected := ` * 😴 service-name 🏥 🙅`
+	expected := ` * 😴 service-name 🫀 🙅`
 	is.Equal(expected, svc.String())
 
 	svc = DescriptionInjectorService{ServiceName: "service-name", ServiceType: ServiceTypeEager, IsHealthchecker: true, IsShutdowner: false}
-	expected = ` * 🔁 service-name 🏥`
+	expected = ` * 🔁 service-name 🫀`
 	is.Equal(expected, svc.String())
 
 	svc = DescriptionInjectorService{ServiceName: "service-name", IsHealthchecker: true, IsShutdowner: true}
@@ -250,8 +250,8 @@ DAG:
            |    |
            |    |
            |    |\_ scope-2a (ID: scope-id-2a)
-           |    |    * 🔗 SERVICE-ALIAS-HEALTH 🏥
-           |    |    * 😴 SERVICE-LAZY-HEALTH 🏥
+           |    |    * 🔗 SERVICE-ALIAS-HEALTH 🫀
+           |    |    * 😴 SERVICE-LAZY-HEALTH 🫀
            |    |    * 🏭 SERVICE-TRANSIENT-SIMPLE
            |    |
            |    |
@@ -289,8 +289,8 @@ DAG:
            |    |
            |    |
            |    |\_ scope-2a (ID: scope-id-2a)
-           |    |    * 🔗 SERVICE-ALIAS-HEALTH 🏥
-           |    |    * 😴 SERVICE-LAZY-HEALTH 🏥
+           |    |    * 🔗 SERVICE-ALIAS-HEALTH 🫀
+           |    |    * 😴 SERVICE-LAZY-HEALTH 🫀
            |    |    * 🏭 SERVICE-TRANSIENT-SIMPLE
            |    |
            |    |
@@ -328,8 +328,8 @@ DAG:
                 |
                 |
                 |\_ scope-2a (ID: scope-id-2a)
-                |    * 🔗 SERVICE-ALIAS-HEALTH 🏥
-                |    * 😴 SERVICE-LAZY-HEALTH 🏥
+                |    * 🔗 SERVICE-ALIAS-HEALTH 🫀
+                |    * 😴 SERVICE-LAZY-HEALTH 🫀
                 |    * 🏭 SERVICE-TRANSIENT-SIMPLE
                 |
                 |
@@ -384,8 +384,8 @@ DAG:
                 |
                 |
                  \_ scope-2a (ID: scope-id-2a)
-                     * 🔗 SERVICE-ALIAS-HEALTH 🏥
-                     * 😴 SERVICE-LAZY-HEALTH 🏥
+                     * 🔗 SERVICE-ALIAS-HEALTH 🫀
+                     * 😴 SERVICE-LAZY-HEALTH 🫀
                      * 🏭 SERVICE-TRANSIENT-SIMPLE
 `
 	output = DescribeInjector(scope2a)
