@@ -10,7 +10,7 @@ func IndexHTML(basePath string) (string, error) {
 	<body>
 		<h1>Welcome to do UI ✌️</h1>
 		
-		<h2>Getting started</h2>
+		<h2>Introduction</h2>
 		<ul>
 			<li><a href="https://github.com/samber/do" target="_blank">Repository</a></li>
 			<li><a href="https://github.com/samber/do/issues" target="_blank">New issue</a></li>

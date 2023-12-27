@@ -33,6 +33,8 @@ func ScopeTreeHTML(basePath string, injector do.Injector, scopeID string) (strin
 		<h1>Scope description</h1>
 		<small>
 			Menu:
+			<a href="{{.BasePath}}">Home</a>
+			-
 			<a href="{{.BasePath}}/scope">Scopes</a>
 			-
 			<a href="{{.BasePath}}/service">Services</a>
