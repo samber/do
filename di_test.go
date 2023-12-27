@@ -445,7 +445,7 @@ func TestInvoke(t *testing.T) {
 	s0a, ok0a := i.self.services["github.com/samber/do/v2.test"]
 	is.True(ok0a)
 
-	s0b, ok0b := s0a.(*ServiceLazy[test])
+	s0b, ok0b := s0a.(*serviceLazy[test])
 	is.True(ok0b)
 	is.False(s0b.built)
 
