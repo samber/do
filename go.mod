@@ -8,7 +8,11 @@ go 1.18
 
 require (
 	github.com/samber/go-type-to-string v1.1.0
+<<<<<<< HEAD
 	github.com/stretchr/testify v1.10.0
+=======
+	github.com/stretchr/testify v1.8.3
+>>>>>>> 503c05f (feat: adding http package and examples)
 	go.uber.org/goleak v1.2.1
 )
 
