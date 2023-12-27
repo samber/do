@@ -22,6 +22,11 @@ do.Provide(i, func(i do.Injector) (*MyService, error) {
 })
 
 println(do.Name[*MyService](i))
+```
+
+Output:
+
+```txt
 // *github.com/samber/example.MyService
 ```
 
@@ -39,10 +44,15 @@ do.ProvideNamed(i, "a-number", 42)
 
 services := i.ListProvidedServices()
 println(services)
-// []{
-//    {ScopeID: "xxxxx", ScopeName: "[root]", Service: "*github.com/samber/example.MyService"},
-//    {ScopeID: "xxxxx", ScopeName: "[root]", Service: "a-number"},
-// }
+```
+
+Output:
+
+```json
+[
+   {ScopeID: "xxxxx", ScopeName: "[root]", Service: "*github.com/samber/example.MyService"},
+   {ScopeID: "xxxxx", ScopeName: "[root]", Service: "a-number"}
+]
 ```
 
 ## Invoked services
@@ -59,9 +69,14 @@ do.ProvideNamed(i, "a-number", 42)
 
 services := i.ListInvokedServices()
 println(services)
-// []{
-//    {ScopeID: "xxxxx", ScopeName: "[root]", Service: "a-number"},
-// }
+```
+
+Output:
+
+```json
+[
+   {ScopeID: "xxxxx", ScopeName: "[root]", Service: "a-number"}
+]
 ```
 
 In the example above, the lazy-loaded service `*MyService` has not been invoked.

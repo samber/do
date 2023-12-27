@@ -6,19 +6,16 @@ sidebar_position: 2
 
 # Service dependencies
 
-## Spec
+## Dependencies tree
+
+### Spec
 
 ```go
 do.DescribeService[T any](do.Injector) (do.DescriptionService, bool)
 do.DescribeNamedService(do.Injector, string) (do.DescriptionService, bool)
-
-do.ExplainService[T any](do.Injector) (dependencies []do.EdgeService, dependents []do.EdgeService, found bool)
-do.ExplainNamedService(do.Injector, string) (dependencies []do.EdgeService, dependents []do.EdgeService, found bool)
 ```
 
-## Example
-
-### Service description
+### Print tree
 
 ```go
 description, found := do.DescribeNamedService[*MyService](scope, "SERVICE-E")
@@ -55,7 +52,16 @@ Dependents:
   * SERVICE-G from scope scope-child
 ```
 
-### Dependencies
+## Services dependencies
+
+### Spec
+
+```go
+do.ExplainService[T any](do.Injector) (dependencies []do.EdgeService, dependents []do.EdgeService, found bool)
+do.ExplainNamedService(do.Injector, string) (dependencies []do.EdgeService, dependents []do.EdgeService, found bool)
+```
+
+### Print dependencies
 
 ```go
 dependencies, _, found := do.ExplainNamedService[*MyService](scope, "SERVICE-E")
@@ -79,7 +85,7 @@ Output:
 ]
 ```
 
-### Dependents
+### Print dependents
 
 ```go
 _, dependents, found := do.ExplainNamedService[*MyService](scope, "SERVICE-E")
