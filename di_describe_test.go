@@ -180,11 +180,11 @@ func TestDescriptionInjectorScope_String(t *testing.T) {
 func TestDescriptionInjectorService_String(t *testing.T) {
 	is := assert.New(t)
 
-	svc := DescriptionInjectorService{ServiceName: "service-name", ServiceType: ServiceTypeLazy, IsHealthchecker: true, IsShutdowner: true}
+	svc := DescriptionInjectorService{ServiceName: "service-name", ServiceType: ServiceTypeLazy, ServiceTypeIcon: "😴", IsHealthchecker: true, IsShutdowner: true}
 	expected := ` * 😴 service-name 🫀 🙅`
 	is.Equal(expected, svc.String())
 
-	svc = DescriptionInjectorService{ServiceName: "service-name", ServiceType: ServiceTypeEager, IsHealthchecker: true, IsShutdowner: false}
+	svc = DescriptionInjectorService{ServiceName: "service-name", ServiceType: ServiceTypeEager, ServiceTypeIcon: "🔁", IsHealthchecker: true, IsShutdowner: false}
 	expected = ` * 🔁 service-name 🫀`
 	is.Equal(expected, svc.String())
 
