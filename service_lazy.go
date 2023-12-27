@@ -9,12 +9,12 @@ import (
 	"github.com/samber/do/v2/stacktrace"
 )
 
-var _ Service[int] = (*ServiceLazy[int])(nil)
-var _ serviceHealthcheck = (*ServiceLazy[int])(nil)
-var _ serviceShutdown = (*ServiceLazy[int])(nil)
-var _ serviceClone = (*ServiceLazy[int])(nil)
+var _ Service[int] = (*serviceLazy[int])(nil)
+var _ serviceHealthcheck = (*serviceLazy[int])(nil)
+var _ serviceShutdown = (*serviceLazy[int])(nil)
+var _ serviceClone = (*serviceLazy[int])(nil)
 
-type ServiceLazy[T any] struct {
+type serviceLazy[T any] struct {
 	mu       sync.RWMutex
 	name     string
 	instance T
@@ -28,10 +28,10 @@ type ServiceLazy[T any] struct {
 	invokationFrames []stacktrace.Frame
 }
 
-func newServiceLazy[T any](name string, provider Provider[T]) *ServiceLazy[T] {
+func newServiceLazy[T any](name string, provider Provider[T]) *serviceLazy[T] {
 	providerFrame, _ := stacktrace.NewFrameFromPtr(reflect.ValueOf(provider).Pointer())
 
-	return &ServiceLazy[T]{
+	return &serviceLazy[T]{
 		mu:   sync.RWMutex{},
 		name: name,
 
@@ -44,23 +44,23 @@ func newServiceLazy[T any](name string, provider Provider[T]) *ServiceLazy[T] {
 	}
 }
 
-func (s *ServiceLazy[T]) getName() string {
+func (s *serviceLazy[T]) getName() string {
 	return s.name
 }
 
-func (s *ServiceLazy[T]) getType() ServiceType {
+func (s *serviceLazy[T]) getType() ServiceType {
 	return ServiceTypeLazy
 }
 
-func (s *ServiceLazy[T]) getEmptyInstance() any {
+func (s *serviceLazy[T]) getEmptyInstance() any {
 	return empty[T]()
 }
 
-func (s *ServiceLazy[T]) getInstanceAny(i Injector) (any, error) {
+func (s *serviceLazy[T]) getInstanceAny(i Injector) (any, error) {
 	return s.getInstance(i)
 }
 
-func (s *ServiceLazy[T]) getInstance(i Injector) (T, error) {
+func (s *serviceLazy[T]) getInstance(i Injector) (T, error) {
 	frame, ok := stacktrace.NewFrameFromCaller()
 
 	s.mu.Lock()
@@ -80,7 +80,7 @@ func (s *ServiceLazy[T]) getInstance(i Injector) (T, error) {
 	return s.instance, nil
 }
 
-func (s *ServiceLazy[T]) build(i Injector) (err error) {
+func (s *serviceLazy[T]) build(i Injector) (err error) {
 	start := time.Now()
 
 	instance, err := handleProviderPanic(s.provider, i)
@@ -95,7 +95,7 @@ func (s *ServiceLazy[T]) build(i Injector) (err error) {
 	return nil
 }
 
-func (s *ServiceLazy[T]) isHealthchecker() bool {
+func (s *serviceLazy[T]) isHealthchecker() bool {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
@@ -108,7 +108,7 @@ func (s *ServiceLazy[T]) isHealthchecker() bool {
 	return ok1 || ok2
 }
 
-func (s *ServiceLazy[T]) healthcheck(ctx context.Context) error {
+func (s *serviceLazy[T]) healthcheck(ctx context.Context) error {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
@@ -125,7 +125,7 @@ func (s *ServiceLazy[T]) healthcheck(ctx context.Context) error {
 	return nil
 }
 
-func (s *ServiceLazy[T]) isShutdowner() bool {
+func (s *serviceLazy[T]) isShutdowner() bool {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
@@ -140,7 +140,7 @@ func (s *ServiceLazy[T]) isShutdowner() bool {
 	return ok1 || ok2 || ok3 || ok4
 }
 
-func (s *ServiceLazy[T]) shutdown(ctx context.Context) error {
+func (s *serviceLazy[T]) shutdown(ctx context.Context) error {
 	s.mu.Lock()
 
 	defer func() {
@@ -169,9 +169,9 @@ func (s *ServiceLazy[T]) shutdown(ctx context.Context) error {
 	return nil
 }
 
-func (s *ServiceLazy[T]) clone() any {
+func (s *serviceLazy[T]) clone() any {
 	// reset `build` flag and instance
-	return &ServiceLazy[T]{
+	return &serviceLazy[T]{
 		mu:   sync.RWMutex{},
 		name: s.name,
 
@@ -184,6 +184,6 @@ func (s *ServiceLazy[T]) clone() any {
 }
 
 //nolint:unused
-func (s *ServiceLazy[T]) source() (stacktrace.Frame, []stacktrace.Frame) {
+func (s *serviceLazy[T]) source() (stacktrace.Frame, []stacktrace.Frame) {
 	return s.providerFrame, s.invokationFrames
 }

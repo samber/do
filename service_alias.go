@@ -8,12 +8,12 @@ import (
 	"github.com/samber/do/v2/stacktrace"
 )
 
-var _ Service[int] = (*ServiceAlias[int, int])(nil)
-var _ serviceHealthcheck = (*ServiceAlias[int, int])(nil)
-var _ serviceShutdown = (*ServiceAlias[int, int])(nil)
-var _ serviceClone = (*ServiceAlias[int, int])(nil)
+var _ Service[int] = (*serviceAlias[int, int])(nil)
+var _ serviceHealthcheck = (*serviceAlias[int, int])(nil)
+var _ serviceShutdown = (*serviceAlias[int, int])(nil)
+var _ serviceClone = (*serviceAlias[int, int])(nil)
 
-type ServiceAlias[Initial any, Alias any] struct {
+type serviceAlias[Initial any, Alias any] struct {
 	mu         sync.RWMutex
 	name       string
 	scope      Injector
@@ -23,10 +23,10 @@ type ServiceAlias[Initial any, Alias any] struct {
 	invokationFrames []stacktrace.Frame
 }
 
-func newServiceAlias[Initial any, Alias any](name string, scope Injector, targetName string) *ServiceAlias[Initial, Alias] {
+func newServiceAlias[Initial any, Alias any](name string, scope Injector, targetName string) *serviceAlias[Initial, Alias] {
 	providerFrame, _ := stacktrace.NewFrameFromCaller()
 
-	return &ServiceAlias[Initial, Alias]{
+	return &serviceAlias[Initial, Alias]{
 		mu:         sync.RWMutex{},
 		name:       name,
 		scope:      scope,
@@ -37,23 +37,23 @@ func newServiceAlias[Initial any, Alias any](name string, scope Injector, target
 	}
 }
 
-func (s *ServiceAlias[Initial, Alias]) getName() string {
+func (s *serviceAlias[Initial, Alias]) getName() string {
 	return s.name
 }
 
-func (s *ServiceAlias[Initial, Alias]) getType() ServiceType {
+func (s *serviceAlias[Initial, Alias]) getType() ServiceType {
 	return ServiceTypeAlias
 }
 
-func (s *ServiceAlias[Initial, Alias]) getEmptyInstance() any {
+func (s *serviceAlias[Initial, Alias]) getEmptyInstance() any {
 	return empty[Alias]()
 }
 
-func (s *ServiceAlias[Initial, Alias]) getInstanceAny(i Injector) (any, error) {
+func (s *serviceAlias[Initial, Alias]) getInstanceAny(i Injector) (any, error) {
 	return s.getInstance(i)
 }
 
-func (s *ServiceAlias[Initial, Alias]) getInstance(i Injector) (Alias, error) {
+func (s *serviceAlias[Initial, Alias]) getInstance(i Injector) (Alias, error) {
 	frame, ok := stacktrace.NewFrameFromCaller()
 	if ok {
 		s.mu.Lock()
@@ -75,7 +75,7 @@ func (s *ServiceAlias[Initial, Alias]) getInstance(i Injector) (Alias, error) {
 	}
 }
 
-func (s *ServiceAlias[Initial, Alias]) isHealthchecker() bool {
+func (s *serviceAlias[Initial, Alias]) isHealthchecker() bool {
 	serviceAny, _, ok := s.scope.serviceGetRec(s.targetName)
 	if !ok {
 		return false
@@ -91,7 +91,7 @@ func (s *ServiceAlias[Initial, Alias]) isHealthchecker() bool {
 	return service.isHealthchecker()
 }
 
-func (s *ServiceAlias[Initial, Alias]) healthcheck(ctx context.Context) error {
+func (s *serviceAlias[Initial, Alias]) healthcheck(ctx context.Context) error {
 	serviceAny, _, ok := s.scope.serviceGetRec(s.targetName)
 	if !ok {
 		return nil
@@ -107,7 +107,7 @@ func (s *ServiceAlias[Initial, Alias]) healthcheck(ctx context.Context) error {
 	return service.healthcheck(ctx)
 }
 
-func (s *ServiceAlias[Initial, Alias]) isShutdowner() bool {
+func (s *serviceAlias[Initial, Alias]) isShutdowner() bool {
 	serviceAny, _, ok := s.scope.serviceGetRec(s.targetName)
 	if !ok {
 		return false
@@ -123,7 +123,7 @@ func (s *ServiceAlias[Initial, Alias]) isShutdowner() bool {
 	return service.isShutdowner()
 }
 
-func (s *ServiceAlias[Initial, Alias]) shutdown(ctx context.Context) error {
+func (s *serviceAlias[Initial, Alias]) shutdown(ctx context.Context) error {
 	serviceAny, _, ok := s.scope.serviceGetRec(s.targetName)
 	if !ok {
 		return nil
@@ -139,8 +139,8 @@ func (s *ServiceAlias[Initial, Alias]) shutdown(ctx context.Context) error {
 	return service.shutdown(ctx)
 }
 
-func (s *ServiceAlias[Initial, Alias]) clone() any {
-	return &ServiceAlias[Initial, Alias]{
+func (s *serviceAlias[Initial, Alias]) clone() any {
+	return &serviceAlias[Initial, Alias]{
 		mu:   sync.RWMutex{},
 		name: s.name,
 		// scope:      s.scope,		<-- we should inject here the cloned scope
@@ -152,6 +152,6 @@ func (s *ServiceAlias[Initial, Alias]) clone() any {
 }
 
 // nolint:unused
-func (s *ServiceAlias[Initial, Alias]) source() (stacktrace.Frame, []stacktrace.Frame) {
+func (s *serviceAlias[Initial, Alias]) source() (stacktrace.Frame, []stacktrace.Frame) {
 	return s.providerFrame, s.invokationFrames
 }

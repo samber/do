@@ -6,68 +6,68 @@ import (
 	"github.com/samber/do/v2/stacktrace"
 )
 
-var _ Service[int] = (*ServiceTransient[int])(nil)
-var _ serviceHealthcheck = (*ServiceTransient[int])(nil)
-var _ serviceShutdown = (*ServiceTransient[int])(nil)
-var _ serviceClone = (*ServiceTransient[int])(nil)
+var _ Service[int] = (*serviceTransient[int])(nil)
+var _ serviceHealthcheck = (*serviceTransient[int])(nil)
+var _ serviceShutdown = (*serviceTransient[int])(nil)
+var _ serviceClone = (*serviceTransient[int])(nil)
 
-type ServiceTransient[T any] struct {
+type serviceTransient[T any] struct {
 	name string
 
 	// lazy loading
 	provider Provider[T]
 }
 
-func newServiceTransient[T any](name string, provider Provider[T]) *ServiceTransient[T] {
-	return &ServiceTransient[T]{
+func newServiceTransient[T any](name string, provider Provider[T]) *serviceTransient[T] {
+	return &serviceTransient[T]{
 		name: name,
 
 		provider: provider,
 	}
 }
 
-func (s *ServiceTransient[T]) getName() string {
+func (s *serviceTransient[T]) getName() string {
 	return s.name
 }
 
-func (s *ServiceTransient[T]) getType() ServiceType {
+func (s *serviceTransient[T]) getType() ServiceType {
 	return ServiceTypeTransient
 }
 
-func (s *ServiceTransient[T]) getEmptyInstance() any {
+func (s *serviceTransient[T]) getEmptyInstance() any {
 	return empty[T]()
 }
 
-func (s *ServiceTransient[T]) getInstanceAny(i Injector) (any, error) {
+func (s *serviceTransient[T]) getInstanceAny(i Injector) (any, error) {
 	return s.getInstance(i)
 }
 
-func (s *ServiceTransient[T]) getInstance(i Injector) (T, error) {
+func (s *serviceTransient[T]) getInstance(i Injector) (T, error) {
 	return handleProviderPanic(s.provider, i)
 }
 
-func (s *ServiceTransient[T]) isHealthchecker() bool {
+func (s *serviceTransient[T]) isHealthchecker() bool {
 	return false
 }
 
-func (s *ServiceTransient[T]) healthcheck(ctx context.Context) error {
+func (s *serviceTransient[T]) healthcheck(ctx context.Context) error {
 	// @TODO: implement healthcheck ?
 	// It requires to store each instance of service, which is not good because of memory leaks.
 	return nil
 }
 
-func (s *ServiceTransient[T]) isShutdowner() bool {
+func (s *serviceTransient[T]) isShutdowner() bool {
 	return false
 }
 
-func (s *ServiceTransient[T]) shutdown(ctx context.Context) error {
+func (s *serviceTransient[T]) shutdown(ctx context.Context) error {
 	// @TODO: implement shutdown ?
 	// It requires to store each instance of service, which is not good because of memory leaks.
 	return nil
 }
 
-func (s *ServiceTransient[T]) clone() any {
-	return &ServiceTransient[T]{
+func (s *serviceTransient[T]) clone() any {
+	return &serviceTransient[T]{
 		name: s.name,
 
 		provider: s.provider,
@@ -75,7 +75,7 @@ func (s *ServiceTransient[T]) clone() any {
 }
 
 //nolint:unused
-func (s *ServiceTransient[T]) source() (stacktrace.Frame, []stacktrace.Frame) {
+func (s *serviceTransient[T]) source() (stacktrace.Frame, []stacktrace.Frame) {
 	// @TODO: implement stacktrace ?
 	// It requires to store each instance of service, which is not good because of memory leaks.
 	return stacktrace.Frame{}, []stacktrace.Frame{}

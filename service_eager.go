@@ -7,12 +7,12 @@ import (
 	"github.com/samber/do/v2/stacktrace"
 )
 
-var _ Service[int] = (*ServiceEager[int])(nil)
-var _ serviceHealthcheck = (*ServiceEager[int])(nil)
-var _ serviceShutdown = (*ServiceEager[int])(nil)
-var _ serviceClone = (*ServiceEager[int])(nil)
+var _ Service[int] = (*serviceEager[int])(nil)
+var _ serviceHealthcheck = (*serviceEager[int])(nil)
+var _ serviceShutdown = (*serviceEager[int])(nil)
+var _ serviceClone = (*serviceEager[int])(nil)
 
-type ServiceEager[T any] struct {
+type serviceEager[T any] struct {
 	mu       sync.RWMutex
 	name     string
 	instance T
@@ -21,10 +21,10 @@ type ServiceEager[T any] struct {
 	invokationFrames []stacktrace.Frame
 }
 
-func newServiceEager[T any](name string, instance T) *ServiceEager[T] {
+func newServiceEager[T any](name string, instance T) *serviceEager[T] {
 	providerFrame, _ := stacktrace.NewFrameFromCaller()
 
-	return &ServiceEager[T]{
+	return &serviceEager[T]{
 		mu:       sync.RWMutex{},
 		name:     name,
 		instance: instance,
@@ -34,23 +34,23 @@ func newServiceEager[T any](name string, instance T) *ServiceEager[T] {
 	}
 }
 
-func (s *ServiceEager[T]) getName() string {
+func (s *serviceEager[T]) getName() string {
 	return s.name
 }
 
-func (s *ServiceEager[T]) getType() ServiceType {
+func (s *serviceEager[T]) getType() ServiceType {
 	return ServiceTypeEager
 }
 
-func (s *ServiceEager[T]) getEmptyInstance() any {
+func (s *serviceEager[T]) getEmptyInstance() any {
 	return empty[T]()
 }
 
-func (s *ServiceEager[T]) getInstanceAny(i Injector) (any, error) {
+func (s *serviceEager[T]) getInstanceAny(i Injector) (any, error) {
 	return s.getInstance(i)
 }
 
-func (s *ServiceEager[T]) getInstance(i Injector) (T, error) {
+func (s *serviceEager[T]) getInstance(i Injector) (T, error) {
 	frame, ok := stacktrace.NewFrameFromCaller()
 	if ok {
 		s.mu.Lock()
@@ -61,13 +61,13 @@ func (s *ServiceEager[T]) getInstance(i Injector) (T, error) {
 	return s.instance, nil
 }
 
-func (s *ServiceEager[T]) isHealthchecker() bool {
+func (s *serviceEager[T]) isHealthchecker() bool {
 	_, ok1 := any(s.instance).(HealthcheckerWithContext)
 	_, ok2 := any(s.instance).(Healthchecker)
 	return ok1 || ok2
 }
 
-func (s *ServiceEager[T]) healthcheck(ctx context.Context) error {
+func (s *serviceEager[T]) healthcheck(ctx context.Context) error {
 	if instance, ok := any(s.instance).(HealthcheckerWithContext); ok {
 		return instance.HealthCheck(ctx)
 	} else if instance, ok := any(s.instance).(Healthchecker); ok {
@@ -77,7 +77,7 @@ func (s *ServiceEager[T]) healthcheck(ctx context.Context) error {
 	return nil
 }
 
-func (s *ServiceEager[T]) isShutdowner() bool {
+func (s *serviceEager[T]) isShutdowner() bool {
 	_, ok1 := any(s.instance).(ShutdownerWithContextAndError)
 	_, ok2 := any(s.instance).(ShutdownerWithError)
 	_, ok3 := any(s.instance).(ShutdownerWithContext)
@@ -85,7 +85,7 @@ func (s *ServiceEager[T]) isShutdowner() bool {
 	return ok1 || ok2 || ok3 || ok4
 }
 
-func (s *ServiceEager[T]) shutdown(ctx context.Context) error {
+func (s *serviceEager[T]) shutdown(ctx context.Context) error {
 	if instance, ok := any(s.instance).(ShutdownerWithContextAndError); ok {
 		return instance.Shutdown(ctx)
 	} else if instance, ok := any(s.instance).(ShutdownerWithError); ok {
@@ -101,8 +101,8 @@ func (s *ServiceEager[T]) shutdown(ctx context.Context) error {
 	return nil
 }
 
-func (s *ServiceEager[T]) clone() any {
-	return &ServiceEager[T]{
+func (s *serviceEager[T]) clone() any {
+	return &serviceEager[T]{
 		mu:       sync.RWMutex{},
 		name:     s.name,
 		instance: s.instance,
@@ -113,6 +113,6 @@ func (s *ServiceEager[T]) clone() any {
 }
 
 // nolint:unused
-func (s *ServiceEager[T]) source() (stacktrace.Frame, []stacktrace.Frame) {
+func (s *serviceEager[T]) source() (stacktrace.Frame, []stacktrace.Frame) {
 	return s.providerFrame, s.invokationFrames
 }

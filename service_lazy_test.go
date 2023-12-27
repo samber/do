@@ -484,7 +484,7 @@ func TestServiceLazy_clone(t *testing.T) {
 	is.True(service1.built)
 
 	// clone
-	service2, ok := service1.clone().(*ServiceLazy[lazyTest])
+	service2, ok := service1.clone().(*serviceLazy[lazyTest])
 	is.True(ok)
 	is.Equal("foobar", service2.getName())
 	is.Empty(service2.instance)
