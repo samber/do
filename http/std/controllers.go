@@ -11,36 +11,34 @@ import (
 func Use(basePath string, injector do.Injector) http.Handler {
 	mux := http.NewServeMux()
 
-	basePathDo := basePath + "/do"
-
-	mux.HandleFunc("/do/", func(w http.ResponseWriter, r *http.Request) {
-		output, err := dohttp.IndexHTML(basePathDo)
+	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		output, err := dohttp.IndexHTML(basePath)
 		response(w, []byte(output), err)
 	})
 
-	mux.HandleFunc("/do/scope", func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("/scope", func(w http.ResponseWriter, r *http.Request) {
 		scopeID := r.URL.Query().Get("scope_id")
 		if scopeID == "" {
-			url := fmt.Sprintf("%s/scope?scope_id=%s", basePathDo, injector.ID())
+			url := fmt.Sprintf("%s/scope?scope_id=%s", basePath, injector.ID())
 			http.Redirect(w, r, url, 302)
 			return
 		}
 
-		output, err := dohttp.ScopeTreeHTML(basePathDo, injector, scopeID)
+		output, err := dohttp.ScopeTreeHTML(basePath, injector, scopeID)
 		response(w, []byte(output), err)
 	})
 
-	mux.HandleFunc("/do/service", func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("/service", func(w http.ResponseWriter, r *http.Request) {
 		scopeID := r.URL.Query().Get("scope_id")
 		serviceName := r.URL.Query().Get("service_name")
 
 		if scopeID == "" || serviceName == "" {
-			output, err := dohttp.ServiceListHTML(basePathDo, injector)
+			output, err := dohttp.ServiceListHTML(basePath, injector)
 			response(w, []byte(output), err)
 			return
 		}
 
-		output, err := dohttp.ServiceHTML(basePathDo, injector, scopeID, serviceName)
+		output, err := dohttp.ServiceHTML(basePath, injector, scopeID, serviceName)
 		response(w, []byte(output), err)
 	})
 
@@ -48,7 +46,6 @@ func Use(basePath string, injector do.Injector) http.Handler {
 }
 
 func response(w http.ResponseWriter, output []byte, err error) {
-	w.Header().Set("X-Content-Type-Options", "nosniff")
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 
 	if err != nil {
