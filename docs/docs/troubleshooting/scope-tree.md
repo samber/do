@@ -12,9 +12,7 @@ sidebar_position: 1
 do.DescribeInjector(do.Injector) do.DescriptionInjector
 ```
 
-## Example
-
-### Print scope tree
+## Print scope tree
 
 ```go
 description := do.DescribeInjector(scope)
@@ -30,8 +28,8 @@ Scope name: [root]
 DAG:
  |
   \_ [root] (ID: 35d18a30-0cb9-4fad-aa3c-1438937612ad)
-      * 😴 PosgresqlClientService 🏥 🙅
-      * 😴 RedisClientService 🏥 🙅
+      * 😴 PosgresqlClientService 🫀 🙅
+      * 😴 RedisClientService 🫀 🙅
       * 🔁 Config
       * 🔗 Logger
       |
@@ -63,12 +61,12 @@ DAG:
            * 😴 RateLimitResetJobService
 ```
 
-Emojis describe service type and capabilities:
+Emojis describe service type:
 - 😴 Lazy service
 - 🔁 Eager service
 - 🏭 Transient service
 - 🔗 Service alias
 
 ...and capabilities:
-- 🏥 Implements Healthchecker
+- 🫀 Implements Healthchecker
 - 🙅 Implements Shutdowner
