@@ -55,7 +55,7 @@ func TestInvokeAnyByName(t *testing.T) {
 
 	is.Empty(svc)
 	is.ErrorIs(err, ErrCircularDependency)
-	is.EqualError(err, "DI: circular dependency detected: foo -> bar -> foo")
+	is.EqualError(err, "DI: circular dependency detected: `foo` -> `bar` -> `foo`")
 
 	// @TODO
 }
@@ -112,7 +112,7 @@ func TestInvokeByName(t *testing.T) {
 
 	is.Empty(svc)
 	is.ErrorIs(err, ErrCircularDependency)
-	is.EqualError(err, "DI: circular dependency detected: foo -> bar -> foo")
+	is.EqualError(err, "DI: circular dependency detected: `foo` -> `bar` -> `foo`")
 
 	// @TODO
 }
@@ -169,7 +169,7 @@ func TestInvokeByGenericType(t *testing.T) {
 	is.Empty(svc1)
 	is.ErrorIs(err, ErrCircularDependency)
 
-	is.EqualError(err, "DI: circular dependency detected: *github.com/samber/do/v2.eagerTest -> bar -> *github.com/samber/do/v2.eagerTest")
+	is.EqualError(err, "DI: circular dependency detected: `*github.com/samber/do/v2.eagerTest` -> `bar` -> `*github.com/samber/do/v2.eagerTest`")
 
 	// @TODO
 }
@@ -274,7 +274,7 @@ func TestInvokeByTags(t *testing.T) {
 	}
 	test3 := dependencyNotFound{}
 	err = invokeByTags(i, reflect.ValueOf(&test3))
-	is.Equal(serviceNotFound(i, inferServiceName[*hasNonExportedEagerTestDependency]()).Error(), err.Error())
+	is.Equal(serviceNotFound(i, []string{inferServiceName[*hasNonExportedEagerTestDependency]()}).Error(), err.Error())
 
 	// use tag
 	type namedDependency struct {
@@ -282,7 +282,7 @@ func TestInvokeByTags(t *testing.T) {
 	}
 	test4 := namedDependency{}
 	err = invokeByTags(i, reflect.ValueOf(&test4))
-	is.Equal(serviceNotFound(i, inferServiceName[int]()).Error(), err.Error())
+	is.Equal(serviceNotFound(i, []string{inferServiceName[int]()}).Error(), err.Error())
 
 	// named service
 	ProvideNamedValue(i, "foobar", 42)
@@ -326,11 +326,15 @@ func TestServiceNotFound(t *testing.T) {
 	child2b := child1.Scope("child2b")
 	child3 := child2a.Scope("child3")
 
-	err := serviceNotFound(child1, "not-found")
+	err := serviceNotFound(child1, []string{"not-found"})
 	is.Error(err)
-
 	is.ErrorIs(err, ErrServiceNotFound)
 	is.EqualError(err, "DI: could not find service `not-found`, no service available")
+
+	err = serviceNotFound(child1, []string{"not-found1", "not-found2"})
+	is.Error(err)
+	is.ErrorIs(err, ErrServiceNotFound)
+	is.EqualError(err, "DI: could not find service `not-found2`, no service available, path: `not-found1` -> `not-found2`")
 
 	rootScope.serviceSet("root-a", newServiceLazy("root-a", func(i Injector) (int, error) { return 0, nil }))
 	child1.serviceSet("child1-a", newServiceLazy("child1-a", func(i Injector) (int, error) { return 1, nil }))
@@ -339,11 +343,15 @@ func TestServiceNotFound(t *testing.T) {
 	child2b.serviceSet("child2b-a", newServiceLazy("child2b-a", func(i Injector) (int, error) { return 4, nil }))
 	child3.serviceSet("child3-a", newServiceLazy("child3-a", func(i Injector) (int, error) { return 5, nil }))
 
-	err = serviceNotFound(child1, "not-found")
+	err = serviceNotFound(child1, []string{"not-found"})
 	is.Error(err)
-
 	is.ErrorIs(err, ErrServiceNotFound)
 	is.EqualError(err, "DI: could not find service `not-found`, available services: `child1-a`, `root-a`")
+
+	err = serviceNotFound(child1, []string{"not-found1", "not-found2"})
+	is.Error(err)
+	is.ErrorIs(err, ErrServiceNotFound)
+	is.EqualError(err, "DI: could not find service `not-found2`, available services: `child1-a`, `root-a`, path: `not-found1` -> `not-found2`")
 
 	// @TODO: test service ordering
 }
