@@ -270,7 +270,7 @@ func TestInvokeByTags(t *testing.T) {
 
 	// not found
 	type dependencyNotFound struct {
-		eagerTest *hasNonExportedEagerTestDependency `do:""`
+		eagerTest *hasNonExportedEagerTestDependency `do:""` //nolint:unused
 	}
 	test3 := dependencyNotFound{}
 	err = invokeByTags(i, reflect.ValueOf(&test3))
@@ -278,7 +278,7 @@ func TestInvokeByTags(t *testing.T) {
 
 	// use tag
 	type namedDependency struct {
-		eagerTest *eagerTest `do:"int"`
+		eagerTest *eagerTest `do:"int"` //nolint:unused
 	}
 	test4 := namedDependency{}
 	err = invokeByTags(i, reflect.ValueOf(&test4))

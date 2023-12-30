@@ -574,7 +574,7 @@ func TestInvokeStruct(t *testing.T) {
 
 	// not found
 	type dependencyNotFound struct {
-		eagerTest *hasNonExportedEagerTestDependency `do:""`
+		eagerTest *hasNonExportedEagerTestDependency `do:""` //nolint:unused
 	}
 	test4, err := InvokeStruct[dependencyNotFound](i)
 	is.Equal(serviceNotFound(i, inferServiceName[*hasNonExportedEagerTestDependency]()).Error(), err.Error())
@@ -582,7 +582,7 @@ func TestInvokeStruct(t *testing.T) {
 
 	// use tag
 	type namedDependency struct {
-		eagerTest *eagerTest `do:"int"`
+		eagerTest *eagerTest `do:"int"` //nolint:unused
 	}
 	test5, err := InvokeStruct[namedDependency](i)
 	is.Equal(serviceNotFound(i, inferServiceName[int]()).Error(), err.Error())
