@@ -43,26 +43,73 @@ i := do.New()
 do.ProvideNamedValue(i, "config.ip", "127.0.0.1")
 do.Provide(i, func(i do.Injector) (*MyService, error) {
     return &MyService{
-      IP: do.MustInvokeNamed(i, "config.ip"),
+        IP: do.MustInvokeNamed(i, "config.ip"),
     }, nil
 })
 
 myService, err := do.Invoke[*MyService](i)
 ```
 
-## Other services as dependencies
+## Auto-magically load service
+
+You can also use the `do.InvokeStruct` function to auto-magically feed a service with its dependencies. The fields can be either exported or not.
+
+The `do:""` tag indicates the DI must infer the service name from its type (equivalent to `do.Invoke[*logrus.Logger](i)`).
+
+```go
+type MyService struct {
+  // injected automatically
+  serverPort             int                     `do:"config.listen_port"`
+  logger                 *logrus.Logger          `do:""`
+  postgresqlClient       *PostgresqlClient       `do:""`
+  dataProcessingService  *DataProcessingService  `do:""`
+
+  // other things, not related to DI
+  mu sync.Mutex
+}
+```
+
+Then add `*MyService` to the list of available services.
+
+```go
+err := do.Provide[*MyService](injector, func (i do.Injector) (*MyService, error) {
+  return do.InvokeStruct[MyService](i)
+})
+// or
+err := Provide[*MyService](i, InvokeStruct[MyService])
+```
+
+:::info
+
+Nested structs are not supported.
+
+:::
+
+:::warning
+
+This feature relies on reflection and is therefore not recommended for performance-critical code or serverless environments. Please do your due diligence with proper benchmarks.
+
+:::
+
+## Error handling
+
+Any panic during lazy loading is converted into a Go `error`.
+
+An error is returned on missing service.
+
+## Invoke once
 
 A service might rely on other services. In that case, you should invoke dependencies in the service provider instead of storing the injector for later.
 
 ```go
 // ❌ bad
 type MyService struct {
-  injector do.Injector
+    injector do.Injector
 }
 func NewMyService(i do.Injector) (*MyService, error) {
-  return &MyService{
-    injector: i,
-  }, nil
+    return &MyService{
+        injector: i,
+    }, nil
 }
 
 // ✅ good
@@ -70,14 +117,8 @@ type MyService struct {
   dependency *MyDependency
 }
 func NewMyService(i do.Injector) (*MyService, error) {
-  return &MyService{
-    dep: do.MustInvoke[*MyDependency](i),   // <- recursive invocation on service construction
-  }, nil
+    return &MyService{
+        dep: do.MustInvoke[*MyDependency](i),   // <- recursive invocation on service construction
+    }, nil
 }
 ```
-
-## Error handling
-
-Any panic during lazy loading is converted into a Go `error`.
-
-An error is returned on missing service.

@@ -14,7 +14,7 @@ When the `do.Shutdown[type]()` or the `injector.Shutdown()` function is called, 
 
 ## Trigger shutdown
 
-A shutdown can be triggered on a root injector:
+A shutdown can be triggered on a root scope:
 
 ```go
 // on demand

@@ -126,6 +126,17 @@ func contains[T comparable](list []T, elem T) bool {
 	return false
 }
 
+func coalesce[T comparable](v ...T) (result T) {
+	for _, e := range v {
+		if e != result {
+			result = e
+			break
+		}
+	}
+
+	return
+}
+
 // https://gist.github.com/rkravchik/d9733e1d2d626188eb91df751471d739
 func newUUID() (string, error) {
 	uuid := make([]byte, 16)
