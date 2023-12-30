@@ -22,7 +22,7 @@ In the context of the Go code you're working with, there are several helper func
 
 🐎 Lazy service invocation is protected against concurrent loading.
 
-🧙‍♂️ When multiple [scopes](../scopes/scope.md) are assembled into a big application, the service lookup is recursive from the current nested scope to the root scope.
+🧙‍♂️ When multiple [scopes](../container/scope.md) are assembled into a big application, the service lookup is recursive from the current nested scope to the root scope.
 
 :::warning
 
