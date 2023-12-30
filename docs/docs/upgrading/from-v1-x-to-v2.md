@@ -46,12 +46,29 @@ find . -name '*.go' -type f -exec sed -i '' "s/*do.Injector/do.Injector/g" {} \;
 
 ## 3- `do.Shutdown****` output
 
-Shutdown functions used to return only 1 argument.
+`ShutdownOnSignals` used to return only 1 argument.
 
 ```go
 # from
-err := injector.Shutdown()
+err := injector.ShutdownOnSignals(syscall.SIGTERM, os.Interrupt)
 
 # to
-signal, err := injector.Shutdown()
+signal, err := injector.ShutdownOnSignals(syscall.SIGTERM, os.Interrupt)
+```
+
+## 4- Internal service naming
+
+Internally, the DI container stores a service by its name (string) that represents its type. In do@v1, some developers reported collisions in service names, because the package name was not included.
+
+Eg: `*mypkg.MyService` -> `*github.com/samber/example.MyService`.
+
+In case you invoke a service by its name (highly discouraged), you should make some changes.
+
+To scan a project at the speed light, just run:
+
+```bash
+grep InvokeNamed project/
+grep OverrideNamed project/
+grep HealthCheckNamed project/
+grep ShutdownNamed project/
 ```
