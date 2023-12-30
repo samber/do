@@ -9,14 +9,14 @@ sidebar_position: 1
 ## Spec
 
 ```go
-do.DescribeInjector(do.Injector) do.DescriptionInjector
+do.ExplainInjector(do.Injector) do.ExplainInjectorOutput
 ```
 
 ## Print scope tree
 
 ```go
-description := do.DescribeInjector(scope)
-println(description.String())
+debug := do.ExplainInjector(scope)
+println(debug.String())
 ```
 
 Output:

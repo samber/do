@@ -5,7 +5,7 @@ import (
 )
 
 func ScopeTreeHTML(basePath string, injector do.Injector, scopeID string) (string, error) {
-	description := do.DescribeInjector(injector)
+	description := do.ExplainInjector(injector)
 
 	return fromTemplate(
 		`<!DOCTYPE html>
@@ -71,14 +71,14 @@ func ScopeTreeHTML(basePath string, injector do.Injector, scopeID string) (strin
 </html>`,
 		map[string]any{
 			"BasePath": basePath,
-			"Scopes": mAp(description.DAG, func(item do.DescriptionInjectorScope) string {
+			"Scopes": mAp(description.DAG, func(item do.ExplainInjectorScopeOutput) string {
 				return scopeTreeScopeToHTML(basePath, item)
 			}),
 		},
 	)
 }
 
-func scopeTreeScopeToHTML(basePath string, description do.DescriptionInjectorScope) string {
+func scopeTreeScopeToHTML(basePath string, description do.ExplainInjectorScopeOutput) string {
 	html, _ := fromTemplate(
 		`
 			Scope:
@@ -110,10 +110,10 @@ func scopeTreeScopeToHTML(basePath string, description do.DescriptionInjectorSco
 			"BasePath":  basePath,
 			"ScopeID":   description.ScopeID,
 			"ScopeName": description.ScopeName,
-			"Services": mAp(description.Services, func(item do.DescriptionInjectorService) string {
+			"Services": mAp(description.Services, func(item do.ExplainInjectorServiceOutput) string {
 				return scopeTreeServiceToHTML(basePath, description.ScopeID, item)
 			}),
-			"Scopes": mAp(description.Children, func(item do.DescriptionInjectorScope) string {
+			"Scopes": mAp(description.Children, func(item do.ExplainInjectorScopeOutput) string {
 				return scopeTreeScopeToHTML(basePath, item)
 			}),
 		},
@@ -121,7 +121,7 @@ func scopeTreeScopeToHTML(basePath string, description do.DescriptionInjectorSco
 	return html
 }
 
-func scopeTreeServiceToHTML(basePath string, scopeID string, description do.DescriptionInjectorService) string {
+func scopeTreeServiceToHTML(basePath string, scopeID string, description do.ExplainInjectorServiceOutput) string {
 	featuresIcons := ""
 
 	if description.IsHealthchecker {
