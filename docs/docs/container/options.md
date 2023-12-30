@@ -1,10 +1,10 @@
 ---
-title: Injector options
-description: Injector options
+title: Container options
+description: Container options
 sidebar_position: 2
 ---
 
-# Injector
+# Container
 
 ## Default options
 
