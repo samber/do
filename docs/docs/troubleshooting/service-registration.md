@@ -6,6 +6,19 @@ sidebar_position: 3
 
 # Service registration
 
+### Spec
+
+```go
+do.ListProvidedServices[T any](do.Injector) []do.EdgeService
+do.ListInvokedServices[T any](do.Injector) []do.EdgeService
+
+type EdgeService struct {
+	ScopeID   string
+	ScopeName string
+	Service   string
+}
+```
+
 ## Service name
 
 Each service is identified in the DI container by a slug.

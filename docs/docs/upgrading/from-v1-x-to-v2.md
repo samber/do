@@ -56,9 +56,11 @@ err := injector.ShutdownOnSignals(syscall.SIGTERM, os.Interrupt)
 signal, err := injector.ShutdownOnSignals(syscall.SIGTERM, os.Interrupt)
 ```
 
+`injector.ShutdownOnSIGTERM()` has been removed. Use `injector.ShutdownOnSignals(syscall.SIGTERM)` instead.
+
 ## 4- Internal service naming
 
-Internally, the DI container stores a service by its name (string) that represents its type. In do@v1, some developers reported collisions in service names, because the package name was not included.
+Internally, the DI container stores a service by its name (string) that represents its type. In `do@v1`, some developers reported collisions in service names, because the package name was not included.
 
 Eg: `*mypkg.MyService` -> `*github.com/samber/example.MyService`.
 
@@ -67,8 +69,5 @@ In case you invoke a service by its name (highly discouraged), you should make s
 To scan a project at the speed light, just run:
 
 ```bash
-grep InvokeNamed project/
-grep OverrideNamed project/
-grep HealthCheckNamed project/
-grep ShutdownNamed project/
+grep -nrE 'InvokeNamed|OverrideNamed|HealthCheckNamed|ShutdownNamed' .
 ```
