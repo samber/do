@@ -129,7 +129,7 @@ func (sdd *DescriptionServiceDependency) String() string {
 // DescribeService returns a human readable description of the service.
 // It returns false if the service is not found.
 // Please call Invoke[T] before DescribeService[T] to ensure that the service is registered.
-func DescribeService[T any](i Injector) (output DescriptionService, ok bool) {
+func DescribeService[T any](i Injector) (description DescriptionService, ok bool) {
 	name := inferServiceName[T]()
 	return DescribeNamedService(i, name)
 }
@@ -137,7 +137,7 @@ func DescribeService[T any](i Injector) (output DescriptionService, ok bool) {
 // DescribeNamedService returns a human readable description of the service.
 // It returns false if the service is not found.
 // Please call Invoke[T] before DescribeNamedService[T] to ensure that the service is registered.
-func DescribeNamedService(scope Injector, name string) (output DescriptionService, ok bool) {
+func DescribeNamedService(scope Injector, name string) (description DescriptionService, ok bool) {
 	_i := getInjectorOrDefault(scope)
 
 	serviceAny, serviceScope, ok := _i.serviceGetRec(name)

@@ -86,9 +86,12 @@ func (s *serviceAlias[Initial, Alias]) isHealthchecker() bool {
 		return false
 	}
 
-	// @TODO: check convertible to `Alias`?
-
-	return service.isHealthchecker()
+	switch service.getEmptyInstance().(type) {
+	case Alias:
+		return service.isHealthchecker()
+	default:
+		return false
+	}
 }
 
 func (s *serviceAlias[Initial, Alias]) healthcheck(ctx context.Context) error {
@@ -102,9 +105,12 @@ func (s *serviceAlias[Initial, Alias]) healthcheck(ctx context.Context) error {
 		return nil
 	}
 
-	// @TODO: check convertible to `Alias`?
-
-	return service.healthcheck(ctx)
+	switch service.getEmptyInstance().(type) {
+	case Alias:
+		return service.healthcheck(ctx)
+	default:
+		return fmt.Errorf("DI: could not cast `%s` as `%s`", s.targetName, s.name)
+	}
 }
 
 func (s *serviceAlias[Initial, Alias]) isShutdowner() bool {
@@ -118,9 +124,12 @@ func (s *serviceAlias[Initial, Alias]) isShutdowner() bool {
 		return false
 	}
 
-	// @TODO: check convertible to `Alias`?
-
-	return service.isShutdowner()
+	switch service.getEmptyInstance().(type) {
+	case Alias:
+		return service.isShutdowner()
+	default:
+		return false
+	}
 }
 
 func (s *serviceAlias[Initial, Alias]) shutdown(ctx context.Context) error {
@@ -134,16 +143,19 @@ func (s *serviceAlias[Initial, Alias]) shutdown(ctx context.Context) error {
 		return nil
 	}
 
-	// @TODO: check convertible to `Alias`?
-
-	return service.shutdown(ctx)
+	switch service.getEmptyInstance().(type) {
+	case Alias:
+		return service.shutdown(ctx)
+	default:
+		return fmt.Errorf("DI: could not cast `%s` as `%s`", s.targetName, s.name)
+	}
 }
 
 func (s *serviceAlias[Initial, Alias]) clone() any {
 	return &serviceAlias[Initial, Alias]{
 		mu:   sync.RWMutex{},
 		name: s.name,
-		// scope:      s.scope,		<-- we should inject here the cloned scope
+		// scope:      s.scope,		<-- @TODO: we should inject here the cloned scope
 		targetName: s.targetName,
 
 		providerFrame:    s.providerFrame,
