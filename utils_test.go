@@ -147,6 +147,16 @@ func TestUtilsContains(t *testing.T) {
 	is.False(contains([]string{"a", "b", "c"}, "z"))
 }
 
+func TestUtilsCoalesce(t *testing.T) {
+	t.Parallel()
+	is := assert.New(t)
+
+	is.Empty(coalesce[int]())
+	is.Empty(coalesce[int](0))
+	is.Equal(1, coalesce[int](0, 1, 2))
+	is.Equal(1, coalesce[int](1, 2, 0))
+}
+
 func TestUtilsJobPool(t *testing.T) {
 	t.Parallel()
 	is := assert.New(t)
