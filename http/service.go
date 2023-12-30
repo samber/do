@@ -47,6 +47,10 @@ func ServiceHTML(basePath string, injector do.Injector, scopeID string, serviceN
 		Service name: {{.ServiceName}}
 		<br>
 		Service type: {{.ServiceType}}
+		{{if .ServiceBuildTime}}
+			<br>
+			Service build time: {{.ServiceBuildTime}}
+		{{end}}
 		<br>
 		Invoked at: {{.Invoked}}
 	</p>
@@ -59,14 +63,15 @@ func ServiceHTML(basePath string, injector do.Injector, scopeID string, serviceN
 </body>
 </html>`,
 		map[string]any{
-			"BasePath":     basePath,
-			"ScopeID":      service.ScopeID,
-			"ScopeName":    service.ScopeName,
-			"ServiceName":  service.ServiceName,
-			"ServiceType":  service.ServiceType,
-			"Invoked":      invoked,
-			"Dependencies": serviceToHTML(basePath, service.Dependencies),
-			"Dependents":   serviceToHTML(basePath, service.Dependents),
+			"BasePath":         basePath,
+			"ScopeID":          service.ScopeID,
+			"ScopeName":        service.ScopeName,
+			"ServiceName":      service.ServiceName,
+			"ServiceType":      service.ServiceType,
+			"ServiceBuildTime": service.ServiceBuildTime,
+			"Invoked":          invoked,
+			"Dependencies":     serviceToHTML(basePath, service.Dependencies),
+			"Dependents":       serviceToHTML(basePath, service.Dependents),
 		},
 	)
 }

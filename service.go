@@ -2,6 +2,7 @@ package do
 
 import (
 	"context"
+	"time"
 
 	"github.com/samber/do/v2/stacktrace"
 	typetostring "github.com/samber/go-type-to-string"
@@ -65,6 +66,9 @@ type serviceClone interface{ clone() any }
 type serviceSource interface {
 	source() (stacktrace.Frame, []stacktrace.Frame)
 }
+type serviceBuildTime interface {
+	getBuildTime() (time.Duration, bool)
+}
 
 var _ serviceGetName = (Service[int])(nil)
 var _ serviceGetType = (Service[int])(nil)
@@ -91,19 +95,26 @@ func inferServiceProviderStacktrace(service ServiceAny) (stacktrace.Frame, bool)
 }
 
 type serviceInfo struct {
-	name          string
-	serviceType   ServiceType
-	healthchecker bool
-	shutdowner    bool
+	name             string
+	serviceType      ServiceType
+	serviceBuildTime time.Duration
+	healthchecker    bool
+	shutdowner       bool
 }
 
 func inferServiceInfo(injector Injector, name string) (serviceInfo, bool) {
 	if serviceAny, ok := injector.serviceGet(name); ok {
+		var buildTime time.Duration
+		if lazy, ok := serviceAny.(serviceBuildTime); ok {
+			buildTime, _ = lazy.getBuildTime()
+		}
+
 		return serviceInfo{
-			name:          name,
-			serviceType:   serviceAny.(serviceGetType).getType(),
-			healthchecker: serviceAny.(serviceIsHealthchecker).isHealthchecker(),
-			shutdowner:    serviceAny.(serviceIsShutdowner).isShutdowner(),
+			name:             name,
+			serviceType:      serviceAny.(serviceGetType).getType(),
+			serviceBuildTime: buildTime,
+			healthchecker:    serviceAny.(serviceIsHealthchecker).isHealthchecker(),
+			shutdowner:       serviceAny.(serviceIsShutdowner).isShutdowner(),
 		}, true
 	}
 

@@ -3,6 +3,7 @@ package do
 import (
 	"os"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -139,7 +140,8 @@ Scope name: scope-child
 
 Service name: SERVICE-E
 Service type: lazy
-Invoked: ` + dirname + `/di_describe_test.go:fakeProvider5:37
+Service build time: 1s
+Invoked: ` + dirname + `/di_describe_test.go:fakeProvider5:38
 
 Dependencies:
 * SERVICE-D from scope scope-child
@@ -157,6 +159,33 @@ Dependents:
 `
 	output, ok := DescribeNamedService(scope, "SERVICE-E")
 	is.True(ok)
+	output.ServiceBuildTime = 1 * time.Second
+	is.Equal(expected, output.String())
+
+	// same test, but without build time
+	expected = `
+Scope ID: scope-id-123
+Scope name: scope-child
+
+Service name: SERVICE-E
+Service type: lazy
+Invoked: ` + dirname + `/di_describe_test.go:fakeProvider5:38
+
+Dependencies:
+* SERVICE-D from scope scope-child
+  * SERVICE-C1 from scope scope-child
+    * SERVICE-B from scope [root]
+      * SERVICE-A1 from scope [root]
+      * SERVICE-A2 from scope [root]
+  * SERVICE-C2 from scope scope-child
+    * SERVICE-B from scope [root]
+      * SERVICE-A1 from scope [root]
+      * SERVICE-A2 from scope [root]
+
+Dependents:
+* SERVICE-F from scope scope-child
+`
+	output.ServiceBuildTime = 0
 	is.Equal(expected, output.String())
 
 	// service not found
@@ -180,7 +209,7 @@ func TestDescriptionInjectorScope_String(t *testing.T) {
 func TestDescriptionInjectorService_String(t *testing.T) {
 	is := assert.New(t)
 
-	svc := DescriptionInjectorService{ServiceName: "service-name", ServiceType: ServiceTypeLazy, ServiceTypeIcon: "😴", IsHealthchecker: true, IsShutdowner: true}
+	svc := DescriptionInjectorService{ServiceName: "service-name", ServiceType: ServiceTypeLazy, ServiceTypeIcon: "😴", ServiceBuildTime: 1 * time.Second, IsHealthchecker: true, IsShutdowner: true}
 	expected := ` * 😴 service-name 🫀 🙅`
 	is.Equal(expected, svc.String())
 

@@ -5,6 +5,7 @@ import (
 	"html/template"
 	"sort"
 	"strings"
+	"time"
 
 	"github.com/samber/do/v2/stacktrace"
 )
@@ -29,7 +30,8 @@ Scope ID: {{.ScopeID}}
 Scope name: {{.ScopeName}}
 
 Service name: {{.ServiceName}}
-Service type: {{.ServiceType}}
+Service type: {{.ServiceType}}{{if .ServiceBuildTime}}
+Service build time: {{.ServiceBuildTime}}{{end}}
 Invoked: {{.Invoked}}
 
 Dependencies:
@@ -43,13 +45,14 @@ Dependents:
 const describeServiceDependenciesTemplate = `* {{.Service}} from scope {{.ScopeName}}{{.Recursive}}`
 
 type DescriptionService struct {
-	ScopeID      string                         `json:"scope_id"`
-	ScopeName    string                         `json:"scope_name"`
-	ServiceName  string                         `json:"service_name"`
-	ServiceType  ServiceType                    `json:"service_type"`
-	Invoked      *stacktrace.Frame              `json:"invoked"`
-	Dependencies []DescriptionServiceDependency `json:"dependencies"`
-	Dependents   []DescriptionServiceDependency `json:"dependents"`
+	ScopeID          string                         `json:"scope_id"`
+	ScopeName        string                         `json:"scope_name"`
+	ServiceName      string                         `json:"service_name"`
+	ServiceType      ServiceType                    `json:"service_type"`
+	ServiceBuildTime time.Duration                  `json:"service_build_time,omitempty"`
+	Invoked          *stacktrace.Frame              `json:"invoked"`
+	Dependencies     []DescriptionServiceDependency `json:"dependencies"`
+	Dependents       []DescriptionServiceDependency `json:"dependents"`
 }
 
 func (sd *DescriptionService) String() string {
@@ -58,14 +61,20 @@ func (sd *DescriptionService) String() string {
 		invoked = sd.Invoked.String()
 	}
 
+	buildTime := ""
+	if sd.ServiceBuildTime > 0 {
+		buildTime = sd.ServiceBuildTime.String()
+	}
+
 	return fromTemplate(
 		describeServiceTemplate,
 		map[string]string{
-			"ScopeID":     sd.ScopeID,
-			"ScopeName":   sd.ScopeName,
-			"ServiceName": sd.ServiceName,
-			"ServiceType": string(sd.ServiceType),
-			"Invoked":     invoked,
+			"ScopeID":          sd.ScopeID,
+			"ScopeName":        sd.ScopeName,
+			"ServiceName":      sd.ServiceName,
+			"ServiceType":      string(sd.ServiceType),
+			"ServiceBuildTime": buildTime,
+			"Invoked":          invoked,
 			"Dependencies": strings.Join(
 				mAp(sd.Dependencies, func(item DescriptionServiceDependency, _ int) string {
 					return item.String()
@@ -147,14 +156,20 @@ func DescribeNamedService(scope Injector, name string) (output DescriptionServic
 		invoked = &frame
 	}
 
+	var buildTime time.Duration
+	if lazy, ok := serviceAny.(serviceBuildTime); ok {
+		buildTime, _ = lazy.getBuildTime()
+	}
+
 	return DescriptionService{
-		ScopeID:      serviceScope.ID(),
-		ScopeName:    serviceScope.Name(),
-		ServiceName:  name,
-		ServiceType:  service.getType(),
-		Invoked:      invoked,
-		Dependencies: newDescriptionServiceDependencies(_i, newEdgeService(_i.ID(), _i.Name(), name), "dependencies"),
-		Dependents:   newDescriptionServiceDependencies(_i, newEdgeService(_i.ID(), _i.Name(), name), "dependents"),
+		ScopeID:          serviceScope.ID(),
+		ScopeName:        serviceScope.Name(),
+		ServiceName:      name,
+		ServiceType:      service.getType(),
+		ServiceBuildTime: buildTime,
+		Invoked:          invoked,
+		Dependencies:     newDescriptionServiceDependencies(_i, newEdgeService(_i.ID(), _i.Name(), name), "dependencies"),
+		Dependents:       newDescriptionServiceDependencies(_i, newEdgeService(_i.ID(), _i.Name(), name), "dependents"),
 	}, true
 }
 
@@ -291,11 +306,12 @@ func (ids *DescriptionInjectorScope) String() string {
 }
 
 type DescriptionInjectorService struct {
-	ServiceName     string      `json:"service_name"`
-	ServiceType     ServiceType `json:"service_type"`
-	ServiceTypeIcon string      `json:"service_type_icon"`
-	IsHealthchecker bool        `json:"is_healthchecker"`
-	IsShutdowner    bool        `json:"is_shutdowner"`
+	ServiceName      string        `json:"service_name"`
+	ServiceType      ServiceType   `json:"service_type"`
+	ServiceTypeIcon  string        `json:"service_type_icon"`
+	ServiceBuildTime time.Duration `json:"service_build_time,omitempty"`
+	IsHealthchecker  bool          `json:"is_healthchecker"`
+	IsShutdowner     bool          `json:"is_shutdowner"`
 }
 
 func (idss *DescriptionInjectorService) String() string {
@@ -313,6 +329,10 @@ func (idss *DescriptionInjectorService) String() string {
 		if idss.IsShutdowner {
 			suffix += " 🙅"
 		}
+
+		// if idss.ServiceBuildTime > 0 {
+		// 	suffix += fmt.Sprintf(" (build time: %s)", idss.ServiceBuildTime.String())
+		// }
 	} else {
 		prefix += "❓ " // should never reach this branch
 	}
@@ -393,6 +413,7 @@ func newDescriptionInjectorServices(i Injector) []DescriptionInjectorService {
 	return mAp(services, func(item EdgeService, _ int) DescriptionInjectorService {
 		var serviceType ServiceType
 		var serviceTypeIcon string
+		var serviceBuildTime time.Duration
 		var isHealthchecker bool
 		var isShutdowner bool
 
@@ -400,16 +421,18 @@ func newDescriptionInjectorServices(i Injector) []DescriptionInjectorService {
 			// @TODO: differenciate status of lazy services (built, not built). Such as: "😴 (✅)"
 			serviceType = info.serviceType
 			serviceTypeIcon = serviceTypeToIcon[info.serviceType]
+			serviceBuildTime = info.serviceBuildTime
 			isHealthchecker = info.healthchecker
 			isShutdowner = info.shutdowner
 		}
 
 		return DescriptionInjectorService{
-			ServiceName:     item.Service,
-			ServiceType:     serviceType,
-			ServiceTypeIcon: serviceTypeIcon,
-			IsHealthchecker: isHealthchecker,
-			IsShutdowner:    isShutdowner,
+			ServiceName:      item.Service,
+			ServiceType:      serviceType,
+			ServiceTypeIcon:  serviceTypeIcon,
+			ServiceBuildTime: serviceBuildTime,
+			IsHealthchecker:  isHealthchecker,
+			IsShutdowner:     isShutdowner,
 		}
 	})
 }
