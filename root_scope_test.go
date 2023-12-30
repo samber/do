@@ -227,22 +227,6 @@ func TestRootScope_CloneWithOpts(t *testing.T) {
 	is.NotNil(clone.healthCheckPool)
 }
 
-func TestRootScope_ShutdownOnSIGTERMOrInterrupt(t *testing.T) {
-	// @TODO
-}
-
-func TestRootScope_ShutdownOnSIGTERMOrInterruptWithContext(t *testing.T) {
-	// @TODO
-}
-
-func TestRootScope_ShutdownOnSIGTERM(t *testing.T) {
-	// @TODO
-}
-
-func TestRootScope_ShutdownOnSIGTERMWithContext(t *testing.T) {
-	// @TODO
-}
-
 func TestRootScope_ShutdownOnSignals(t *testing.T) {
 	// @TODO
 }

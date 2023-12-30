@@ -94,7 +94,7 @@ func main() {
 	car := do.MustInvoke[*Car](injector)
 	car.Start()
 
-	_, err := injector.ShutdownOnSIGTERM()
+	_, err := injector.ShutdownOnSignals()
 	if err != nil {
 		log.Fatal(err.Error())
 	}

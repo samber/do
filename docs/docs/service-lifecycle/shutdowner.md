@@ -42,6 +42,12 @@ do.MustShutdownNamed[T any](do.Injector, string)
 do.MustShutdownNamedWithContext[T any](context.Context, do.Injector, string)
 ```
 
+:::info
+
+If no signal is passed to `injector.ShutdownOnSignals(...)`, both `syscall.SIGTERM` and `os.Interrupt` are handled by default.
+
+:::
+
 ## Shutdowner interfaces
 
 Your service can implement one of the following signatures:
