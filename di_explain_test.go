@@ -62,39 +62,39 @@ func TestFromTemplate(t *testing.T) {
 }
 
 /////////////////////////////////////////////////////////////////////////////
-// 							Describe services
+// 							Explain services
 /////////////////////////////////////////////////////////////////////////////
 
-func TestDescriptionService_String(t *testing.T) {
+func TestExplainService_String(t *testing.T) {
 	// @TODO
 }
 
-func TestDescriptionServiceDependency_String(t *testing.T) {
+func TestExplainServiceDependency_String(t *testing.T) {
 	is := assert.New(t)
 
-	a1 := DescriptionServiceDependency{
+	a1 := ExplainServiceDependencyOutput{
 		ScopeID:   "1234",
 		ScopeName: "scope-a",
 		Service:   "service-a1",
-		Recursive: []DescriptionServiceDependency{},
+		Recursive: []ExplainServiceDependencyOutput{},
 	}
-	a2 := DescriptionServiceDependency{
+	a2 := ExplainServiceDependencyOutput{
 		ScopeID:   "1234",
 		ScopeName: "scope-a",
 		Service:   "service-a2",
-		Recursive: []DescriptionServiceDependency{},
+		Recursive: []ExplainServiceDependencyOutput{},
 	}
-	b := DescriptionServiceDependency{
+	b := ExplainServiceDependencyOutput{
 		ScopeID:   "1234",
 		ScopeName: "scope-a",
 		Service:   "service-b",
-		Recursive: []DescriptionServiceDependency{a1, a2},
+		Recursive: []ExplainServiceDependencyOutput{a1, a2},
 	}
-	c := DescriptionServiceDependency{
+	c := ExplainServiceDependencyOutput{
 		ScopeID:   "1234",
 		ScopeName: "scope-a",
 		Service:   "service-c",
-		Recursive: []DescriptionServiceDependency{b},
+		Recursive: []ExplainServiceDependencyOutput{b},
 	}
 
 	expected := `* service-a1 from scope scope-a`
@@ -112,11 +112,11 @@ func TestDescriptionServiceDependency_String(t *testing.T) {
 	is.Equal(expected, c.String())
 }
 
-func TestDescribeService(t *testing.T) {
+func TestExplainService(t *testing.T) {
 	// @TODO
 }
 
-func TestDescribeNamedService(t *testing.T) {
+func TestExplainNamedService(t *testing.T) {
 	is := assert.New(t)
 
 	// prepare env
@@ -133,7 +133,7 @@ func TestDescribeNamedService(t *testing.T) {
 	ProvideNamed(scope, "SERVICE-F", fakeProvider6)
 	_, _ = InvokeNamed[int](scope, "SERVICE-F")
 
-	// full describe
+	// full explain
 	expected := `
 Scope ID: scope-id-123
 Scope name: scope-child
@@ -141,7 +141,7 @@ Scope name: scope-child
 Service name: SERVICE-E
 Service type: lazy
 Service build time: 1s
-Invoked: ` + dirname + `/di_describe_test.go:fakeProvider5:38
+Invoked: ` + dirname + `/di_explain_test.go:fakeProvider5:38
 
 Dependencies:
 * SERVICE-D from scope scope-child
@@ -157,7 +157,7 @@ Dependencies:
 Dependents:
 * SERVICE-F from scope scope-child
 `
-	output, ok := DescribeNamedService(scope, "SERVICE-E")
+	output, ok := ExplainNamedService(scope, "SERVICE-E")
 	is.True(ok)
 	output.ServiceBuildTime = 1 * time.Second
 	is.Equal(expected, output.String())
@@ -169,7 +169,7 @@ Scope name: scope-child
 
 Service name: SERVICE-E
 Service type: lazy
-Invoked: ` + dirname + `/di_describe_test.go:fakeProvider5:38
+Invoked: ` + dirname + `/di_explain_test.go:fakeProvider5:38
 
 Dependencies:
 * SERVICE-D from scope scope-child
@@ -189,40 +189,40 @@ Dependents:
 	is.Equal(expected, output.String())
 
 	// service not found
-	output, ok = DescribeNamedService(scope, "not_found")
+	output, ok = ExplainNamedService(scope, "not_found")
 	is.False(ok)
-	is.Equal(DescriptionService{}, output)
+	is.Equal(ExplainServiceOutput{}, output)
 }
 
 /////////////////////////////////////////////////////////////////////////////
-// 							Describe scopes
+// 							Explain scopes
 /////////////////////////////////////////////////////////////////////////////
 
-func TestDescriptionInjector_String(t *testing.T) {
+func TestExplainInjector_String(t *testing.T) {
 	// @TODO
 }
 
-func TestDescriptionInjectorScope_String(t *testing.T) {
+func TestExplainInjectorScope_String(t *testing.T) {
 	// @TODO
 }
 
-func TestDescriptionInjectorService_String(t *testing.T) {
+func TestExplainInjectorService_String(t *testing.T) {
 	is := assert.New(t)
 
-	svc := DescriptionInjectorService{ServiceName: "service-name", ServiceType: ServiceTypeLazy, ServiceTypeIcon: "😴", ServiceBuildTime: 1 * time.Second, IsHealthchecker: true, IsShutdowner: true}
+	svc := ExplainInjectorServiceOutput{ServiceName: "service-name", ServiceType: ServiceTypeLazy, ServiceTypeIcon: "😴", ServiceBuildTime: 1 * time.Second, IsHealthchecker: true, IsShutdowner: true}
 	expected := ` * 😴 service-name 🫀 🙅`
 	is.Equal(expected, svc.String())
 
-	svc = DescriptionInjectorService{ServiceName: "service-name", ServiceType: ServiceTypeEager, ServiceTypeIcon: "🔁", IsHealthchecker: true, IsShutdowner: false}
+	svc = ExplainInjectorServiceOutput{ServiceName: "service-name", ServiceType: ServiceTypeEager, ServiceTypeIcon: "🔁", IsHealthchecker: true, IsShutdowner: false}
 	expected = ` * 🔁 service-name 🫀`
 	is.Equal(expected, svc.String())
 
-	svc = DescriptionInjectorService{ServiceName: "service-name", IsHealthchecker: true, IsShutdowner: true}
+	svc = ExplainInjectorServiceOutput{ServiceName: "service-name", IsHealthchecker: true, IsShutdowner: true}
 	expected = ` * ❓ service-name`
 	is.Equal(expected, svc.String())
 }
 
-func TestDescribeInjector(t *testing.T) {
+func TestExplainInjector(t *testing.T) {
 	is := assert.New(t)
 
 	// prepare env
@@ -291,7 +291,7 @@ DAG:
             \_ scope-1b (ID: scope-id-1b)
                 * 😴 SERVICE-F
 `
-	output := DescribeInjector(i)
+	output := ExplainInjector(i)
 	is.Equal(expected, output.String())
 
 	// from scope0 POV
@@ -330,7 +330,7 @@ DAG:
             \_ scope-1b (ID: scope-id-1b)
                 * 😴 SERVICE-F
 `
-	output = DescribeInjector(scope0)
+	output = ExplainInjector(scope0)
 	is.Equal(expected, output.String())
 
 	// from scope1a POV
@@ -365,7 +365,7 @@ DAG:
                  \_ scope-2b (ID: scope-id-2b)
                      * 😴 SERVICE-LAZY-SHUTDOWN 🙅
 `
-	output = DescribeInjector(scope1a)
+	output = ExplainInjector(scope1a)
 	is.Equal(expected, output.String())
 
 	// from scope1b POV
@@ -386,7 +386,7 @@ DAG:
             \_ scope-1b (ID: scope-id-1b)
                 * 😴 SERVICE-F
 `
-	output = DescribeInjector(scope1b)
+	output = ExplainInjector(scope1b)
 	is.Equal(expected, output.String())
 
 	// from scope2a POV
@@ -417,7 +417,7 @@ DAG:
                      * 😴 SERVICE-LAZY-HEALTH 🫀
                      * 🏭 SERVICE-TRANSIENT-SIMPLE
 `
-	output = DescribeInjector(scope2a)
+	output = ExplainInjector(scope2a)
 	is.Equal(expected, output.String())
 
 	// from scope2b POV
@@ -446,6 +446,6 @@ DAG:
                  \_ scope-2b (ID: scope-id-2b)
                      * 😴 SERVICE-LAZY-SHUTDOWN 🙅
 `
-	output = DescribeInjector(scope2b)
+	output = ExplainInjector(scope2b)
 	is.Equal(expected, output.String())
 }

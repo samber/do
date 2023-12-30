@@ -10,7 +10,7 @@ func ServiceHTML(basePath string, injector do.Injector, scopeID string, serviceN
 		return ServiceListHTML(basePath, injector)
 	}
 
-	service, ok := do.DescribeNamedService(scope.Scope, serviceName)
+	service, ok := do.ExplainNamedService(scope.Scope, serviceName)
 	if !ok {
 		return ServiceListHTML(basePath, injector)
 	}
@@ -76,7 +76,7 @@ func ServiceHTML(basePath string, injector do.Injector, scopeID string, serviceN
 	)
 }
 
-func serviceToHTML(basePath string, services []do.DescriptionServiceDependency) string {
+func serviceToHTML(basePath string, services []do.ExplainServiceDependencyOutput) string {
 	output, _ := fromTemplate(
 		`
 		<ul class="services">
@@ -94,7 +94,7 @@ func serviceToHTML(basePath string, services []do.DescriptionServiceDependency) 
 	`,
 		map[string]any{
 			"BasePath": basePath,
-			"Services": mAp(services, func(service do.DescriptionServiceDependency) map[string]any {
+			"Services": mAp(services, func(service do.ExplainServiceDependencyOutput) map[string]any {
 				return map[string]any{
 					"ScopeID":     service.ScopeID,
 					"ServiceName": service.Service,
@@ -143,14 +143,14 @@ func ServiceListHTML(basePath string, injector do.Injector) (string, error) {
 </html>`,
 		map[string]any{
 			"BasePath": basePath,
-			"Scopes": mAp(scopes, func(item do.DescriptionInjectorScope) string {
+			"Scopes": mAp(scopes, func(item do.ExplainInjectorScopeOutput) string {
 				return serviceListScopeToHTML(basePath, item)
 			}),
 		},
 	)
 }
 
-func serviceListScopeToHTML(basePath string, description do.DescriptionInjectorScope) string {
+func serviceListScopeToHTML(basePath string, description do.ExplainInjectorScopeOutput) string {
 	html, _ := fromTemplate(
 		`
 			Scope:
@@ -172,7 +172,7 @@ func serviceListScopeToHTML(basePath string, description do.DescriptionInjectorS
 			"BasePath":  basePath,
 			"ScopeID":   description.ScopeID,
 			"ScopeName": description.ScopeName,
-			"Services": mAp(description.Services, func(item do.DescriptionInjectorService) string {
+			"Services": mAp(description.Services, func(item do.ExplainInjectorServiceOutput) string {
 				return serviceListServiceToHTML(basePath, description.ScopeID, item)
 			}),
 		},
@@ -180,7 +180,7 @@ func serviceListScopeToHTML(basePath string, description do.DescriptionInjectorS
 	return html
 }
 
-func serviceListServiceToHTML(basePath string, scopeID string, description do.DescriptionInjectorService) string {
+func serviceListServiceToHTML(basePath string, scopeID string, description do.ExplainInjectorServiceOutput) string {
 	featuresIcons := ""
 
 	if description.IsHealthchecker {

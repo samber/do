@@ -22,10 +22,10 @@ func fromTemplate(tpl string, data any) string {
 }
 
 /////////////////////////////////////////////////////////////////////////////
-// 							Describe services
+// 							Explain services
 /////////////////////////////////////////////////////////////////////////////
 
-const describeServiceTemplate = `
+const explainServiceTemplate = `
 Scope ID: {{.ScopeID}}
 Scope name: {{.ScopeName}}
 
@@ -42,20 +42,20 @@ Dependents:
 `
 
 // @TODO: add service type icon (lazy, eager, transient)
-const describeServiceDependenciesTemplate = `* {{.Service}} from scope {{.ScopeName}}{{.Recursive}}`
+const explainServiceDependencyTemplate = `* {{.Service}} from scope {{.ScopeName}}{{.Recursive}}`
 
-type DescriptionService struct {
-	ScopeID          string                         `json:"scope_id"`
-	ScopeName        string                         `json:"scope_name"`
-	ServiceName      string                         `json:"service_name"`
-	ServiceType      ServiceType                    `json:"service_type"`
-	ServiceBuildTime time.Duration                  `json:"service_build_time,omitempty"`
-	Invoked          *stacktrace.Frame              `json:"invoked"`
-	Dependencies     []DescriptionServiceDependency `json:"dependencies"`
-	Dependents       []DescriptionServiceDependency `json:"dependents"`
+type ExplainServiceOutput struct {
+	ScopeID          string                           `json:"scope_id"`
+	ScopeName        string                           `json:"scope_name"`
+	ServiceName      string                           `json:"service_name"`
+	ServiceType      ServiceType                      `json:"service_type"`
+	ServiceBuildTime time.Duration                    `json:"service_build_time,omitempty"`
+	Invoked          *stacktrace.Frame                `json:"invoked"`
+	Dependencies     []ExplainServiceDependencyOutput `json:"dependencies"`
+	Dependents       []ExplainServiceDependencyOutput `json:"dependents"`
 }
 
-func (sd *DescriptionService) String() string {
+func (sd *ExplainServiceOutput) String() string {
 	invoked := ""
 	if sd.Invoked != nil {
 		invoked = sd.Invoked.String()
@@ -67,7 +67,7 @@ func (sd *DescriptionService) String() string {
 	}
 
 	return fromTemplate(
-		describeServiceTemplate,
+		explainServiceTemplate,
 		map[string]string{
 			"ScopeID":          sd.ScopeID,
 			"ScopeName":        sd.ScopeName,
@@ -76,13 +76,13 @@ func (sd *DescriptionService) String() string {
 			"ServiceBuildTime": buildTime,
 			"Invoked":          invoked,
 			"Dependencies": strings.Join(
-				mAp(sd.Dependencies, func(item DescriptionServiceDependency, _ int) string {
+				mAp(sd.Dependencies, func(item ExplainServiceDependencyOutput, _ int) string {
 					return item.String()
 				}),
 				"\n",
 			),
 			"Dependents": strings.Join(
-				mAp(sd.Dependents, func(item DescriptionServiceDependency, _ int) string {
+				mAp(sd.Dependents, func(item ExplainServiceDependencyOutput, _ int) string {
 					return item.String()
 				}),
 				"\n",
@@ -91,16 +91,16 @@ func (sd *DescriptionService) String() string {
 	)
 }
 
-type DescriptionServiceDependency struct {
-	ScopeID   string                         `json:"scope_id"`
-	ScopeName string                         `json:"scope_name"`
-	Service   string                         `json:"service"`
-	Recursive []DescriptionServiceDependency `json:"recursive"`
+type ExplainServiceDependencyOutput struct {
+	ScopeID   string                           `json:"scope_id"`
+	ScopeName string                           `json:"scope_name"`
+	Service   string                           `json:"service"`
+	Recursive []ExplainServiceDependencyOutput `json:"recursive"`
 }
 
-func (sdd *DescriptionServiceDependency) String() string {
+func (sdd *ExplainServiceDependencyOutput) String() string {
 	lines := flatten(
-		mAp(sdd.Recursive, func(item DescriptionServiceDependency, _ int) []string {
+		mAp(sdd.Recursive, func(item ExplainServiceDependencyOutput, _ int) []string {
 			return mAp(
 				strings.Split(item.String(), "\n"),
 				func(line string, _ int) string {
@@ -116,7 +116,7 @@ func (sdd *DescriptionServiceDependency) String() string {
 	}
 
 	return fromTemplate(
-		describeServiceDependenciesTemplate,
+		explainServiceDependencyTemplate,
 		map[string]string{
 			"ScopeID":   sdd.ScopeID,
 			"ScopeName": sdd.ScopeName,
@@ -126,28 +126,28 @@ func (sdd *DescriptionServiceDependency) String() string {
 	)
 }
 
-// DescribeService returns a human readable description of the service.
+// ExplainService returns a human readable description of the service.
 // It returns false if the service is not found.
-// Please call Invoke[T] before DescribeService[T] to ensure that the service is registered.
-func DescribeService[T any](i Injector) (description DescriptionService, ok bool) {
+// Please call Invoke[T] before ExplainService[T] to ensure that the service is registered.
+func ExplainService[T any](i Injector) (description ExplainServiceOutput, ok bool) {
 	name := inferServiceName[T]()
-	return DescribeNamedService(i, name)
+	return ExplainNamedService(i, name)
 }
 
-// DescribeNamedService returns a human readable description of the service.
+// ExplainNamedService returns a human readable description of the service.
 // It returns false if the service is not found.
-// Please call Invoke[T] before DescribeNamedService[T] to ensure that the service is registered.
-func DescribeNamedService(scope Injector, name string) (description DescriptionService, ok bool) {
+// Please call Invoke[T] before ExplainNamedService[T] to ensure that the service is registered.
+func ExplainNamedService(scope Injector, name string) (description ExplainServiceOutput, ok bool) {
 	_i := getInjectorOrDefault(scope)
 
 	serviceAny, serviceScope, ok := _i.serviceGetRec(name)
 	if !ok {
-		return DescriptionService{}, false
+		return ExplainServiceOutput{}, false
 	}
 
 	service, ok := serviceAny.(ServiceAny)
 	if !ok {
-		return DescriptionService{}, false
+		return ExplainServiceOutput{}, false
 	}
 
 	var invoked *stacktrace.Frame
@@ -161,19 +161,19 @@ func DescribeNamedService(scope Injector, name string) (description DescriptionS
 		buildTime, _ = lazy.getBuildTime()
 	}
 
-	return DescriptionService{
+	return ExplainServiceOutput{
 		ScopeID:          serviceScope.ID(),
 		ScopeName:        serviceScope.Name(),
 		ServiceName:      name,
 		ServiceType:      service.getType(),
 		ServiceBuildTime: buildTime,
 		Invoked:          invoked,
-		Dependencies:     newDescriptionServiceDependencies(_i, newEdgeService(_i.ID(), _i.Name(), name), "dependencies"),
-		Dependents:       newDescriptionServiceDependencies(_i, newEdgeService(_i.ID(), _i.Name(), name), "dependents"),
+		Dependencies:     newExplainServiceDependencies(_i, newEdgeService(_i.ID(), _i.Name(), name), "dependencies"),
+		Dependents:       newExplainServiceDependencies(_i, newEdgeService(_i.ID(), _i.Name(), name), "dependents"),
 	}, true
 }
 
-func newDescriptionServiceDependencies(i Injector, edge EdgeService, mode string) []DescriptionServiceDependency {
+func newExplainServiceDependencies(i Injector, edge EdgeService, mode string) []ExplainServiceDependencyOutput {
 	dependencies, dependents := i.RootScope().dag.explainService(edge.ScopeID, edge.ScopeName, edge.Service)
 
 	deps := dependencies
@@ -186,11 +186,11 @@ func newDescriptionServiceDependencies(i Injector, edge EdgeService, mode string
 		return deps[i].Service < deps[j].Service
 	})
 
-	return mAp(deps, func(item EdgeService, _ int) DescriptionServiceDependency {
-		recursive := newDescriptionServiceDependencies(i, item, mode)
+	return mAp(deps, func(item EdgeService, _ int) ExplainServiceDependencyOutput {
+		recursive := newExplainServiceDependencies(i, item, mode)
 
 		// @TODO: differenciate status of lazy services (built, not built). Such as: "😴 (✅)"
-		return DescriptionServiceDependency{
+		return ExplainServiceDependencyOutput{
 			ScopeID:   item.ScopeID,
 			ScopeName: item.ScopeName,
 			Service:   item.Service,
@@ -200,32 +200,32 @@ func newDescriptionServiceDependencies(i Injector, edge EdgeService, mode string
 }
 
 /////////////////////////////////////////////////////////////////////////////
-// 							Describe scopes
+// 							Explain scopes
 /////////////////////////////////////////////////////////////////////////////
 
-const describeInjectorTemplate = `Scope ID: {{.ScopeID}}
+const explainInjectorTemplate = `Scope ID: {{.ScopeID}}
 Scope name: {{.ScopeName}}
 
 DAG:
 {{.DAG}}
 `
-const describeInjectorScopeTemplate = `{{.ScopeName}} (ID: {{.ScopeID}}){{.Services}}{{.Children}}`
-const describeInjectorServiceTemplate = ` * {{.ServiceType}}{{.ServiceName}}{{.ServiceFeatures}}`
+const explainInjectorScopeTemplate = `{{.ScopeName}} (ID: {{.ScopeID}}){{.Services}}{{.Children}}`
+const explainInjectorServiceTemplate = ` * {{.ServiceType}}{{.ServiceName}}{{.ServiceFeatures}}`
 
-type DescriptionInjector struct {
-	ScopeID   string                     `json:"scope_id"`
-	ScopeName string                     `json:"scope_name"`
-	DAG       []DescriptionInjectorScope `json:"dag"`
+type ExplainInjectorOutput struct {
+	ScopeID   string                       `json:"scope_id"`
+	ScopeName string                       `json:"scope_name"`
+	DAG       []ExplainInjectorScopeOutput `json:"dag"`
 }
 
-func (id *DescriptionInjector) String() string {
+func (id *ExplainInjectorOutput) String() string {
 	dag := mergeScopes(&id.DAG)
 	if strings.HasPrefix(dag, " |\n |\n") {
 		dag = dag[3:]
 	}
 
 	return fromTemplate(
-		describeInjectorTemplate,
+		explainInjectorTemplate,
 		map[string]string{
 			"ScopeID":   id.ScopeID,
 			"ScopeName": id.ScopeName,
@@ -234,7 +234,7 @@ func (id *DescriptionInjector) String() string {
 	)
 }
 
-func mergeScopes(scopes *[]DescriptionInjectorScope) string {
+func mergeScopes(scopes *[]ExplainInjectorScopeOutput) string {
 	nbrScopes := len(*scopes)
 
 	const prefixScope = ` |`
@@ -244,7 +244,7 @@ func mergeScopes(scopes *[]DescriptionInjectorScope) string {
 	const prefixNotLastScopeContent = ` |   `
 
 	return strings.Join(
-		mAp(*scopes, func(item DescriptionInjectorScope, i int) string {
+		mAp(*scopes, func(item ExplainInjectorScopeOutput, i int) string {
 			isLastScope := i == nbrScopes-1
 
 			lines := strings.Split(item.String(), "\n")
@@ -267,20 +267,20 @@ func mergeScopes(scopes *[]DescriptionInjectorScope) string {
 	)
 }
 
-type DescriptionInjectorScope struct {
-	ScopeID   string                       `json:"scope_id"`
-	ScopeName string                       `json:"scope_name"`
-	Scope     Injector                     `json:"scope"`
-	Services  []DescriptionInjectorService `json:"services"`
-	Children  []DescriptionInjectorScope   `json:"children"`
+type ExplainInjectorScopeOutput struct {
+	ScopeID   string                         `json:"scope_id"`
+	ScopeName string                         `json:"scope_name"`
+	Scope     Injector                       `json:"scope"`
+	Services  []ExplainInjectorServiceOutput `json:"services"`
+	Children  []ExplainInjectorScopeOutput   `json:"children"`
 
 	IsAncestor bool `json:"is_ancestor"`
 	IsChildren bool `json:"is_children"`
 }
 
-func (ids *DescriptionInjectorScope) String() string {
+func (ids *ExplainInjectorScopeOutput) String() string {
 	services := strings.Join(
-		mAp(ids.Services, func(item DescriptionInjectorService, _ int) string {
+		mAp(ids.Services, func(item ExplainInjectorServiceOutput, _ int) string {
 			return item.String()
 		}),
 		"\n",
@@ -295,7 +295,7 @@ func (ids *DescriptionInjectorScope) String() string {
 	}
 
 	return fromTemplate(
-		describeInjectorScopeTemplate,
+		explainInjectorScopeTemplate,
 		map[string]string{
 			"ScopeID":   ids.ScopeID,
 			"ScopeName": ids.ScopeName,
@@ -305,7 +305,7 @@ func (ids *DescriptionInjectorScope) String() string {
 	)
 }
 
-type DescriptionInjectorService struct {
+type ExplainInjectorServiceOutput struct {
 	ServiceName      string        `json:"service_name"`
 	ServiceType      ServiceType   `json:"service_type"`
 	ServiceTypeIcon  string        `json:"service_type_icon"`
@@ -314,7 +314,7 @@ type DescriptionInjectorService struct {
 	IsShutdowner     bool          `json:"is_shutdowner"`
 }
 
-func (idss *DescriptionInjectorService) String() string {
+func (idss *ExplainInjectorServiceOutput) String() string {
 	prefix := ""
 	suffix := ""
 
@@ -338,7 +338,7 @@ func (idss *DescriptionInjectorService) String() string {
 	}
 
 	return fromTemplate(
-		describeInjectorServiceTemplate,
+		explainInjectorServiceTemplate,
 		map[string]string{
 			"ServiceName":     idss.ServiceName,
 			"ServiceType":     prefix,
@@ -347,22 +347,22 @@ func (idss *DescriptionInjectorService) String() string {
 	)
 }
 
-// DescribeInjector returns a human readable description of the injector, with services and scope tree.
-func DescribeInjector(scope Injector) DescriptionInjector {
+// ExplainInjector returns a human readable description of the injector, with services and scope tree.
+func ExplainInjector(scope Injector) ExplainInjectorOutput {
 	_i := getInjectorOrDefault(scope)
 
 	ancestors := append([]Injector{_i}, castScopesToInjectors(_i.Ancestors())...)
 	reverseSlice(ancestors) // root scope first
 
-	return DescriptionInjector{
+	return ExplainInjectorOutput{
 		ScopeID:   _i.ID(),
 		ScopeName: _i.Name(),
-		DAG:       newDescriptionInjectorScopes(ancestors, castScopesToInjectors(_i.Children())),
+		DAG:       newExplainInjectorScopes(ancestors, castScopesToInjectors(_i.Children())),
 	}
 }
 
 // 2 modes are available: looping on ancestors, focused-scope or children
-func newDescriptionInjectorScopes(ancestors []Injector, children []Injector) []DescriptionInjectorScope {
+func newExplainInjectorScopes(ancestors []Injector, children []Injector) []ExplainInjectorScopeOutput {
 	loopingOn := "children" // @TODO: create a real enum
 	injectors := children
 	if len(ancestors) > 0 {
@@ -380,18 +380,18 @@ func newDescriptionInjectorScopes(ancestors []Injector, children []Injector) []D
 		return injectors[i].ID() < injectors[j].ID()
 	})
 
-	return mAp(injectors, func(item Injector, _ int) DescriptionInjectorScope {
+	return mAp(injectors, func(item Injector, _ int) ExplainInjectorScopeOutput {
 		nextChildren := children
 		if loopingOn == "children" {
 			nextChildren = castScopesToInjectors(item.Children())
 		}
 
-		return DescriptionInjectorScope{
+		return ExplainInjectorScopeOutput{
 			ScopeID:   item.ID(),
 			ScopeName: item.Name(),
 			Scope:     item,
-			Services:  newDescriptionInjectorServices(item),
-			Children:  newDescriptionInjectorScopes(ancestors, nextChildren),
+			Services:  newExplainInjectorServices(item),
+			Children:  newExplainInjectorScopes(ancestors, nextChildren),
 
 			IsAncestor: loopingOn == "ancestors",
 			IsChildren: loopingOn == "children",
@@ -399,7 +399,7 @@ func newDescriptionInjectorScopes(ancestors []Injector, children []Injector) []D
 	})
 }
 
-func newDescriptionInjectorServices(i Injector) []DescriptionInjectorService {
+func newExplainInjectorServices(i Injector) []ExplainInjectorServiceOutput {
 	services := i.ListProvidedServices()
 	services = filter(services, func(item EdgeService, _ int) bool {
 		return i.serviceExist(item.Service)
@@ -410,7 +410,7 @@ func newDescriptionInjectorServices(i Injector) []DescriptionInjectorService {
 		return services[i].Service < services[j].Service
 	})
 
-	return mAp(services, func(item EdgeService, _ int) DescriptionInjectorService {
+	return mAp(services, func(item EdgeService, _ int) ExplainInjectorServiceOutput {
 		var serviceType ServiceType
 		var serviceTypeIcon string
 		var serviceBuildTime time.Duration
@@ -426,7 +426,7 @@ func newDescriptionInjectorServices(i Injector) []DescriptionInjectorService {
 			isShutdowner = info.shutdowner
 		}
 
-		return DescriptionInjectorService{
+		return ExplainInjectorServiceOutput{
 			ServiceName:      item.Service,
 			ServiceType:      serviceType,
 			ServiceTypeIcon:  serviceTypeIcon,
