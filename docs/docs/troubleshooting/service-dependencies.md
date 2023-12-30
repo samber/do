@@ -11,16 +11,16 @@ sidebar_position: 2
 ### Spec
 
 ```go
-do.DescribeService[T any](do.Injector) (do.DescriptionService, bool)
-do.DescribeNamedService(do.Injector, string) (do.DescriptionService, bool)
+do.ExplainService[T any](do.Injector) (do.ExplainServiceOutput, bool)
+do.ExplainNamedService(do.Injector, string) (do.ExplainServiceOutput, bool)
 ```
 
 ### Print tree
 
 ```go
-description, found := do.DescribeNamedService[*MyService](scope, "SERVICE-E")
+debug, found := do.ExplainNamedService[*MyService](scope, "SERVICE-E")
 if found {
-    println(description.String())
+    println(debug.String())
 } else {
     println("service not found")
 }
@@ -55,7 +55,7 @@ Dependents:
 ### Print dependencies or dependents
 
 ```go
-description, found := do.DescribeNamedService[*MyService](scope, "SERVICE-E")
+description, found := do.ExplainNamedService[*MyService](scope, "SERVICE-E")
 if found {
     println(description.Dependencies)
 } else {

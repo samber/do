@@ -29,24 +29,24 @@ func mAp[T any, R any](collection []T, iteratee func(T) R) []R {
 	return result
 }
 
-func getScopeByID(injector do.Injector, id string) (do.DescriptionInjectorScope, bool) {
+func getScopeByID(injector do.Injector, id string) (do.ExplainInjectorScopeOutput, bool) {
 	scopes := getAllScopes(injector)
 	for _, scope := range scopes {
 		if scope.ScopeID == id {
 			return scope, true
 		}
 	}
-	return do.DescriptionInjectorScope{}, false
+	return do.ExplainInjectorScopeOutput{}, false
 }
 
-func getAllScopes(injector do.Injector) []do.DescriptionInjectorScope {
-	description := do.DescribeInjector(injector)
+func getAllScopes(injector do.Injector) []do.ExplainInjectorScopeOutput {
+	description := do.ExplainInjector(injector)
 
 	return getAllScopesRec(description.DAG)
 }
 
-func getAllScopesRec(scopes []do.DescriptionInjectorScope) []do.DescriptionInjectorScope {
-	output := []do.DescriptionInjectorScope{}
+func getAllScopesRec(scopes []do.ExplainInjectorScopeOutput) []do.ExplainInjectorScopeOutput {
+	output := []do.ExplainInjectorScopeOutput{}
 	for i := range scopes {
 		output = append(output, scopes[i])
 		output = append(output, getAllScopesRec(scopes[i].Children)...)
