@@ -3,7 +3,6 @@ package do
 import (
 	"context"
 	"fmt"
-	"strings"
 )
 
 var _ Injector = (*virtualScope)(nil)
@@ -57,7 +56,7 @@ func (s *virtualScope) onServiceInvoke(name string) { s.self.onServiceInvoke(nam
 // It returns ErrCircularDependency if the provided service name creates a circular dependency in the invoker chain.
 func (s *virtualScope) detectCircularDependency(name string) error {
 	if contains(s.invokerChain, name) {
-		return fmt.Errorf("%w: %s -> %s", ErrCircularDependency, strings.Join(s.invokerChain, " -> "), name)
+		return fmt.Errorf("%w: %s", ErrCircularDependency, humanReadableInvokerChain(append(s.invokerChain, name)))
 	}
 	return nil
 }
