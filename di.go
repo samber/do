@@ -2,6 +2,7 @@ package do
 
 import (
 	"fmt"
+	"reflect"
 )
 
 // NameOf returns the name of the service in the DI container.
@@ -129,4 +130,35 @@ func InvokeNamed[T any](i Injector, name string) (T, error) {
 // MustInvokeNamed invokes a named service in the DI container. It panics on error.
 func MustInvokeNamed[T any](i Injector, name string) T {
 	return must1(InvokeNamed[T](i, name))
+}
+
+// InvokeStruct invokes services located in struct properties.
+// The struct fields must be tagged with `do:""` or `do:"name"`, where `name` is the service name in the DI container.
+// If the service is not found in the DI container, an error is returned.
+// If the service is found but not assignable to the struct field, an error is returned.
+func InvokeStruct[T any](i Injector) (*T, error) {
+	output := empty[T]()
+	value := reflect.ValueOf(&output)
+
+	// Check if the empty value is a struct (before passing a pointer to reflect.ValueOf).
+	// It will be checked in invokeByTags, but the error message is different.
+	if value.Kind() != reflect.Ptr || value.Elem().Kind() != reflect.Struct {
+		return nil, fmt.Errorf("DI: not a struct")
+	}
+
+	err := invokeByTags(i, value)
+	if err != nil {
+		return nil, err
+	}
+
+	return &output, nil
+}
+
+// InvokeStruct invokes services located in struct properties.
+// The struct fields must be tagged with `do:""` or `do:"name"`, where `name` is the service name in the DI container.
+// If the service is not found in the DI container, an error is returned.
+// If the service is found but not assignable to the struct field, an error is returned.
+// It panics on error.
+func MustInvokeStruct[T any](i Injector) *T {
+	return must1(InvokeStruct[T](i))
 }

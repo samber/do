@@ -1,12 +1,64 @@
 package do
 
 import (
+	"reflect"
 	"sync"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/assert"
 )
+
+func TestInvokeAnyByName(t *testing.T) {
+	is := assert.New(t)
+
+	// test default injector vs scope
+	i := New()
+	ProvideNamedValue(i, "foo", "baz")
+	svc, err := invokeAnyByName(i, "foo")
+	is.Nil(err)
+	is.Equal("baz", svc)
+
+	// service not found
+	svc, err = invokeAnyByName(nil, "not_found")
+	is.NotNil(err)
+	is.Empty(svc)
+	is.Contains(err.Error(), "DI: could not find service `not_found`, available services: ")
+
+	// test virtual scope wrapper
+	called := false
+	ProvideNamed(i, "hello", func(ivs Injector) (string, error) {
+		// check we received a virtualScope
+		vs, ok := ivs.(*virtualScope)
+		is.True(ok)
+		is.Equal([]string{"hello"}, vs.invokerChain)
+		is.NotEqual(i, ivs)
+
+		// create a dependency/dependent relationship
+		_, _ = invokeAnyByName(ivs, "foo")
+
+		called = true
+		return "foobar", nil
+	})
+	_, _ = invokeAnyByName(i, "hello")
+	is.True(called)
+	// check dependency/dependent relationship
+	dependencies, dependents := i.dag.explainService(i.self.id, i.self.name, "hello")
+	is.ElementsMatch([]EdgeService{{ScopeID: i.self.id, ScopeName: i.self.name, Service: "foo"}}, dependencies)
+	is.ElementsMatch([]EdgeService{}, dependents)
+
+	// test circular dependency
+	vs := virtualScope{invokerChain: []string{"foo", "bar"}, self: i}
+
+	svc, err = invokeAnyByName(&vs, "foo")
+	is.Error(err)
+
+	is.Empty(svc)
+	is.ErrorIs(err, ErrCircularDependency)
+	is.EqualError(err, "DI: circular dependency detected: foo -> bar -> foo")
+
+	// @TODO
+}
 
 func TestInvokeByName(t *testing.T) {
 	is := assert.New(t)
@@ -182,6 +234,84 @@ func TestInvokeByGenericType_race(t *testing.T) {
 		}(i)
 	}
 	wg.Wait()
+}
+
+func TestInvokeByTags(t *testing.T) {
+	is := assert.New(t)
+
+	i := New()
+	ProvideValue(i, &eagerTest{foobar: "foobar"})
+
+	// no dependencies
+	err := invokeByTags(i, reflect.ValueOf(&eagerTest{}))
+	is.Nil(err)
+
+	// not pointer
+	err = invokeByTags(i, reflect.ValueOf(eagerTest{}))
+	is.Equal("DI: not a pointer", err.Error())
+
+	// exported field - generic type
+	type hasExportedEagerTestDependency struct {
+		EagerTest *eagerTest `do:""`
+	}
+	test1 := hasExportedEagerTestDependency{}
+	err = invokeByTags(i, reflect.ValueOf(&test1))
+	is.Nil(err)
+	is.Equal("foobar", test1.EagerTest.foobar)
+
+	// unexported field
+	type hasNonExportedEagerTestDependency struct {
+		eagerTest *eagerTest `do:""`
+	}
+	test2 := hasNonExportedEagerTestDependency{}
+	err = invokeByTags(i, reflect.ValueOf(&test2))
+	is.Nil(err)
+	is.Equal("foobar", test2.eagerTest.foobar)
+
+	// not found
+	type dependencyNotFound struct {
+		eagerTest *hasNonExportedEagerTestDependency `do:""`
+	}
+	test3 := dependencyNotFound{}
+	err = invokeByTags(i, reflect.ValueOf(&test3))
+	is.Equal(serviceNotFound(i, inferServiceName[*hasNonExportedEagerTestDependency]()).Error(), err.Error())
+
+	// use tag
+	type namedDependency struct {
+		eagerTest *eagerTest `do:"int"`
+	}
+	test4 := namedDependency{}
+	err = invokeByTags(i, reflect.ValueOf(&test4))
+	is.Equal(serviceNotFound(i, inferServiceName[int]()).Error(), err.Error())
+
+	// named service
+	ProvideNamedValue(i, "foobar", 42)
+	type namedService struct {
+		EagerTest int `do:"foobar"`
+	}
+	test5 := namedService{}
+	err = invokeByTags(i, reflect.ValueOf(&test5))
+	is.Nil(err)
+	is.Equal(42, test5.EagerTest)
+
+	// use tag but wrong type
+	type namedDependencyButTypeMismatch struct {
+		EagerTest *int `do:"*github.com/samber/do/v2.eagerTest"`
+	}
+	test6 := namedDependencyButTypeMismatch{}
+	err = invokeByTags(i, reflect.ValueOf(&test6))
+	is.Equal("DI: field 'EagerTest' is not assignable to service *github.com/samber/do/v2.eagerTest", err.Error())
+
+	// use a custom tag
+	i = NewWithOpts(&InjectorOpts{StructTagKey: "hello"})
+	ProvideNamedValue(i, "foobar", 42)
+	type namedServiceWithCustomTag struct {
+		EagerTest int `hello:"foobar"`
+	}
+	test7 := namedServiceWithCustomTag{}
+	err = invokeByTags(i, reflect.ValueOf(&test7))
+	is.Nil(err)
+	is.Equal(42, test7.EagerTest)
 }
 
 func TestServiceNotFound(t *testing.T) {

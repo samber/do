@@ -37,6 +37,7 @@ I love the **short name** for such a utility library. This name is the sum of `D
   - Eager loading
   - Lazy loading
   - Transient loading
+  - Tag-based invocation
 - **🧙‍♂️ Service aliasing**
   - Implicit (provide struct, invoke interface)
   - Explicit (provide struct, bind interface, invoke interface)
@@ -47,10 +48,10 @@ I love the **short name** for such a utility library. This name is the sum of `D
 - **📦 Scope (a.k.a module) tree**
   - Visibility control
   - Dependency grouping
-- **📤 Injector**
+- **📤 Container**
   - Dependency graph resolution and visualization
-  - Default injector
-  - Injector cloning
+  - Default container
+  - Container cloning
   - Service override
 - **🌈 Lightweight, no dependencies**
 - **🔅 No code generation**

@@ -539,3 +539,99 @@ func TestMustInvokeNamed(t *testing.T) {
 		is.EqualValues(42, instance1)
 	})
 }
+
+func TestInvokeStruct(t *testing.T) {
+	is := assert.New(t)
+
+	i := New()
+	ProvideValue(i, &eagerTest{foobar: "foobar"})
+
+	// no dependencies
+	test0, err := InvokeStruct[eagerTest](i)
+	is.Nil(err)
+	is.Empty(test0)
+
+	// not a struct
+	test1, err := InvokeStruct[int](i)
+	is.Nil(test1)
+	is.Equal("DI: not a struct", err.Error())
+
+	// exported field - generic type
+	type hasExportedEagerTestDependency struct {
+		EagerTest *eagerTest `do:""`
+	}
+	test2, err := InvokeStruct[hasExportedEagerTestDependency](i)
+	is.Nil(err)
+	is.Equal("foobar", test2.EagerTest.foobar)
+
+	// unexported field
+	type hasNonExportedEagerTestDependency struct {
+		eagerTest *eagerTest `do:""`
+	}
+	test3, err := InvokeStruct[hasNonExportedEagerTestDependency](i)
+	is.Nil(err)
+	is.Equal("foobar", test3.eagerTest.foobar)
+
+	// not found
+	type dependencyNotFound struct {
+		eagerTest *hasNonExportedEagerTestDependency `do:""`
+	}
+	test4, err := InvokeStruct[dependencyNotFound](i)
+	is.Equal(serviceNotFound(i, inferServiceName[*hasNonExportedEagerTestDependency]()).Error(), err.Error())
+	is.Nil(test4)
+
+	// use tag
+	type namedDependency struct {
+		eagerTest *eagerTest `do:"int"`
+	}
+	test5, err := InvokeStruct[namedDependency](i)
+	is.Equal(serviceNotFound(i, inferServiceName[int]()).Error(), err.Error())
+	is.Nil(test5)
+
+	// named service
+	ProvideNamedValue(i, "foobar", 42)
+	type namedService struct {
+		EagerTest int `do:"foobar"`
+	}
+	test6, err := InvokeStruct[namedService](i)
+	is.Nil(err)
+	is.Equal(42, test6.EagerTest)
+
+	// use tag but wrong type
+	type namedDependencyButTypeMismatch struct {
+		EagerTest *int `do:"*github.com/samber/do/v2.eagerTest"`
+	}
+	test7, err := InvokeStruct[namedDependencyButTypeMismatch](i)
+	is.Equal("DI: field 'EagerTest' is not assignable to service *github.com/samber/do/v2.eagerTest", err.Error())
+	is.Nil(test7)
+
+	// use a custom tag
+	i = NewWithOpts(&InjectorOpts{StructTagKey: "hello"})
+	ProvideNamedValue(i, "foobar", 42)
+	type namedServiceWithCustomTag struct {
+		EagerTest int `hello:"foobar"`
+	}
+	test8, err := InvokeStruct[namedServiceWithCustomTag](i)
+	is.Nil(err)
+	is.Equal(42, test8.EagerTest)
+}
+
+func TestMustInvokeStruct(t *testing.T) {
+	is := assert.New(t)
+	i := New()
+
+	// use a custom tag
+	type namedServiceWithCustomTag struct {
+		EagerTest int `do:"foobar"`
+	}
+
+	is.Panics(func() {
+		_ = MustInvokeStruct[namedServiceWithCustomTag](i)
+	})
+
+	ProvideNamedValue(i, "foobar", 42)
+	is.NotPanics(func() {
+		test := MustInvokeStruct[namedServiceWithCustomTag](i)
+		is.Equal(42, test.EagerTest)
+	})
+}
