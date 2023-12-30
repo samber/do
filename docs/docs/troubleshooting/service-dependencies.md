@@ -52,21 +52,12 @@ Dependents:
   * SERVICE-G from scope scope-child
 ```
 
-## Services dependencies
-
-### Spec
+### Print dependencies or dependents
 
 ```go
-do.ExplainService[T any](do.Injector) (dependencies []do.EdgeService, dependents []do.EdgeService, found bool)
-do.ExplainNamedService(do.Injector, string) (dependencies []do.EdgeService, dependents []do.EdgeService, found bool)
-```
-
-### Print dependencies
-
-```go
-dependencies, _, found := do.ExplainNamedService[*MyService](scope, "SERVICE-E")
+description, found := do.DescribeNamedService[*MyService](scope, "SERVICE-E")
 if found {
-    println(dependencies)
+    println(description.Dependencies)
 } else {
     println("service not found")
 }
@@ -76,31 +67,7 @@ Output:
 
 ```txt
 [
-    { ScopeID: "6cbfc332-0276-4c28-b0c3-d6256210e4d6", ScopeName: "scope-child", Service: "SERVICE-D" },
-    { ScopeID: "6cbfc332-0276-4c28-b0c3-d6256210e4d6", ScopeName: "scope-child", Service: "SERVICE-C1" },
-    { ScopeID: "6cbfc332-0276-4c28-b0c3-d6256210e4d6", ScopeName: "scope-child", Service: "SERVICE-C2" },
-    { ScopeID: "2a821628-7175-4b6d-a2ea-de8b82a203de", ScopeName: "[root]",      Service: "SERVICE-B" },
-    { ScopeID: "2a821628-7175-4b6d-a2ea-de8b82a203de", ScopeName: "[root]",      Service: "SERVICE-A1" },
-    { ScopeID: "2a821628-7175-4b6d-a2ea-de8b82a203de", ScopeName: "[root]",      Service: "SERVICE-A2" },
-]
-```
-
-### Print dependents
-
-```go
-_, dependents, found := do.ExplainNamedService[*MyService](scope, "SERVICE-E")
-if found {
-    println(dependents)
-} else {
-    println("service not found")
-}
-```
-
-Output:
-
-```txt
-[
-    { ScopeID: "6cbfc332-0276-4c28-b0c3-d6256210e4d6", ScopeName: "scope-child", Service: "SERVICE-F" },
-    { ScopeID: "6cbfc332-0276-4c28-b0c3-d6256210e4d6", ScopeName: "scope-child", Service: "SERVICE-G" },
+    { ScopeID: "6cbfc332-0276-4c28-b0c3-d6256210e4d6", ScopeName: "scope-child", Service: "SERVICE-F", Recursive: [...] },
+    { ScopeID: "6cbfc332-0276-4c28-b0c3-d6256210e4d6", ScopeName: "scope-child", Service: "SERVICE-G", Recursive: [...] },
 ]
 ```
