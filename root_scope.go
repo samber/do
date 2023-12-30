@@ -139,44 +139,20 @@ func (s *RootScope) CloneWithOpts(opts *InjectorOpts) *RootScope {
 	return clone
 }
 
-// ShutdownOnSIGTERM listens for sigterm signal in order to graceful stop service.
-// It will block until receiving a sigterm signal.
-func (s *RootScope) ShutdownOnSIGTERM() (os.Signal, error) {
-	return s.ShutdownOnSignalsWithContext(context.Background(), syscall.SIGTERM)
-}
-
-// ShutdownOnSIGTERMWithContext listens for sigterm signal in order to graceful stop service.
-// It will block until receiving a sigterm signal.
-func (s *RootScope) ShutdownOnSIGTERMWithContext(ctx context.Context) (os.Signal, error) {
-	return s.ShutdownOnSignalsWithContext(ctx, syscall.SIGTERM)
-}
-
-// ShutdownOnSIGTERMOrInterrupt listens for sigterm or interrupt signal in order to graceful stop service.
-// It will block until receiving a sigterm signal.
-func (s *RootScope) ShutdownOnSIGTERMOrInterrupt() (os.Signal, error) {
-	return s.ShutdownOnSignalsWithContext(context.Background(), syscall.SIGTERM, os.Interrupt)
-}
-
-// ShutdownOnSIGTERMOrInterruptWithContext listens for sigterm or interrupt signal in order to graceful stop service.
-// It will block until receiving a sigterm signal.
-func (s *RootScope) ShutdownOnSIGTERMOrInterruptWithContext(ctx context.Context) (os.Signal, error) {
-	return s.ShutdownOnSignalsWithContext(ctx, syscall.SIGTERM, os.Interrupt)
-}
-
 // ShutdownOnSignals listens for signals defined in signals parameter in order to graceful stop service.
 // It will block until receiving any of these signal.
-// If no signal is provided in signals parameter, syscall.SIGTERM will be added as default signal.
+// If no signal is provided in signals parameter, syscall.SIGTERM and os.Interrupt will be added as default signal.
 func (s *RootScope) ShutdownOnSignals(signals ...os.Signal) (os.Signal, error) {
 	return s.ShutdownOnSignalsWithContext(context.Background(), signals...)
 }
 
 // ShutdownOnSignalsWithContext listens for signals defined in signals parameter in order to graceful stop service.
 // It will block until receiving any of these signal.
-// If no signal is provided in signals parameter, syscall.SIGTERM will be added as default signal.
+// If no signal is provided in signals parameter, syscall.SIGTERM and os.Interrupt will be added as default signal.
 func (s *RootScope) ShutdownOnSignalsWithContext(ctx context.Context, signals ...os.Signal) (os.Signal, error) {
-	// Make sure there is at least syscall.SIGTERM as a signal
+	// Make sure there is at least syscall.SIGTERM and os.Interrupt as a signal
 	if len(signals) < 1 {
-		signals = append(signals, syscall.SIGTERM)
+		signals = append(signals, syscall.SIGTERM, os.Interrupt)
 	}
 
 	ch := make(chan os.Signal, 5)
