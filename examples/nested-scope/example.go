@@ -27,5 +27,5 @@ func main() {
 	driver.TakeASeat()
 	passenger.TakeASeat()
 
-	fmt.Println(injector.ShutdownOnSIGTERMOrInterrupt())
+	fmt.Println(injector.ShutdownOnSignals())
 }
