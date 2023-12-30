@@ -21,7 +21,7 @@ type serviceLazy[T any] struct {
 
 	// lazy loading
 	built     bool
-	buildTime time.Duration // @TODO: shoud be exported ?
+	buildTime time.Duration
 	provider  Provider[T]
 
 	providerFrame    stacktrace.Frame
@@ -175,8 +175,9 @@ func (s *serviceLazy[T]) clone() any {
 		mu:   sync.RWMutex{},
 		name: s.name,
 
-		built:    false,
-		provider: s.provider,
+		built:     false,
+		provider:  s.provider,
+		buildTime: 0,
 
 		providerFrame:    s.providerFrame,
 		invokationFrames: []stacktrace.Frame{},
@@ -186,4 +187,8 @@ func (s *serviceLazy[T]) clone() any {
 //nolint:unused
 func (s *serviceLazy[T]) source() (stacktrace.Frame, []stacktrace.Frame) {
 	return s.providerFrame, s.invokationFrames
+}
+
+func (s *serviceLazy[T]) getBuildTime() (time.Duration, bool) {
+	return s.buildTime, s.built
 }
