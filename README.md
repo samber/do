@@ -36,6 +36,7 @@ I love the **short name** for such a utility library. This name is the sum of `D
   - Lazy loading
   - Transient loading
   - Tag-based invocation
+  - Circular dependency detection
 - **🧙‍♂️ Service aliasing**
   - Implicit (provide struct, invoke interface)
   - Explicit (provide struct, bind interface, invoke interface)
