@@ -165,7 +165,7 @@ func invokeByGenericType[T any](i Injector) (T, error) {
 }
 
 // invokeByTag looks for a service by its tag.
-func invokeByTags(i Injector, structValue reflect.Value) error {
+func invokeByTags(i Injector, structName string, structValue reflect.Value) error {
 	injector := getInjectorOrDefault(i)
 
 	// Ensure that servicePtr is a pointer to a struct
@@ -186,7 +186,7 @@ func invokeByTags(i Injector, structValue reflect.Value) error {
 		}
 
 		if !fieldValue.CanAddr() {
-			return fmt.Errorf("DI: field is not addressable %s", field.Name)
+			return fmt.Errorf("DI: field is not addressable `%s.%s`", structName, field.Name)
 		}
 
 		if !fieldValue.CanSet() {
@@ -208,7 +208,7 @@ func invokeByTags(i Injector, structValue reflect.Value) error {
 
 		// Should be check before invocation, because we just built something that is not assignable to the field.
 		if !fieldValue.Type().AssignableTo(dependencyValue.Type()) {
-			return fmt.Errorf("DI: field '%s' is not assignable to service %s", field.Name, serviceName)
+			return fmt.Errorf("DI: field `%s.%s` is not assignable to service %s", structName, field.Name, serviceName)
 		}
 
 		// Should not panic, since we checked CanAddr() and CanSet() earlier.
