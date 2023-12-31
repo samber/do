@@ -146,7 +146,9 @@ func InvokeStruct[T any](i Injector) (*T, error) {
 		return nil, fmt.Errorf("DI: not a struct")
 	}
 
-	err := invokeByTags(i, value)
+	structName := inferServiceName[T]()
+
+	err := invokeByTags(i, structName, value)
 	if err != nil {
 		return nil, err
 	}
