@@ -602,7 +602,7 @@ func TestInvokeStruct(t *testing.T) {
 		EagerTest *int `do:"*github.com/samber/do/v2.eagerTest"`
 	}
 	test7, err := InvokeStruct[namedDependencyButTypeMismatch](i)
-	is.Equal("DI: field 'EagerTest' is not assignable to service *github.com/samber/do/v2.eagerTest", err.Error())
+	is.Equal("DI: field `github.com/samber/do/v2.namedDependencyButTypeMismatch.EagerTest` is not assignable to service *github.com/samber/do/v2.eagerTest", err.Error())
 	is.Nil(test7)
 
 	// use a custom tag
