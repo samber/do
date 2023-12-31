@@ -243,11 +243,11 @@ func TestInvokeByTags(t *testing.T) {
 	ProvideValue(i, &eagerTest{foobar: "foobar"})
 
 	// no dependencies
-	err := invokeByTags(i, reflect.ValueOf(&eagerTest{}))
+	err := invokeByTags(i, "*myStruct", reflect.ValueOf(&eagerTest{}))
 	is.Nil(err)
 
 	// not pointer
-	err = invokeByTags(i, reflect.ValueOf(eagerTest{}))
+	err = invokeByTags(i, "*myStruct", reflect.ValueOf(eagerTest{}))
 	is.Equal("DI: not a pointer", err.Error())
 
 	// exported field - generic type
@@ -255,7 +255,7 @@ func TestInvokeByTags(t *testing.T) {
 		EagerTest *eagerTest `do:""`
 	}
 	test1 := hasExportedEagerTestDependency{}
-	err = invokeByTags(i, reflect.ValueOf(&test1))
+	err = invokeByTags(i, "*myStruct", reflect.ValueOf(&test1))
 	is.Nil(err)
 	is.Equal("foobar", test1.EagerTest.foobar)
 
@@ -264,7 +264,7 @@ func TestInvokeByTags(t *testing.T) {
 		eagerTest *eagerTest `do:""`
 	}
 	test2 := hasNonExportedEagerTestDependency{}
-	err = invokeByTags(i, reflect.ValueOf(&test2))
+	err = invokeByTags(i, "*myStruct", reflect.ValueOf(&test2))
 	is.Nil(err)
 	is.Equal("foobar", test2.eagerTest.foobar)
 
@@ -273,7 +273,7 @@ func TestInvokeByTags(t *testing.T) {
 		eagerTest *hasNonExportedEagerTestDependency `do:""` //nolint:unused
 	}
 	test3 := dependencyNotFound{}
-	err = invokeByTags(i, reflect.ValueOf(&test3))
+	err = invokeByTags(i, "*myStruct", reflect.ValueOf(&test3))
 	is.Equal(serviceNotFound(i, []string{inferServiceName[*hasNonExportedEagerTestDependency]()}).Error(), err.Error())
 
 	// use tag
@@ -281,7 +281,7 @@ func TestInvokeByTags(t *testing.T) {
 		eagerTest *eagerTest `do:"int"` //nolint:unused
 	}
 	test4 := namedDependency{}
-	err = invokeByTags(i, reflect.ValueOf(&test4))
+	err = invokeByTags(i, "*myStruct", reflect.ValueOf(&test4))
 	is.Equal(serviceNotFound(i, []string{inferServiceName[int]()}).Error(), err.Error())
 
 	// named service
@@ -290,7 +290,7 @@ func TestInvokeByTags(t *testing.T) {
 		EagerTest int `do:"foobar"`
 	}
 	test5 := namedService{}
-	err = invokeByTags(i, reflect.ValueOf(&test5))
+	err = invokeByTags(i, "*myStruct", reflect.ValueOf(&test5))
 	is.Nil(err)
 	is.Equal(42, test5.EagerTest)
 
@@ -299,8 +299,8 @@ func TestInvokeByTags(t *testing.T) {
 		EagerTest *int `do:"*github.com/samber/do/v2.eagerTest"`
 	}
 	test6 := namedDependencyButTypeMismatch{}
-	err = invokeByTags(i, reflect.ValueOf(&test6))
-	is.Equal("DI: field 'EagerTest' is not assignable to service *github.com/samber/do/v2.eagerTest", err.Error())
+	err = invokeByTags(i, "*myStruct", reflect.ValueOf(&test6))
+	is.Equal("DI: field `*myStruct.EagerTest` is not assignable to service *github.com/samber/do/v2.eagerTest", err.Error())
 
 	// use a custom tag
 	i = NewWithOpts(&InjectorOpts{StructTagKey: "hello"})
@@ -309,7 +309,7 @@ func TestInvokeByTags(t *testing.T) {
 		EagerTest int `hello:"foobar"`
 	}
 	test7 := namedServiceWithCustomTag{}
-	err = invokeByTags(i, reflect.ValueOf(&test7))
+	err = invokeByTags(i, "*myStruct", reflect.ValueOf(&test7))
 	is.Nil(err)
 	is.Equal(42, test7.EagerTest)
 }
