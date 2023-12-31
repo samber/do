@@ -212,12 +212,12 @@ func (s *Scope) asyncHealthCheckWithContext(ctx context.Context) map[string]<-ch
 }
 
 // Shutdown shutdowns the scope and all its children.
-func (s *Scope) Shutdown() error {
+func (s *Scope) Shutdown() map[string]error {
 	return s.ShutdownWithContext(context.Background())
 }
 
 // ShutdownWithContext shutdowns the scope and all its children.
-func (s *Scope) ShutdownWithContext(ctx context.Context) error {
+func (s *Scope) ShutdownWithContext(ctx context.Context) map[string]error {
 	s.mu.RLock()
 	children := s.childScopes
 	orderedInvocationIndex := s.orderedInvocationIndex
@@ -226,12 +226,11 @@ func (s *Scope) ShutdownWithContext(ctx context.Context) error {
 
 	s.logf("requested shutdown")
 
+	err := map[string]error{}
+
 	// first shutdown children
 	for k, child := range children {
-		err := child.Shutdown()
-		if err != nil {
-			return err
-		}
+		err = mergeMaps(err, child.Shutdown())
 
 		s.mu.Lock()
 		delete(s.childScopes, k) // scope is removed from DI container
@@ -245,15 +244,12 @@ func (s *Scope) ShutdownWithContext(ctx context.Context) error {
 			continue
 		}
 
-		err := s.serviceShutdown(ctx, name)
-		if err != nil {
-			return err
-		}
+		err[name] = s.serviceShutdown(ctx, name)
 	}
 
 	s.logf("shutdowned services")
 
-	return nil
+	return err
 }
 
 func (s *Scope) clone(root *RootScope, parent *Scope) *Scope {

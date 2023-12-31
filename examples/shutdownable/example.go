@@ -95,7 +95,9 @@ func main() {
 	car.Start()
 
 	_, err := injector.ShutdownOnSignals()
-	if err != nil {
-		log.Fatal(err.Error())
+	for _, e := range err {
+		if e != nil {
+			log.Fatal(e.Error())
+		}
 	}
 }
