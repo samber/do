@@ -97,6 +97,18 @@ func TestUtilsMap(t *testing.T) {
 	is.Equal(result2, []string{"1", "2", "3", "4"})
 }
 
+func TestUtilsMergeMaps(t *testing.T) {
+	t.Parallel()
+	is := assert.New(t)
+
+	result1 := mergeMaps(map[string]int{"a": 1, "b": 2, "c": 3}, map[string]int{"c": 4, "d": 5, "e": 6})
+	result2 := mergeMaps[string, int]()
+
+	is.Equal(len(result1), 5)
+	is.Equal(len(result2), 0)
+	is.Equal(result1, map[string]int{"a": 1, "b": 2, "c": 4, "d": 5, "e": 6})
+}
+
 func TestUtilsInvertMap(t *testing.T) {
 	t.Parallel()
 	is := assert.New(t)

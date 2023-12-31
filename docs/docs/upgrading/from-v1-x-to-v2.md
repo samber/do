@@ -44,9 +44,9 @@ go mod tidy
 find . -name '*.go' -type f -exec sed -i '' "s/*do.Injector/do.Injector/g" {} \;
 ```
 
-## 3- `do.Shutdown****` output
+## 3- Shutdown
 
-`ShutdownOnSignals` used to return only 1 argument.
+`do.ShutdownOnSignals` used to return only 1 argument.
 
 ```go
 # from
@@ -57,6 +57,8 @@ signal, err := injector.ShutdownOnSignals(syscall.SIGTERM, os.Interrupt)
 ```
 
 `injector.ShutdownOnSIGTERM()` has been removed. Use `injector.ShutdownOnSignals(syscall.SIGTERM)` instead.
+
+`injector.Shutdown()` now returns a map of errors (`map[string]error`) and is non-blocking in case of failure of a single service.
 
 ## 4- Internal service naming
 

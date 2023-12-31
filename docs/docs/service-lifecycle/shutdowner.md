@@ -18,12 +18,12 @@ A shutdown can be triggered on a root scope:
 
 ```go
 // on demand
-injector.Shutdown() error
-injector.ShutdownWithContext(context.Context) error
+injector.Shutdown() map[string]error
+injector.ShutdownWithContext(context.Context) map[string]error
 
 // on signal
-injector.ShutdownOnSignals(...os.Signal) (os.Signal, error)
-injector.ShutdownOnSignalsWithContext(context.Context, ...os.Signal) (os.Signal, error)
+injector.ShutdownOnSignals(...os.Signal) (os.Signal, map[string]error)
+injector.ShutdownOnSignalsWithContext(context.Context, ...os.Signal) (os.Signal, map[string]error)
 ```
 
 ...on a single service:
@@ -86,5 +86,10 @@ Provide(i, ...)
 Invoke(i, ...)
 
 ctx := context.WithTimeout(10 * time.Second)
-i.ShutdownWithContext(ctx)
+errors := i.ShutdownWithContext(ctx)
+for _, err := range errors {
+    if err != nil {
+		log.Println("shutdown error:", err)
+	}
+}
 ```

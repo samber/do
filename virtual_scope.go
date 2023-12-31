@@ -30,8 +30,8 @@ func (s *virtualScope) HealthCheck() map[string]error          { return s.self.H
 func (s *virtualScope) HealthCheckWithContext(ctx context.Context) map[string]error {
 	return s.self.HealthCheckWithContext(ctx)
 }
-func (s *virtualScope) Shutdown() error { return s.self.Shutdown() }
-func (s *virtualScope) ShutdownWithContext(ctx context.Context) error {
+func (s *virtualScope) Shutdown() map[string]error { return s.self.Shutdown() }
+func (s *virtualScope) ShutdownWithContext(ctx context.Context) map[string]error {
 	return s.self.ShutdownWithContext(ctx)
 }
 func (s *virtualScope) clone(r *RootScope, p *Scope) *Scope              { return s.self.clone(r, p) }

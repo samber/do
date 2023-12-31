@@ -66,8 +66,8 @@ func (s *RootScope) HealthCheck() map[string]error          { return s.self.Heal
 func (s *RootScope) HealthCheckWithContext(ctx context.Context) map[string]error {
 	return s.self.HealthCheckWithContext(ctx)
 }
-func (s *RootScope) Shutdown() error { return s.ShutdownWithContext(context.Background()) }
-func (s *RootScope) ShutdownWithContext(ctx context.Context) error {
+func (s *RootScope) Shutdown() map[string]error { return s.ShutdownWithContext(context.Background()) }
+func (s *RootScope) ShutdownWithContext(ctx context.Context) map[string]error {
 	defer func() {
 		if s.healthCheckPool != nil {
 			s.healthCheckPool.stop()
@@ -142,14 +142,14 @@ func (s *RootScope) CloneWithOpts(opts *InjectorOpts) *RootScope {
 // ShutdownOnSignals listens for signals defined in signals parameter in order to graceful stop service.
 // It will block until receiving any of these signal.
 // If no signal is provided in signals parameter, syscall.SIGTERM and os.Interrupt will be added as default signal.
-func (s *RootScope) ShutdownOnSignals(signals ...os.Signal) (os.Signal, error) {
+func (s *RootScope) ShutdownOnSignals(signals ...os.Signal) (os.Signal, map[string]error) {
 	return s.ShutdownOnSignalsWithContext(context.Background(), signals...)
 }
 
 // ShutdownOnSignalsWithContext listens for signals defined in signals parameter in order to graceful stop service.
 // It will block until receiving any of these signal.
 // If no signal is provided in signals parameter, syscall.SIGTERM and os.Interrupt will be added as default signal.
-func (s *RootScope) ShutdownOnSignalsWithContext(ctx context.Context, signals ...os.Signal) (os.Signal, error) {
+func (s *RootScope) ShutdownOnSignalsWithContext(ctx context.Context, signals ...os.Signal) (os.Signal, map[string]error) {
 	// Make sure there is at least syscall.SIGTERM and os.Interrupt as a signal
 	if len(signals) < 1 {
 		signals = append(signals, syscall.SIGTERM, os.Interrupt)

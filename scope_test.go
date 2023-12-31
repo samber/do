@@ -411,7 +411,16 @@ func TestScope_HealthCheckWithContext(t *testing.T) {
 }
 
 func TestScope_Shutdown(t *testing.T) {
-	// @TODO
+	is := assert.New(t)
+
+	i := New()
+
+	ProvideNamedValue(i, "lazy-ok", &lazyTestShutdownerOK{})
+	ProvideNamedValue(i, "lazy-ko", &lazyTestShutdownerKO{})
+	_, _ = InvokeNamed[*lazyTestShutdownerOK](i, "lazy-ok")
+	_, _ = InvokeNamed[*lazyTestShutdownerKO](i, "lazy-ko")
+
+	is.EqualValues(map[string]error{"lazy-ok": nil, "lazy-ko": assert.AnError}, i.Shutdown())
 }
 
 // @TODO: missing tests for context
@@ -426,11 +435,11 @@ func TestScope_ShutdownWithContext(t *testing.T) {
 	child2a := child1.Scope("child2a")
 	child2b := child1.Scope("child2b")
 
-	provider1 := func(i Injector) (*lazyTestHeathcheckerOK, error) {
-		return &lazyTestHeathcheckerOK{foobar: "foobar"}, nil
+	provider1 := func(i Injector) (*lazyTestShutdownerOK, error) {
+		return &lazyTestShutdownerOK{foobar: "foobar"}, nil
 	}
-	provider2 := func(i Injector) (*lazyTestHeathcheckerKO, error) {
-		return &lazyTestHeathcheckerKO{foobar: "foobar"}, nil
+	provider2 := func(i Injector) (*lazyTestShutdownerKO, error) {
+		return &lazyTestShutdownerKO{foobar: "foobar"}, nil
 	}
 
 	rootScope.serviceSet("root-a", newServiceLazy("root-a", provider2))
@@ -439,39 +448,39 @@ func TestScope_ShutdownWithContext(t *testing.T) {
 	child2a.serviceSet("child2a-b", newServiceLazy("child2a-b", provider2))
 	child2b.serviceSet("child2b-a", newServiceLazy("child2b-a", provider2))
 
-	_, _ = invokeByName[*lazyTestHeathcheckerKO](rootScope, "root-a")
-	_, _ = invokeByName[*lazyTestHeathcheckerOK](child1, "child1-a")
-	_, _ = invokeByName[*lazyTestHeathcheckerOK](child2a, "child2a-a")
-	_, _ = invokeByName[*lazyTestHeathcheckerKO](child2a, "child2a-b")
-	_, _ = invokeByName[*lazyTestHeathcheckerKO](child2b, "child2b-a")
+	_, _ = invokeByName[*lazyTestShutdownerKO](rootScope, "root-a")
+	_, _ = invokeByName[*lazyTestShutdownerOK](child1, "child1-a")
+	_, _ = invokeByName[*lazyTestShutdownerOK](child2a, "child2a-a")
+	_, _ = invokeByName[*lazyTestShutdownerKO](child2a, "child2a-b")
+	_, _ = invokeByName[*lazyTestShutdownerKO](child2b, "child2b-a")
 
 	// from rootScope POV
-	is.Equal(assert.AnError, rootScope.serviceHealthCheck(ctx, "root-a"))
-	is.ErrorContains(rootScope.serviceHealthCheck(ctx, "child1-a"), "could not find service")
-	is.ErrorContains(rootScope.serviceHealthCheck(ctx, "child2a-a"), "could not find service")
-	is.ErrorContains(rootScope.serviceHealthCheck(ctx, "child2a-b"), "could not find service")
-	is.ErrorContains(rootScope.serviceHealthCheck(ctx, "child2b-a"), "could not find service")
+	is.Equal(assert.AnError, rootScope.serviceShutdown(ctx, "root-a"))
+	is.ErrorContains(rootScope.serviceShutdown(ctx, "child1-a"), "could not find service")
+	is.ErrorContains(rootScope.serviceShutdown(ctx, "child2a-a"), "could not find service")
+	is.ErrorContains(rootScope.serviceShutdown(ctx, "child2a-b"), "could not find service")
+	is.ErrorContains(rootScope.serviceShutdown(ctx, "child2b-a"), "could not find service")
 
 	// from child1 POV
-	is.ErrorContains(child1.serviceHealthCheck(ctx, "root-a"), "could not find service")
-	is.Equal(nil, child1.serviceHealthCheck(ctx, "child1-a"))
-	is.ErrorContains(child1.serviceHealthCheck(ctx, "child2a-a"), "could not find service")
-	is.ErrorContains(child1.serviceHealthCheck(ctx, "child2a-b"), "could not find service")
-	is.ErrorContains(child1.serviceHealthCheck(ctx, "child2b-a"), "could not find service")
+	is.ErrorContains(child1.serviceShutdown(ctx, "root-a"), "could not find service")
+	is.Equal(nil, child1.serviceShutdown(ctx, "child1-a"))
+	is.ErrorContains(child1.serviceShutdown(ctx, "child2a-a"), "could not find service")
+	is.ErrorContains(child1.serviceShutdown(ctx, "child2a-b"), "could not find service")
+	is.ErrorContains(child1.serviceShutdown(ctx, "child2b-a"), "could not find service")
 
 	// from child2a POV
-	is.ErrorContains(child2a.serviceHealthCheck(ctx, "root-a"), "could not find service")
-	is.ErrorContains(child2a.serviceHealthCheck(ctx, "child1-a"), "could not find service")
-	is.Equal(nil, child2a.serviceHealthCheck(ctx, "child2a-a"))
-	is.Equal(assert.AnError, child2a.serviceHealthCheck(ctx, "child2a-b"))
-	is.ErrorContains(child2a.serviceHealthCheck(ctx, "child2b-a"), "could not find service")
+	is.ErrorContains(child2a.serviceShutdown(ctx, "root-a"), "could not find service")
+	is.ErrorContains(child2a.serviceShutdown(ctx, "child1-a"), "could not find service")
+	is.Equal(nil, child2a.serviceShutdown(ctx, "child2a-a"))
+	is.Equal(assert.AnError, child2a.serviceShutdown(ctx, "child2a-b"))
+	is.ErrorContains(child2a.serviceShutdown(ctx, "child2b-a"), "could not find service")
 
 	// from child2b POV
-	is.ErrorContains(child2b.serviceHealthCheck(ctx, "root-a"), "could not find service")
-	is.ErrorContains(child2b.serviceHealthCheck(ctx, "child1-a"), "could not find service")
-	is.ErrorContains(child2b.serviceHealthCheck(ctx, "child2a-a"), "could not find service")
-	is.ErrorContains(child2b.serviceHealthCheck(ctx, "child2a-b"), "could not find service")
-	is.Equal(assert.AnError, child2b.serviceHealthCheck(ctx, "child2b-a"))
+	is.ErrorContains(child2b.serviceShutdown(ctx, "root-a"), "could not find service")
+	is.ErrorContains(child2b.serviceShutdown(ctx, "child1-a"), "could not find service")
+	is.ErrorContains(child2b.serviceShutdown(ctx, "child2a-a"), "could not find service")
+	is.ErrorContains(child2b.serviceShutdown(ctx, "child2a-b"), "could not find service")
+	is.Equal(assert.AnError, child2b.serviceShutdown(ctx, "child2b-a"))
 }
 
 func TestScope_clone(t *testing.T) {
@@ -531,7 +540,7 @@ func TestScope_serviceHealthCheck(t *testing.T) {
 	_, _ = invokeByName[int](child3, "child3-a")
 
 	is.ElementsMatch([]EdgeService{newEdgeService(child3.id, child3.name, "child3-a"), newEdgeService(child2a.id, child2a.name, "child2a-a"), newEdgeService(child2a.id, child2a.name, "child2a-b"), newEdgeService(child1.id, child1.name, "child1-a")}, child3.ListInvokedServices())
-	is.Nil(child1.Shutdown())
+	is.EqualValues(map[string]error{"child1-a": nil, "child2a-a": nil, "child2a-b": nil, "child2b-a": nil, "child3-a": nil}, child1.Shutdown())
 	is.ElementsMatch([]EdgeService{}, child3.ListInvokedServices())
 }
 
