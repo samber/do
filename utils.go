@@ -86,6 +86,18 @@ func filter[V any](collection []V, predicate func(item V, index int) bool) []V {
 	return result
 }
 
+func mergeMaps[K comparable, V any](ins ...map[K]V) map[K]V {
+	out := map[K]V{}
+
+	for _, in := range ins {
+		for k, v := range in {
+			out[k] = v
+		}
+	}
+
+	return out
+}
+
 func invertMap[K comparable, V comparable](in map[K]V) map[V]K {
 	out := map[V]K{}
 
