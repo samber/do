@@ -30,6 +30,8 @@ Check out the beta now!
 go get -u github.com/samber/do/v2@v2.0.0-beta.2
 ```
 
+Documentation: https://do.samber.dev/
+
 Please report bugs here: [#45](https://github.com/samber/do/pull/45).
 
 ## 💡 Features
