@@ -9,7 +9,6 @@
 [![Coverage](https://img.shields.io/codecov/c/github/samber/do)](https://codecov.io/gh/samber/do)
 [![License](https://img.shields.io/github/license/samber/do)](./LICENSE)
 
-
 **⚙️ A dependency injection toolkit based on Go 1.18+ Generics.**
 
 This library implements the Dependency Injection design pattern. It may replace the `uber/dig` fantastic package in simple Go projects. `samber/do` uses Go 1.18+ generics and therefore offers a typesafe API.
@@ -22,6 +21,16 @@ This library implements the Dependency Injection design pattern. It may replace 
 **Why this name?**
 
 I love **short name** for such a utility library. This name is the sum of `DI` and `Go` and no Go package currently uses this name.
+
+**⭕⭕⭕⭕⭕⭕ About v2 ⭕⭕⭕⭕⭕⭕**
+
+Check out the beta now!
+
+```bash
+go get -u github.com/samber/do/v2@v2.0.0-beta.2
+```
+
+Please report bugs here: [#45](https://github.com/samber/do/pull/45).
 
 ## 💡 Features
 
