@@ -39,7 +39,7 @@ type RequestPerSecond struct {
 }
 
 func (r *RequestPerSecond) Inc() {
-    m.counter++
+    r.counter++
 }
 
 i := do.New()
@@ -82,7 +82,7 @@ type RequestPerSecond struct {
 }
 
 func (r *RequestPerSecond) Inc() {
-    m.counter++
+    r.counter++
 }
 
 i := do.New()
