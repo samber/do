@@ -12,7 +12,7 @@
 
 **⚙️ A dependency injection toolkit based on Go 1.18+ Generics.**
 
-This library implements the Dependency Injection design pattern. It may replace the `uber/dig` fantastic package in simple Go projects. `samber/do` uses Go 1.18+ generics and therefore is typesafe.
+This library implements the Dependency Injection design pattern. It may replace the `uber/dig` fantastic package in simple Go projects. `samber/do` uses Go 1.18+ generics and therefore offers a typesafe API.
 
 **See also:**
 
