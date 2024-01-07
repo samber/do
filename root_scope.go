@@ -158,7 +158,7 @@ func (s *RootScope) ShutdownOnSignalsWithContext(ch chan os.Signal, ctx context.
 	}
 
 	if ch == nil {
-		ch = make(chan os.Signal, 5)
+		ch = make(chan os.Signal, 1)
 	}
 	signal.Notify(ch, signals...)
 
