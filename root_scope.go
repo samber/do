@@ -142,20 +142,24 @@ func (s *RootScope) CloneWithOpts(opts *InjectorOpts) *RootScope {
 // ShutdownOnSignals listens for signals defined in signals parameter in order to graceful stop service.
 // It will block until receiving any of these signal.
 // If no signal is provided in signals parameter, syscall.SIGTERM and os.Interrupt will be added as default signal.
-func (s *RootScope) ShutdownOnSignals(signals ...os.Signal) (os.Signal, map[string]error) {
-	return s.ShutdownOnSignalsWithContext(context.Background(), signals...)
+// The ch parameter is a channel on which the signals will be received. If ch is nil, a new channel will be created.
+func (s *RootScope) ShutdownOnSignals(ch chan os.Signal, signals ...os.Signal) (os.Signal, map[string]error) {
+	return s.ShutdownOnSignalsWithContext(ch, context.Background(), signals...)
 }
 
 // ShutdownOnSignalsWithContext listens for signals defined in signals parameter in order to graceful stop service.
 // It will block until receiving any of these signal.
 // If no signal is provided in signals parameter, syscall.SIGTERM and os.Interrupt will be added as default signal.
-func (s *RootScope) ShutdownOnSignalsWithContext(ctx context.Context, signals ...os.Signal) (os.Signal, map[string]error) {
+// The ch parameter is a channel on which the signals will be received. If ch is nil, a new channel will be created.
+func (s *RootScope) ShutdownOnSignalsWithContext(ch chan os.Signal, ctx context.Context, signals ...os.Signal) (os.Signal, map[string]error) {
 	// Make sure there is at least syscall.SIGTERM and os.Interrupt as a signal
 	if len(signals) < 1 {
 		signals = append(signals, syscall.SIGTERM, os.Interrupt)
 	}
 
-	ch := make(chan os.Signal, 5)
+	if ch == nil {
+		ch = make(chan os.Signal, 5)
+	}
 	signal.Notify(ch, signals...)
 
 	sig := <-ch
