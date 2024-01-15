@@ -2,7 +2,7 @@ package main
 
 import (
 	"github.com/gin-gonic/gin"
-	ginhttp "github.com/samber/do/v2/http/gin"
+	ginhttp "github.com/samber/do/http/gin/v2"
 )
 
 func main() {

@@ -4,12 +4,12 @@ go 1.18
 
 replace github.com/samber/do/v2 => ../../../
 
-replace github.com/samber/do/v2/http/fiber => ../../../http/fiber
+replace github.com/samber/do/http/fiber/v2 => ../../../http/fiber
 
 require (
 	github.com/gofiber/fiber/v2 v2.51.0
 	github.com/samber/do/v2 v2.0.0-00010101000000-000000000000
-	github.com/samber/do/v2/http/fiber v0.0.0-00010101000000-000000000000
+	github.com/samber/do/http/fiber/v2 v0.0.0-00010101000000-000000000000
 )
 
 require (

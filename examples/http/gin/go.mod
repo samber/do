@@ -1,15 +1,15 @@
-module github.com/samber/do/v2/examples/http/gin
+module github.com/samber/do/examples/http/gin/v2
 
 go 1.18
 
 replace github.com/samber/do/v2 => ../../../
 
-replace github.com/samber/do/v2/http/gin => ../../../http/gin
+replace github.com/samber/do/http/gin/v2 => ../../../http/gin
 
 require (
 	github.com/gin-gonic/gin v1.9.1
 	github.com/samber/do/v2 v2.0.0-00010101000000-000000000000
-	github.com/samber/do/v2/http/gin v0.0.0-00010101000000-000000000000
+	github.com/samber/do/http/gin/v2 v2.0.0-00010101000000-000000000000
 )
 
 require (

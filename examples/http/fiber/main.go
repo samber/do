@@ -2,7 +2,7 @@ package main
 
 import (
 	"github.com/gofiber/fiber/v2"
-	fiberhttp "github.com/samber/do/v2/http/fiber"
+	fiberhttp "github.com/samber/do/http/fiber/v2"
 )
 
 func main() {

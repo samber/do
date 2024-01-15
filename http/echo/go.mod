@@ -1,4 +1,4 @@
-module github.com/samber/do/v2/http/echo
+module github.com/samber/do/http/echo/v2
 
 go 1.18
 
