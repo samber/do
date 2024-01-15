@@ -4,7 +4,7 @@ import (
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
-	chihttp "github.com/samber/do/v2/http/chi"
+	chihttp "github.com/samber/do/http/chi/v2"
 )
 
 func main() {
