@@ -9,11 +9,11 @@ sidebar_position: 4
 ## Without framework
 
 ```bash
-go get github.com/samber/do/v2/http/std"
+go get github.com/samber/do/http/std/v2"
 ```
 
 ```go
-import "github.com/samber/do/v2/http/std"
+import "github.com/samber/do/http/std/v2"
 
 injector := startProgram()
 
@@ -26,11 +26,11 @@ http.ListenAndServe(":8080", mux)
 ## Gin
 
 ```bash
-go get github.com/samber/do/v2/http/gin"
+go get github.com/samber/do/http/gin/v2"
 ```
 
 ```go
-import "github.com/samber/do/v2/http/gin"
+import "github.com/samber/do/http/gin/v2"
 
 injector := startProgram()
 
@@ -43,11 +43,11 @@ router.Run(":8080")
 ## Fiber
 
 ```bash
-go get github.com/samber/do/v2/http/fiber"
+go get github.com/samber/do/http/fiber/v2"
 ```
 
 ```go
-import "github.com/samber/do/v2/http/fiber"
+import "github.com/samber/do/http/fiber/v2"
 
 injector := startProgram()
 
@@ -60,11 +60,11 @@ router.Listen(":8080")
 ## Echo
 
 ```bash
-go get github.com/samber/do/v2/http/echo"
+go get github.com/samber/do/http/echo/v2"
 ```
 
 ```go
-import "github.com/samber/do/v2/http/echo"
+import "github.com/samber/do/http/echo/v2"
 
 injector := startProgram()
 
@@ -77,11 +77,11 @@ router.Start(":8080")
 ## Chi
 
 ```bash
-go get github.com/samber/do/v2/http/chi"
+go get github.com/samber/do/http/chi/v2"
 ```
 
 ```go
-import "github.com/samber/do/v2/http/chi"
+import "github.com/samber/do/http/chi/v2"
 
 injector := startProgram()
 
