@@ -1,4 +1,4 @@
-module github.com/samber/do/v2/http/fiber
+module github.com/samber/do/http/fiber/v2
 
 go 1.18
 
