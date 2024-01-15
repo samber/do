@@ -1,4 +1,4 @@
-module github.com/samber/do/v2/http/chi
+module github.com/samber/do/http/chi/v2
 
 go 1.18
 

@@ -2,7 +2,7 @@ package main
 
 import (
 	"github.com/labstack/echo/v4"
-	echohttp "github.com/samber/do/v2/http/echo"
+	echohttp "github.com/samber/do/http/echo/v2"
 )
 
 func main() {
