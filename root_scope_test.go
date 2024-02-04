@@ -234,3 +234,16 @@ func TestRootScope_ShutdownOnSignals(t *testing.T) {
 func TestRootScope_ShutdownOnSignalsWithContext(t *testing.T) {
 	// @TODO
 }
+
+func TestRootScope_ShutdownOnSignalsWithContextDone(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.Background())
+	is := assert.New(t)
+
+	i := New()
+
+	go func() {
+		cancel()
+	}()
+	i.ShutdownOnSignalsWithContextDone(ctx)
+	is.Len(i.Children(), 0)
+}

@@ -164,3 +164,30 @@ func (s *RootScope) ShutdownOnSignalsWithContext(ctx context.Context, signals ..
 
 	return sig, s.ShutdownWithContext(ctx)
 }
+
+// ShutdownOnSignalsWithContextDone listens for ctx.Done() or signals defined in signals parameter in order to graceful stop service.
+// It will block until receiving any of these signal.
+// If no signal is provided in signals parameter, syscall.SIGTERM and os.Interrupt will be added as default signal.
+func (s *RootScope) ShutdownOnSignalsWithContextDone(ctx context.Context, signals ...os.Signal) (os.Signal, map[string]error) {
+	// Make sure there is at least syscall.SIGTERM and os.Interrupt as a signal
+	if len(signals) < 1 {
+		signals = append(signals, syscall.SIGTERM, os.Interrupt)
+	}
+
+	ch := make(chan os.Signal, 5)
+	signal.Notify(ch, signals...)
+
+	var sig os.Signal
+
+	select {
+	case sig = <-ch:
+		break
+	case <-ctx.Done():
+		break
+	}
+
+	signal.Stop(ch)
+	close(ch)
+	return sig, s.ShutdownWithContext(ctx)
+
+}
