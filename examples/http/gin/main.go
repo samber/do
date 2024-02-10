@@ -11,5 +11,5 @@ func main() {
 	router := gin.New()
 	ginhttp.Use(router.Group("/debug/do"), injector)
 
-	router.Run(":8080")
+	router.Run(":8088")
 }

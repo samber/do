@@ -51,6 +51,9 @@ type HealthcheckerWithContext interface {
 Example:
 
 ```go
+// Ensure at compile-time MyService implements do.HealthcheckerWithContext
+var _ do.HealthcheckerWithContext = (*MyService)(nil)
+
 type MyService struct {}
 
 func (*MyService) HealthCheck(context.Context) error {

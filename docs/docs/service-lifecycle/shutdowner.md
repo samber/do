@@ -73,6 +73,9 @@ type ShutdownerWithContextAndError interface {
 Example:
 
 ```go
+// Ensure at compile-time MyService implements do.ShutdownerWithContextAndError
+var _ do.ShutdownerWithContextAndError = (*MyService)(nil)
+
 type MyService struct {}
 
 func (*MyService) Shutdown(context.Context) error {
