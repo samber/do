@@ -212,41 +212,93 @@ func (s *Scope) asyncHealthCheckWithContext(ctx context.Context) map[string]<-ch
 }
 
 // Shutdown shutdowns the scope and all its children.
-func (s *Scope) Shutdown() map[string]error {
+func (s *Scope) Shutdown() *ShutdownErrors {
 	return s.ShutdownWithContext(context.Background())
 }
 
 // ShutdownWithContext shutdowns the scope and all its children.
-func (s *Scope) ShutdownWithContext(ctx context.Context) map[string]error {
+func (s *Scope) ShutdownWithContext(ctx context.Context) *ShutdownErrors {
+	s.logf("requested shutdown")
+	err1 := s.shutdownChildrenInParallel(ctx)
+	err2 := s.shutdownServicesInParallel(ctx)
+	s.logf("shutdowned services")
+
+	err := mergeShutdownErrors(err1, err2)
+	if err.Len() > 0 {
+		return err
+	}
+
+	return nil
+}
+
+// shutdownChildrenInParallel runs a parallel shutdown of children scopes.
+func (s *Scope) shutdownChildrenInParallel(ctx context.Context) *ShutdownErrors {
 	s.mu.RLock()
 	children := s.childScopes
-	invocations := invertMap(s.orderedInvocation)
 	s.mu.RUnlock()
 
-	s.logf("requested shutdown")
+	errors := make([]*ShutdownErrors, len(children))
 
-	err := map[string]error{}
+	var wg sync.WaitGroup
+	for index, scope := range values(children) {
+		wg.Add(1)
 
-	// first shutdown children
-	for k, child := range children {
-		err = mergeMaps(err, child.Shutdown())
+		go func(s *Scope, i int) {
+			errors[i] = s.ShutdownWithContext(ctx)
+			wg.Done()
+		}(scope, index)
+	}
+	wg.Wait()
 
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	s.childScopes = make(map[string]*Scope) // scopes are removed from DI container
+	return mergeShutdownErrors(errors...)
+}
+
+// shutdownServicesInParallel runs a parallel shutdown of scope services.
+//
+// We look for services having no dependents. Then we shutdown them.
+// And repeat, until every scope services have been shutdown.
+func (s *Scope) shutdownServicesInParallel(ctx context.Context) *ShutdownErrors {
+	err := newShutdownErrors()
+
+	addError := func(name string, e error) {
 		s.mu.Lock()
-		delete(s.childScopes, k) // scope is removed from DI container
+		err.Add(s.id, s.name, name, e)
 		s.mu.Unlock()
 	}
 
-	// then shutdown scope services
-	for index := s.orderedInvocationIndex; index >= 0; index-- {
-		name, ok := invocations[index]
-		if !ok {
-			continue
-		}
-
-		err[name] = s.serviceShutdown(ctx, name)
+	listServices := func() []string {
+		s.mu.RLock()
+		defer s.mu.RUnlock()
+		return keys(s.services)
 	}
 
-	s.logf("shutdowned services")
+	var wg sync.WaitGroup
+
+	for len(listServices()) > 0 {
+		// loop over the service that have not been shutdown already
+		for _, name := range listServices() {
+			// Check the service has no dependents (dependencies allowed here).
+			// Services having dependents must be shutdown first.
+			// The next iteration will shutdown current service.
+			_, dependents := s.rootScope.dag.explainService(s.id, s.name, name)
+			if len(dependents) > 0 {
+				continue
+			}
+
+			wg.Add(1)
+			go func(n string) {
+				e := s.serviceShutdown(ctx, n)
+				addError(n, e)
+				wg.Done()
+			}(name)
+		}
+
+		wg.Wait()
+	}
 
 	return err
 }
@@ -393,23 +445,21 @@ func (s *Scope) serviceHealthCheck(ctx context.Context, name string) error {
 
 func (s *Scope) serviceShutdown(ctx context.Context, name string) error {
 	s.mu.RLock()
-
 	serviceAny, ok := s.services[name]
+	s.mu.RUnlock()
+
 	if !ok {
-		s.mu.RUnlock()
 		return serviceNotFound(s, []string{name})
 	}
 
-	s.mu.RUnlock()
+	var err error
 
 	service, ok := serviceAny.(serviceShutdown)
 	if ok {
 		s.logf("requested shutdown for service %s", name)
 
-		err := service.shutdown(ctx)
-		if err != nil {
-			return err
-		}
+		err = service.shutdown(ctx)
+		s.onServiceShutdown(name)
 	} else {
 		panic(fmt.Errorf("DI: service `%s` is not shutdowner", name))
 	}
@@ -417,11 +467,10 @@ func (s *Scope) serviceShutdown(ctx context.Context, name string) error {
 	s.mu.Lock()
 	delete(s.services, name) // service is removed from DI container
 	delete(s.orderedInvocation, name)
+	s.RootScope().dag.removeService(s.id, s.name, name)
 	s.mu.Unlock()
 
-	s.onServiceShutdown(name)
-
-	return nil
+	return err
 }
 
 /**********************************
