@@ -17,8 +17,8 @@ type Injector interface {
 	ListInvokedServices() []EdgeService
 	HealthCheck() map[string]error
 	HealthCheckWithContext(context.Context) map[string]error
-	Shutdown() map[string]error
-	ShutdownWithContext(context.Context) map[string]error
+	Shutdown() *ShutdownErrors
+	ShutdownWithContext(context.Context) *ShutdownErrors
 	clone(*RootScope, *Scope) *Scope
 
 	// service lifecycle
