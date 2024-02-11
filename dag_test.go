@@ -1,7 +1,6 @@
 package do
 
 import (
-	"sync"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -24,11 +23,11 @@ func TestNewDAG(t *testing.T) {
 	is := assert.New(t)
 
 	dag := newDAG()
-	expectedDependencies := unSyncMap(new(sync.Map))
-	expectedDependents := unSyncMap(new(sync.Map))
+	expectedDependencies := map[EdgeService]map[EdgeService]struct{}{}
+	expectedDependents := map[EdgeService]map[EdgeService]struct{}{}
 
-	is.Equal(expectedDependencies, unSyncMap(dag.dependencies))
-	is.Equal(expectedDependents, unSyncMap(dag.dependents))
+	is.Equal(expectedDependencies, dag.dependencies)
+	is.Equal(expectedDependents, dag.dependents)
 }
 
 // TestDAG_addDependency checks the addition of dependencies to the DAG.
@@ -44,19 +43,42 @@ func TestDAG_addDependency(t *testing.T) {
 
 	dag.addDependency("scope1", "scope1", "service1", "scope2", "scope2", "service2")
 
-	expectedDependencies := map[interface{}]interface{}{edge1: map[interface{}]interface{}{edge2: struct{}{}}}
-	expectedDependents := map[interface{}]interface{}{edge2: map[interface{}]interface{}{edge1: struct{}{}}}
+	expectedDependencies := map[EdgeService]map[EdgeService]struct{}{edge1: {edge2: {}}}
+	expectedDependents := map[EdgeService]map[EdgeService]struct{}{edge2: {edge1: {}}}
 
-	is.Equal(expectedDependencies, unSyncMap(dag.dependencies))
-	is.Equal(expectedDependents, unSyncMap(dag.dependents))
+	is.Equal(expectedDependencies, dag.dependencies)
+	is.Equal(expectedDependents, dag.dependents)
 
 	dag.addDependency("scope3", "scope3", "service3", "scope2", "scope2", "service2")
 
-	expectedDependencies[edge3] = map[interface{}]interface{}{edge2: struct{}{}}
-	expectedDependents[edge2] = map[interface{}]interface{}{edge1: struct{}{}, edge3: struct{}{}}
+	expectedDependencies = map[EdgeService]map[EdgeService]struct{}{edge1: {edge2: {}}, edge3: {edge2: {}}}
+	expectedDependents = map[EdgeService]map[EdgeService]struct{}{edge2: {edge1: {}, edge3: {}}}
 
-	is.Equal(expectedDependencies, unSyncMap(dag.dependencies))
-	is.Equal(expectedDependents, unSyncMap(dag.dependents))
+	is.Equal(expectedDependencies, dag.dependencies)
+	is.Equal(expectedDependents, dag.dependents)
+}
+
+// TestDAG_removeService checks the removal of dependencies to the DAG.
+func TestDAG_removeService(t *testing.T) {
+	t.Parallel()
+	is := assert.New(t)
+
+	edge1 := newEdgeService("scope1", "scope1", "service1")
+	// edge2 := newEdgeService("scope2", "scope2", "service2")
+	edge3 := newEdgeService("scope3", "scope3", "service3")
+
+	dag := newDAG()
+
+	dag.addDependency("scope1", "scope1", "service1", "scope2", "scope2", "service2")
+	dag.addDependency("scope3", "scope3", "service3", "scope2", "scope2", "service2")
+
+	dag.removeService("scope2", "scope2", "service2")
+
+	expectedDependencies := map[EdgeService]map[EdgeService]struct{}{edge1: {}, edge3: {}}
+	expectedDependents := map[EdgeService]map[EdgeService]struct{}{}
+
+	is.Equal(expectedDependencies, dag.dependencies)
+	is.Equal(expectedDependents, dag.dependents)
 }
 
 // TestDAG_explainService checks the explanation of dependencies for a service in the DAG.
@@ -91,20 +113,4 @@ func TestDAG_explainService(t *testing.T) {
 	a, b = dag.explainService("scopeX", "scopeX", "serviceX")
 	is.ElementsMatch([]EdgeService{}, a)
 	is.ElementsMatch([]EdgeService{}, b)
-}
-
-func unSyncMap(syncMap *sync.Map) map[interface{}]interface{} {
-	result := make(map[interface{}]interface{})
-
-	syncMap.Range(func(key, value interface{}) bool {
-		if vSyncMap, ok := value.(*sync.Map); ok {
-			result[key] = unSyncMap(vSyncMap)
-		} else {
-			result[key] = value
-		}
-
-		return true
-	})
-
-	return result
 }

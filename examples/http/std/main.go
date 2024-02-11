@@ -3,7 +3,7 @@ package main
 import (
 	"net/http"
 
-	"github.com/samber/do/http/std"
+	"github.com/samber/do/http/std/v2"
 )
 
 func main() {
