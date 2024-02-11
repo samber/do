@@ -2,7 +2,7 @@ package main
 
 import (
 	"context"
-	"log"
+	"fmt"
 
 	"github.com/samber/do/v2"
 )
@@ -45,7 +45,7 @@ type Car struct {
 
 func (c *Car) Shutdown() error {
 	println("car stopped")
-	return nil
+	return fmt.Errorf("💥 BOOOOM!")
 }
 
 func (c *Car) Start() {
@@ -95,9 +95,7 @@ func main() {
 	car.Start()
 
 	_, err := injector.ShutdownOnSignals()
-	for _, e := range err {
-		if e != nil {
-			log.Fatal(e.Error())
-		}
+	if err != nil {
+		fmt.Println(err.Error())
 	}
 }
