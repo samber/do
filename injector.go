@@ -198,8 +198,10 @@ func (i *Injector) shutdownImplem(name string) error {
 		}
 	}
 
+	i.mu.Lock()
 	delete(i.services, name)
 	delete(i.orderedInvocation, name)
+	i.mu.Unlock()
 
 	i.onServiceShutdown(name)
 
