@@ -19,7 +19,7 @@ Aliases must be Go interfaces. It can be declared explicitly on injection using 
    - provide struct, bind interface, invoke interface
    - `do.As()`
 
-## Implicit invocation (prefered)
+## Implicit invocation (preferred)
 
 2 methods are available for implicit invocation:
 - `do.InvokeAs`
