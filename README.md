@@ -27,7 +27,7 @@ I love **short name** for such a utility library. This name is the sum of `DI` a
 Check out the beta now!
 
 ```bash
-go get -u github.com/samber/do/v2@v2.0.0-beta.4
+go get -u github.com/samber/do/v2@v2.0.0-beta.5
 ```
 
 Documentation: https://do.samber.dev/
