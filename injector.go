@@ -107,11 +107,12 @@ func (i *Injector) HealthCheck() map[string]error {
 func (i *Injector) Shutdown() error {
 	i.mu.RLock()
 	invocations := invertMap(i.orderedInvocation)
+	invocationIndex := i.orderedInvocationIndex
 	i.mu.RUnlock()
 
 	i.logf("requested shutdown")
 
-	for index := i.orderedInvocationIndex; index >= 0; index-- {
+	for index := invocationIndex; index >= 0; index-- {
 		name, ok := invocations[index]
 		if !ok {
 			continue
