@@ -78,7 +78,7 @@ import (
 )
 ```
 
-Then instanciate services:
+Then instantiate services:
 
 ```go
 func main() {
