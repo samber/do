@@ -12,7 +12,7 @@ Eager loading initializes a resource as soon as the code is executed.
 
 An eager service is simply initialized by you and then injected into the DI container.
 
-A service can be injected in many ways. Here is the full list of lazy loading service injections.
+A service can be injected in many ways. Here is the full list of eager loading service injections.
 
 ```go
 func ProvideValue[T any](i do.Injector, value T)
