@@ -92,7 +92,7 @@ func OverrideNamedValue[T any](i Injector, name string, value T) {
 // OverrideTransient replaces the factory in the DI container, using type inference to determine the service name.
 func OverrideTransient[T any](i Injector, provider Provider[T]) {
 	name := inferServiceName[T]()
-	OverrideNamed[T](i, name, provider)
+	OverrideNamedTransient[T](i, name, provider)
 }
 
 // OverrideNamedTransient replaces the named factory in the DI container.
