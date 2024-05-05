@@ -481,6 +481,7 @@ func TestScope_ShutdownWithContext(t *testing.T) {
 	is.ErrorContains(child2b.serviceShutdown(ctx, "child2a-a"), "could not find service")
 	is.ErrorContains(child2b.serviceShutdown(ctx, "child2a-b"), "could not find service")
 	is.Equal(assert.AnError, child2b.serviceShutdown(ctx, "child2b-a"))
+
 }
 
 func TestScope_clone(t *testing.T) {
