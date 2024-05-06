@@ -16,17 +16,17 @@ type virtualScope struct {
 }
 
 // pass through
-func (s *virtualScope) ID() string                             { return s.self.ID() }
-func (s *virtualScope) Name() string                           { return s.self.Name() }
-func (s *virtualScope) Scope(name string) *Scope               { return s.self.Scope(name) }
-func (s *virtualScope) RootScope() *RootScope                  { return s.self.RootScope() }
-func (s *virtualScope) Ancestors() []*Scope                    { return s.self.Ancestors() }
-func (s *virtualScope) Children() []*Scope                     { return s.self.Children() }
-func (s *virtualScope) ChildByID(id string) (*Scope, bool)     { return s.self.ChildByID(id) }
-func (s *virtualScope) ChildByName(name string) (*Scope, bool) { return s.self.ChildByName(name) }
-func (s *virtualScope) ListProvidedServices() []EdgeService    { return s.self.ListProvidedServices() }
-func (s *virtualScope) ListInvokedServices() []EdgeService     { return s.self.ListInvokedServices() }
-func (s *virtualScope) HealthCheck() map[string]error          { return s.self.HealthCheck() }
+func (s *virtualScope) ID() string                                 { return s.self.ID() }
+func (s *virtualScope) Name() string                               { return s.self.Name() }
+func (s *virtualScope) Scope(n string, p ...func(Injector)) *Scope { return s.self.Scope(n, p...) }
+func (s *virtualScope) RootScope() *RootScope                      { return s.self.RootScope() }
+func (s *virtualScope) Ancestors() []*Scope                        { return s.self.Ancestors() }
+func (s *virtualScope) Children() []*Scope                         { return s.self.Children() }
+func (s *virtualScope) ChildByID(id string) (*Scope, bool)         { return s.self.ChildByID(id) }
+func (s *virtualScope) ChildByName(name string) (*Scope, bool)     { return s.self.ChildByName(name) }
+func (s *virtualScope) ListProvidedServices() []EdgeService        { return s.self.ListProvidedServices() }
+func (s *virtualScope) ListInvokedServices() []EdgeService         { return s.self.ListInvokedServices() }
+func (s *virtualScope) HealthCheck() map[string]error              { return s.self.HealthCheck() }
 func (s *virtualScope) HealthCheckWithContext(ctx context.Context) map[string]error {
 	return s.self.HealthCheckWithContext(ctx)
 }

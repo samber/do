@@ -13,12 +13,12 @@ var DefaultRootScope *RootScope = New()
 var noOpLogf = func(format string, args ...any) {}
 
 // New creates a new injector.
-func New() *RootScope {
-	return NewWithOpts(&InjectorOpts{})
+func New(packages ...func(Injector)) *RootScope {
+	return NewWithOpts(&InjectorOpts{}, packages...)
 }
 
 // NewWithOpts creates a new injector with options.
-func NewWithOpts(opts *InjectorOpts) *RootScope {
+func NewWithOpts(opts *InjectorOpts, packages ...func(Injector)) *RootScope {
 	if opts.Logf == nil {
 		opts.Logf = noOpLogf
 	}
@@ -38,6 +38,10 @@ func NewWithOpts(opts *InjectorOpts) *RootScope {
 
 	root.opts.Logf("DI: injector created")
 
+	for _, pkg := range packages {
+		pkg(root)
+	}
+
 	return root
 }
 
@@ -52,17 +56,17 @@ type RootScope struct {
 }
 
 // pass through
-func (s *RootScope) ID() string                             { return s.self.ID() }
-func (s *RootScope) Name() string                           { return s.self.Name() }
-func (s *RootScope) Scope(name string) *Scope               { return s.self.Scope(name) }
-func (s *RootScope) RootScope() *RootScope                  { return s.self.RootScope() }
-func (s *RootScope) Ancestors() []*Scope                    { return []*Scope{} }
-func (s *RootScope) Children() []*Scope                     { return s.self.Children() }
-func (s *RootScope) ChildByID(id string) (*Scope, bool)     { return s.self.ChildByID(id) }
-func (s *RootScope) ChildByName(name string) (*Scope, bool) { return s.self.ChildByName(name) }
-func (s *RootScope) ListProvidedServices() []EdgeService    { return s.self.ListProvidedServices() }
-func (s *RootScope) ListInvokedServices() []EdgeService     { return s.self.ListInvokedServices() }
-func (s *RootScope) HealthCheck() map[string]error          { return s.self.HealthCheck() }
+func (s *RootScope) ID() string                                    { return s.self.ID() }
+func (s *RootScope) Name() string                                  { return s.self.Name() }
+func (s *RootScope) Scope(name string, p ...func(Injector)) *Scope { return s.self.Scope(name, p...) }
+func (s *RootScope) RootScope() *RootScope                         { return s.self.RootScope() }
+func (s *RootScope) Ancestors() []*Scope                           { return []*Scope{} }
+func (s *RootScope) Children() []*Scope                            { return s.self.Children() }
+func (s *RootScope) ChildByID(id string) (*Scope, bool)            { return s.self.ChildByID(id) }
+func (s *RootScope) ChildByName(name string) (*Scope, bool)        { return s.self.ChildByName(name) }
+func (s *RootScope) ListProvidedServices() []EdgeService           { return s.self.ListProvidedServices() }
+func (s *RootScope) ListInvokedServices() []EdgeService            { return s.self.ListInvokedServices() }
+func (s *RootScope) HealthCheck() map[string]error                 { return s.self.HealthCheck() }
 func (s *RootScope) HealthCheckWithContext(ctx context.Context) map[string]error {
 	return s.self.HealthCheckWithContext(ctx)
 }

@@ -23,13 +23,39 @@ For a quick start, you may use the default global container. This is highly disc
 ```go
 import "github.com/samber/do/v2"
 
-Provide(nil, ...)
-Invoke(nil, ...)
+do.Provide(nil, ...)
+do.Invoke(nil, ...)
 
 // equal to:
 
-Provide(do.DefaultRootScope, ...)
-Invoke(do.DefaultRootScope, ...)
+do.Provide(do.DefaultRootScope, ...)
+do.Invoke(do.DefaultRootScope, ...)
+```
+
+## Register services on container initialization
+
+The services can be assembled into a package, and then, imported all at once into a new container.
+
+```go
+// pkg/stores/package.go
+
+var Package = do.Package(
+    do.Lazy(NewPostgresqlConnectionService),
+    do.Lazy(NewUserRepository),
+    do.Lazy(NewArticleRepository),
+    do.EagerNamed("repository.logger", slog.New(slog.NewTextHandler(os.Stdout, nil))),
+)
+```
+
+```go
+// cmd/main.go
+
+import (
+    "example/pkg/stores"
+    "example/pkg/handlers"
+)
+
+injector := do.New(stores.Package)
 ```
 
 ## Custom options

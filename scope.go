@@ -51,7 +51,7 @@ func (s *Scope) Name() string {
 }
 
 // Scope creates a new child scope.
-func (s *Scope) Scope(name string) *Scope {
+func (s *Scope) Scope(name string, packages ...func(Injector)) *Scope {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
@@ -61,6 +61,10 @@ func (s *Scope) Scope(name string) *Scope {
 
 	child := newScope(name, s.rootScope, s)
 	s.childScopes[name] = child
+
+	for _, pkg := range packages {
+		pkg(child)
+	}
 
 	return child
 }
