@@ -8,6 +8,8 @@ import (
 	typetostring "github.com/samber/go-type-to-string"
 )
 
+var MaxInvokationFrames uint32 = 100
+
 type ServiceType string
 
 const (
