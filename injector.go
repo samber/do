@@ -7,7 +7,7 @@ type Injector interface {
 	// api
 	ID() string
 	Name() string
-	Scope(string) *Scope
+	Scope(string, ...func(Injector)) *Scope
 	RootScope() *RootScope
 	Ancestors() []*Scope
 	Children() []*Scope
