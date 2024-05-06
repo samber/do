@@ -3,6 +3,7 @@ package do
 import (
 	"context"
 	"sync"
+	"sync/atomic"
 
 	"github.com/samber/do/v2/stacktrace"
 )
@@ -13,24 +14,26 @@ var _ serviceShutdown = (*serviceEager[int])(nil)
 var _ serviceClone = (*serviceEager[int])(nil)
 
 type serviceEager[T any] struct {
-	mu       sync.RWMutex
 	name     string
 	instance T
 
-	providerFrame    stacktrace.Frame
-	invokationFrames []stacktrace.Frame
+	providerFrame           stacktrace.Frame
+	invokationFrames        map[stacktrace.Frame]struct{} // map garanties uniqueness
+	invokationFramesMu      sync.RWMutex
+	invokationFramesCounter uint32
 }
 
 func newServiceEager[T any](name string, instance T) *serviceEager[T] {
 	providerFrame, _ := stacktrace.NewFrameFromCaller()
 
 	return &serviceEager[T]{
-		mu:       sync.RWMutex{},
 		name:     name,
 		instance: instance,
 
-		providerFrame:    providerFrame,
-		invokationFrames: []stacktrace.Frame{},
+		providerFrame:           providerFrame,
+		invokationFrames:        map[stacktrace.Frame]struct{}{},
+		invokationFramesMu:      sync.RWMutex{},
+		invokationFramesCounter: 0,
 	}
 }
 
@@ -51,11 +54,16 @@ func (s *serviceEager[T]) getInstanceAny(i Injector) (any, error) {
 }
 
 func (s *serviceEager[T]) getInstance(i Injector) (T, error) {
-	frame, ok := stacktrace.NewFrameFromCaller()
-	if ok {
-		s.mu.Lock()
-		s.invokationFrames = append(s.invokationFrames, frame) // @TODO: potential memory leak
-		s.mu.Unlock()
+	// Collect up to 100 invokation frames.
+	// In the future, we can implement a LFU list, to evict the oldest
+	// frames and keep the most recent ones, but it would be much more costly.
+	if atomic.AddUint32(&s.invokationFramesCounter, 1) < MaxInvokationFrames {
+		s.invokationFramesMu.Lock()
+		frame, ok := stacktrace.NewFrameFromCaller()
+		if ok {
+			s.invokationFrames[frame] = struct{}{}
+		}
+		s.invokationFramesMu.Unlock()
 	}
 
 	return s.instance, nil
@@ -103,16 +111,24 @@ func (s *serviceEager[T]) shutdown(ctx context.Context) error {
 
 func (s *serviceEager[T]) clone() any {
 	return &serviceEager[T]{
-		mu:       sync.RWMutex{},
 		name:     s.name,
 		instance: s.instance,
 
-		providerFrame:    s.providerFrame,
-		invokationFrames: []stacktrace.Frame{},
+		providerFrame:           s.providerFrame,
+		invokationFrames:        map[stacktrace.Frame]struct{}{},
+		invokationFramesMu:      sync.RWMutex{},
+		invokationFramesCounter: 0,
 	}
 }
 
 // nolint:unused
 func (s *serviceEager[T]) source() (stacktrace.Frame, []stacktrace.Frame) {
-	return s.providerFrame, s.invokationFrames
+	s.invokationFramesMu.RLock()
+	invokationFrames := make([]stacktrace.Frame, 0, len(s.invokationFrames))
+	for frame := range s.invokationFrames {
+		invokationFrames = append(invokationFrames, frame)
+	}
+	s.invokationFramesMu.RUnlock()
+
+	return s.providerFrame, invokationFrames
 }
