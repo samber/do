@@ -30,7 +30,7 @@ import "github.com/samber/do/v2"
 injector := do.New()
 ```
 
-## Service provider and invocation
+## Service registration and invocation
 
 Services can be declared as a singleton or a factory. In this example, we will create 2 services `Car` and `Engine`, with a simple dependency relation.
 

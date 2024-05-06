@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"sync"
+	"sync/atomic"
 
 	"github.com/samber/do/v2/stacktrace"
 )
@@ -19,8 +20,9 @@ type serviceAlias[Initial any, Alias any] struct {
 	scope      Injector
 	targetName string
 
-	providerFrame    stacktrace.Frame
-	invokationFrames []stacktrace.Frame
+	providerFrame           stacktrace.Frame
+	invokationFrames        map[stacktrace.Frame]struct{} // map garanties uniqueness
+	invokationFramesCounter uint32
 }
 
 func newServiceAlias[Initial any, Alias any](name string, scope Injector, targetName string) *serviceAlias[Initial, Alias] {
@@ -32,8 +34,9 @@ func newServiceAlias[Initial any, Alias any](name string, scope Injector, target
 		scope:      scope,
 		targetName: targetName,
 
-		providerFrame:    providerFrame,
-		invokationFrames: []stacktrace.Frame{},
+		providerFrame:           providerFrame,
+		invokationFrames:        map[stacktrace.Frame]struct{}{},
+		invokationFramesCounter: 0,
 	}
 }
 
@@ -54,11 +57,16 @@ func (s *serviceAlias[Initial, Alias]) getInstanceAny(i Injector) (any, error) {
 }
 
 func (s *serviceAlias[Initial, Alias]) getInstance(i Injector) (Alias, error) {
-	frame, ok := stacktrace.NewFrameFromCaller()
-	if ok {
-		s.mu.Lock()
-		s.invokationFrames = append(s.invokationFrames, frame) // @TODO: potential memory leak
-		s.mu.Unlock()
+	// Collect up to 100 invokation frames.
+	// In the future, we can implement a LFU list, to evict the oldest
+	// frames and keep the most recent ones, but it would be much more costly.
+	if atomic.AddUint32(&s.invokationFramesCounter, 1) < MaxInvokationFrames {
+		frame, ok := stacktrace.NewFrameFromCaller()
+		if ok {
+			s.mu.Lock()
+			s.invokationFrames[frame] = struct{}{}
+			s.mu.Unlock()
+		}
 	}
 
 	instance, err := invokeByName[Initial](s.scope, s.targetName)
@@ -158,12 +166,20 @@ func (s *serviceAlias[Initial, Alias]) clone() any {
 		// scope:      s.scope,		<-- @TODO: we should inject here the cloned scope
 		targetName: s.targetName,
 
-		providerFrame:    s.providerFrame,
-		invokationFrames: []stacktrace.Frame{},
+		providerFrame:           s.providerFrame,
+		invokationFrames:        map[stacktrace.Frame]struct{}{},
+		invokationFramesCounter: 0,
 	}
 }
 
 // nolint:unused
 func (s *serviceAlias[Initial, Alias]) source() (stacktrace.Frame, []stacktrace.Frame) {
-	return s.providerFrame, s.invokationFrames
+	s.mu.RLock()
+	invokationFrames := make([]stacktrace.Frame, 0, len(s.invokationFrames))
+	for frame := range s.invokationFrames {
+		invokationFrames = append(invokationFrames, frame)
+	}
+	s.mu.RUnlock()
+
+	return s.providerFrame, invokationFrames
 }
