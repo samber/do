@@ -268,41 +268,66 @@ func (s *Scope) shutdownChildrenInParallel(ctx context.Context) *ShutdownErrors 
 func (s *Scope) shutdownServicesInParallel(ctx context.Context) *ShutdownErrors {
 	err := newShutdownErrors()
 
-	addError := func(name string, e error) {
-		s.mu.Lock()
-		err.Add(s.id, s.name, name, e)
-		s.mu.Unlock()
-	}
-
 	listServices := func() []string {
 		s.mu.RLock()
 		defer s.mu.RUnlock()
 		return keys(s.services)
 	}
 
-	var wg sync.WaitGroup
+	// var wg sync.WaitGroup
 
 	for len(listServices()) > 0 {
+		services := listServices()
+		servicesToShutdown := []string{}
+
 		// loop over the service that have not been shutdown already
-		for _, name := range listServices() {
+		for _, name := range services {
 			// Check the service has no dependents (dependencies allowed here).
 			// Services having dependents must be shutdown first.
 			// The next iteration will shutdown current service.
 			_, dependents := s.rootScope.dag.explainService(s.id, s.name, name)
-			if len(dependents) > 0 {
-				continue
+			if len(dependents) == 0 {
+				servicesToShutdown = append(servicesToShutdown, name)
 			}
-
-			wg.Add(1)
-			go func(n string) {
-				e := s.serviceShutdown(ctx, n)
-				addError(n, e)
-				wg.Done()
-			}(name)
 		}
 
-		wg.Wait()
+		if len(servicesToShutdown) > 0 {
+			e := s.shutdownServicesWithoutDependenciesInParallel(ctx, servicesToShutdown)
+			err = mergeShutdownErrors(err, e)
+		} else {
+			// In this branch, we expect that there is a circular dependency. We shutdown all services, without taking care of order.
+			e := s.shutdownServicesWithoutDependenciesInParallel(ctx, services)
+			err = mergeShutdownErrors(err, e)
+		}
 	}
+
+	return err
+}
+
+func (s *Scope) shutdownServicesWithoutDependenciesInParallel(ctx context.Context, serviceNames []string) *ShutdownErrors {
+	if len(serviceNames) == 0 {
+		return nil
+	}
+
+	err := newShutdownErrors()
+	mu := sync.Mutex{}
+
+	var wg sync.WaitGroup
+	wg.Add(len(serviceNames))
+
+	for _, name := range serviceNames {
+		go func(n string) {
+			e := s.serviceShutdown(ctx, n)
+
+			mu.Lock()
+			err.Add(s.id, s.name, n, e)
+			mu.Unlock()
+
+			wg.Done()
+		}(name)
+	}
+
+	wg.Wait()
 
 	return err
 }
