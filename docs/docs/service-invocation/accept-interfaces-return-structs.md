@@ -60,6 +60,14 @@ The first matching service in the scope tree is returned.
 
 :::
 
+:::warning
+
+Invoking an implicit alias with a very simple interface signature might lead to loading the wrong service.
+
+Eg: `fmt.Stringer` might match dozens of services in a container.
+
+:::
+
 ## Explicit injection
 
 Explicit injection will be used in rare cases when you need to adapt to legacy code or change the catalog of services at runtime.
