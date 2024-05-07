@@ -55,7 +55,5 @@ func InvokeAs[T any](i Injector) (T, error) {
 
 // MustInvokeAs invokes a service in the DI container. The first service matching the provided type or interface will be invoked. It panics on error.
 func MustInvokeAs[T any](i Injector) T {
-	s, err := InvokeAs[T](i)
-	must0(err)
-	return s
+	return must1(InvokeAs[T](i))
 }

@@ -577,7 +577,7 @@ func TestInvokeStruct(t *testing.T) {
 		eagerTest *hasNonExportedEagerTestDependency `do:""` //nolint:unused
 	}
 	test4, err := InvokeStruct[dependencyNotFound](i)
-	is.Equal(serviceNotFound(i, []string{inferServiceName[*hasNonExportedEagerTestDependency]()}).Error(), err.Error())
+	is.Equal(serviceNotFound(i, ErrServiceNotFound, []string{inferServiceName[*hasNonExportedEagerTestDependency]()}).Error(), err.Error())
 	is.Nil(test4)
 
 	// use tag
@@ -585,7 +585,7 @@ func TestInvokeStruct(t *testing.T) {
 		eagerTest *eagerTest `do:"int"` //nolint:unused
 	}
 	test5, err := InvokeStruct[namedDependency](i)
-	is.Equal(serviceNotFound(i, []string{inferServiceName[int]()}).Error(), err.Error())
+	is.Equal(serviceNotFound(i, ErrServiceNotFound, []string{inferServiceName[int]()}).Error(), err.Error())
 	is.Nil(test5)
 
 	// named service
