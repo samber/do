@@ -29,7 +29,7 @@ func invokeAnyByName(i Injector, name string) (any, error) {
 
 	serviceAny, serviceScope, found := injector.serviceGetRec(name)
 	if !found {
-		return nil, serviceNotFound(injector, invokerChain)
+		return nil, serviceNotFound(injector, ErrServiceNotFound, invokerChain)
 	}
 
 	if isVirtualScope {
@@ -38,7 +38,7 @@ func invokeAnyByName(i Injector, name string) (any, error) {
 
 	service, ok := serviceAny.(ServiceAny)
 	if !ok {
-		return nil, serviceNotFound(injector, invokerChain)
+		return nil, serviceNotFound(injector, ErrServiceNotFound, invokerChain)
 	}
 
 	instance, err := service.getInstanceAny(&virtualScope{invokerChain: invokerChain, self: serviceScope})
@@ -72,7 +72,7 @@ func invokeByName[T any](i Injector, name string) (T, error) {
 
 	serviceAny, serviceScope, found := injector.serviceGetRec(name)
 	if !found {
-		return empty[T](), serviceNotFound(injector, invokerChain)
+		return empty[T](), serviceNotFound(injector, ErrServiceNotFound, invokerChain)
 	}
 
 	if isVirtualScope {
@@ -81,7 +81,7 @@ func invokeByName[T any](i Injector, name string) (T, error) {
 
 	service, ok := serviceAny.(Service[T])
 	if !ok {
-		return empty[T](), serviceNotFound(injector, invokerChain)
+		return empty[T](), serviceNotFound(injector, ErrServiceNotFound, invokerChain)
 	}
 
 	instance, err := service.getInstance(&virtualScope{invokerChain: invokerChain, self: serviceScope})
@@ -131,7 +131,7 @@ func invokeByGenericType[T any](i Injector) (T, error) {
 	})
 
 	if !ok {
-		return empty[T](), serviceNotFound(injector, append(invokerChain, serviceAliasName))
+		return empty[T](), serviceNotFound(injector, ErrServiceNotMatch, append(invokerChain, serviceAliasName))
 	}
 
 	if isVirtualScope {
@@ -219,24 +219,24 @@ func invokeByTags(i Injector, structName string, structValue reflect.Value) erro
 }
 
 // serviceNotFound returns an error indicating that the specified service was not found.
-func serviceNotFound(injector Injector, chain []string) error {
+func serviceNotFound(injector Injector, err error, chain []string) error {
 	name := chain[len(chain)-1]
 	services := injector.ListProvidedServices()
 
 	if len(services) == 0 {
 		if len(chain) > 1 {
-			return fmt.Errorf("%w `%s`, no service available, path: %s", ErrServiceNotFound, name, humanReadableInvokerChain(chain))
+			return fmt.Errorf("%w `%s`, no service available, path: %s", err, name, humanReadableInvokerChain(chain))
 		}
-		return fmt.Errorf("%w `%s`, no service available", ErrServiceNotFound, name)
+		return fmt.Errorf("%w `%s`, no service available", err, name)
 	}
 
 	serviceNames := getServiceNames(services)
 	sortedServiceNames := sortServiceNames(serviceNames)
 
 	if len(chain) > 1 {
-		return fmt.Errorf("%w `%s`, available services: %s, path: %s", ErrServiceNotFound, name, strings.Join(sortedServiceNames, ", "), humanReadableInvokerChain(chain))
+		return fmt.Errorf("%w `%s`, available services: %s, path: %s", err, name, strings.Join(sortedServiceNames, ", "), humanReadableInvokerChain(chain))
 	}
-	return fmt.Errorf("%w `%s`, available services: %s", ErrServiceNotFound, name, strings.Join(sortedServiceNames, ", "))
+	return fmt.Errorf("%w `%s`, available services: %s", err, name, strings.Join(sortedServiceNames, ", "))
 }
 
 // getServiceNames formats a list of EdgeService names.
