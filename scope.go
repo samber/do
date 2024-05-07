@@ -452,7 +452,7 @@ func (s *Scope) serviceHealthCheck(ctx context.Context, name string) error {
 	serviceAny, ok := s.services[name]
 	if !ok {
 		s.mu.RUnlock()
-		return serviceNotFound(s, []string{name})
+		return serviceNotFound(s, ErrServiceNotFound, []string{name})
 	}
 
 	s.mu.RUnlock()
@@ -478,7 +478,7 @@ func (s *Scope) serviceShutdown(ctx context.Context, name string) error {
 	s.mu.RUnlock()
 
 	if !ok {
-		return serviceNotFound(s, []string{name})
+		return serviceNotFound(s, ErrServiceNotFound, []string{name})
 	}
 
 	var err error

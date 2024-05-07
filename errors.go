@@ -7,6 +7,7 @@ import (
 )
 
 var ErrServiceNotFound = errors.New("DI: could not find service")
+var ErrServiceNotMatch = errors.New("DI: could not find service satisfying interface")
 var ErrCircularDependency = errors.New("DI: circular dependency detected")
 var ErrHealthCheckTimeout = errors.New("DI: health check timeout")
 

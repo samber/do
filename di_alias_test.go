@@ -67,7 +67,7 @@ func TestInvokeAs(t *testing.T) {
 	// not found
 	svc2, err := InvokeAs[Shutdowner](i)
 	is.Empty(svc2)
-	is.EqualError(err, "DI: could not find service `*github.com/samber/do/v2.Shutdowner`, available services: `*github.com/samber/do/v2.lazyTestHeathcheckerOK`")
+	is.EqualError(err, "DI: could not find service satisfying interface `*github.com/samber/do/v2.Shutdowner`, available services: `*github.com/samber/do/v2.lazyTestHeathcheckerOK`")
 }
 
 func TestMustInvokeAs(t *testing.T) {
