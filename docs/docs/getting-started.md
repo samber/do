@@ -35,13 +35,18 @@ injector := do.New()
 Services can be declared as a singleton or a factory. In this example, we will create 2 services `Car` and `Engine`, with a simple dependency relation.
 
 ```go
-func main() {
-    // create DI container
-    i := do.New()
+// export services into a package
+var Pkg = do.Package(
+    do.Lazy(NewCar),
+    do.Lazy(NewEngine),
+    do.Eager(&Config{
+        Port: 4242,
+    })
+)
 
-    // inject both services into DI container
-    Provide[*Car](i, NewCar)
-    Provide[*Engine](i, NewEngine)
+func main() {
+    // create DI container and inject package services
+    i := do.New(Pkg)
 
     // invoking car will instantiate Car services and its Engine dependency
     car, err := Invoke[*Car](i)

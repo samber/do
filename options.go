@@ -1,6 +1,8 @@
 package do
 
-import "time"
+import (
+	"time"
+)
 
 const DefaultStructTagKey = "do"
 
@@ -21,27 +23,27 @@ type InjectorOpts struct {
 	StructTagKey string
 }
 
-func (o *InjectorOpts) AddBeforeRegistrationHook(hook func(scope *Scope, serviceName string)) {
+func (o *InjectorOpts) AddBeforeRegistrationHook(hook func(*Scope, string)) {
 	o.HookBeforeRegistration = append(o.HookBeforeRegistration, hook)
 }
 
-func (o *InjectorOpts) AddAfterRegistrationHook(hook func(scope *Scope, serviceName string)) {
+func (o *InjectorOpts) AddAfterRegistrationHook(hook func(*Scope, string)) {
 	o.HookAfterRegistration = append(o.HookAfterRegistration, hook)
 }
 
-func (o *InjectorOpts) AddBeforeInvocationHook(hook func(scope *Scope, serviceName string)) {
+func (o *InjectorOpts) AddBeforeInvocationHook(hook func(*Scope, string)) {
 	o.HookBeforeInvocation = append(o.HookBeforeInvocation, hook)
 }
 
-func (o *InjectorOpts) AddAfterInvocationHook(hook func(scope *Scope, serviceName string, err error)) {
+func (o *InjectorOpts) AddAfterInvocationHook(hook func(*Scope, string, error)) {
 	o.HookAfterInvocation = append(o.HookAfterInvocation, hook)
 }
 
-func (o *InjectorOpts) AddBeforeShutdownHook(hook func(scope *Scope, serviceName string)) {
+func (o *InjectorOpts) AddBeforeShutdownHook(hook func(*Scope, string)) {
 	o.HookBeforeShutdown = append(o.HookBeforeShutdown, hook)
 }
 
-func (o *InjectorOpts) AddAfterShutdownHook(hook func(scope *Scope, serviceName string, err error)) {
+func (o *InjectorOpts) AddAfterShutdownHook(hook func(*Scope, string, error)) {
 	o.HookAfterShutdown = append(o.HookAfterShutdown, hook)
 }
 

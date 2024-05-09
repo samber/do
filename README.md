@@ -31,8 +31,9 @@ I love the **short name** for such a utility library. This name is the sum of `D
 ## 💡 Features
 
 - **📒 Service registration**
-  - By type inference
-  - By name
+  - Register by type
+  - Register by name
+  - Register multiple services from a package at once
 - **🪃 Service invocation**
   - Eager loading
   - Lazy loading
