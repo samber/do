@@ -15,7 +15,7 @@ func TestNameOf(t *testing.T) {
 	is.Equal("github.com/samber/do/v2.eagerTest", NameOf[eagerTest]())
 	is.Equal("*github.com/samber/do/v2.eagerTest", NameOf[*eagerTest]())
 	is.Equal("*map[int]bool", NameOf[*map[int]bool]())
-	is.Equal("*github.com/samber/do/v2.Service[int]", NameOf[Service[int]]())
+	is.Equal("github.com/samber/do/v2.Service[int]", NameOf[Service[int]]())
 }
 
 func TestProvide(t *testing.T) {
