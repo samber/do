@@ -339,12 +339,15 @@ func (s *Scope) clone(root *RootScope, parent *Scope) *Scope {
 	defer s.mu.Unlock()
 
 	for name, serviceAny := range s.services {
+		s.rootScope.opts.onBeforeRegistration(clone, name)
+
 		if service, ok := serviceAny.(serviceClone); ok {
 			clone.services[name] = service.clone()
 		} else {
 			clone.services[name] = service
 		}
-		defer clone.onServiceRegistration(name)
+
+		s.rootScope.opts.onAfterRegistration(clone, name)
 	}
 
 	for name, index := range s.childScopes {
@@ -409,13 +412,13 @@ func (s *Scope) serviceGetRec(name string) (any, *Scope, bool) {
 }
 
 func (s *Scope) serviceSet(name string, service any) {
+	s.RootScope().opts.onBeforeRegistration(s, name)
+
 	s.mu.Lock()
-	defer s.mu.Unlock()
-
 	s.services[name] = service
+	s.mu.Unlock()
 
-	// defering hook call will unlock mutex
-	defer s.onServiceRegistration(name)
+	s.RootScope().opts.onAfterRegistration(s, name)
 }
 
 func (s *Scope) serviceForEach(cb func(name string, scope *Scope, service any) bool) {
@@ -487,8 +490,9 @@ func (s *Scope) serviceShutdown(ctx context.Context, name string) error {
 	if ok {
 		s.logf("requested shutdown for service %s", name)
 
+		s.RootScope().opts.onBeforeShutdown(s, name)
 		err = service.shutdown(ctx)
-		s.onServiceShutdown(name)
+		s.RootScope().opts.onAfterShutdown(s, name, err)
 	} else {
 		panic(fmt.Errorf("DI: service `%s` is not shutdowner", name))
 	}
@@ -506,17 +510,6 @@ func (s *Scope) serviceShutdown(ctx context.Context, name string) error {
  *             Hooks              *
  **********************************/
 
-func (s *Scope) onServiceRegistration(name string) {
-	root := s.RootScope()
-	if root == nil {
-		return
-	}
-
-	if root.opts.HookAfterRegistration != nil {
-		root.opts.HookAfterRegistration(s, name)
-	}
-}
-
 func (s *Scope) onServiceInvoke(name string) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -527,25 +520,8 @@ func (s *Scope) onServiceInvoke(name string) {
 	}
 }
 
-func (s *Scope) onServiceShutdown(name string) {
-	root := s.RootScope()
-	if root == nil {
-		return
-	}
-
-	if root.opts.HookAfterShutdown != nil {
-		root.opts.HookAfterShutdown(s, name)
-	}
-}
-
 func (s *Scope) logf(format string, args ...any) {
-	root := s.RootScope()
-	if root == nil {
-		return
-	}
-
 	format = fmt.Sprintf("DI <scope=%s>: %s", s.name, format)
 	args = append([]any{s.name}, args...)
-
-	root.opts.Logf(format, args...)
+	s.RootScope().opts.Logf(format, args...)
 }

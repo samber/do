@@ -16,8 +16,12 @@ func TestNew(t *testing.T) {
 	is.NotNil(i)
 
 	is.NotNil(i.opts.Logf)
-	is.Nil(i.opts.HookAfterRegistration)
-	is.Nil(i.opts.HookAfterShutdown)
+	is.Empty(i.opts.HookBeforeRegistration)
+	is.Empty(i.opts.HookAfterRegistration)
+	is.Empty(i.opts.HookBeforeInvocation)
+	is.Empty(i.opts.HookAfterInvocation)
+	is.Empty(i.opts.HookBeforeShutdown)
+	is.Empty(i.opts.HookAfterShutdown)
 	is.Empty(i.opts.HealthCheckParallelism)
 	is.Empty(i.opts.HealthCheckGlobalTimeout)
 	is.Empty(i.opts.HealthCheckTimeout)
@@ -34,9 +38,14 @@ func TestNewWithOpts(t *testing.T) {
 	is := assert.New(t)
 
 	i := NewWithOpts(&InjectorOpts{
-		HookAfterRegistration: func(scope *Scope, serviceName string) {},
-		HookAfterShutdown:     func(scope *Scope, serviceName string) {},
-		Logf:                  func(format string, args ...any) {},
+		HookBeforeRegistration: []func(*Scope, string){},
+		HookAfterRegistration:  []func(*Scope, string){},
+		HookBeforeInvocation:   []func(*Scope, string){},
+		HookAfterInvocation:    []func(*Scope, string, error){},
+		HookBeforeShutdown:     []func(*Scope, string){},
+		HookAfterShutdown:      []func(*Scope, string, error){},
+
+		Logf: func(format string, args ...any) {},
 
 		HealthCheckParallelism:   42,
 		HealthCheckGlobalTimeout: 42 * time.Second,
@@ -46,9 +55,13 @@ func TestNewWithOpts(t *testing.T) {
 
 	is.NotNil(i)
 
-	is.NotNil(i.opts.HookAfterRegistration)
-	is.NotNil(i.opts.HookAfterShutdown)
 	is.NotNil(i.opts.Logf)
+	is.Empty(i.opts.HookBeforeRegistration)
+	is.Empty(i.opts.HookAfterRegistration)
+	is.Empty(i.opts.HookBeforeInvocation)
+	is.Empty(i.opts.HookAfterInvocation)
+	is.Empty(i.opts.HookBeforeShutdown)
+	is.Empty(i.opts.HookAfterShutdown)
 	is.EqualValues(42, i.opts.HealthCheckParallelism)
 	is.EqualValues(42*time.Second, i.opts.HealthCheckGlobalTimeout)
 	is.EqualValues(42*time.Second, i.opts.HealthCheckTimeout)
@@ -82,8 +95,8 @@ func TestRootScope_queueServiceHealthcheck(t *testing.T) {
 
 	// no timeout
 	i := New()
-	ProvideValue[*lazyTestHeathcheckerOKTimeout](i, &lazyTestHeathcheckerOKTimeout{foobar: "foobar"})
-	ProvideValue[*lazyTestHeathcheckerOK](i, &lazyTestHeathcheckerOK{})
+	ProvideValue(i, &lazyTestHeathcheckerOKTimeout{foobar: "foobar"})
+	ProvideValue(i, &lazyTestHeathcheckerOK{})
 
 	err1 := i.queueServiceHealthcheck(context.Background(), i.self, NameOf[*lazyTestHeathcheckerOKTimeout]())
 	err2 := i.queueServiceHealthcheck(context.Background(), i.self, NameOf[*lazyTestHeathcheckerOK]())
@@ -94,8 +107,8 @@ func TestRootScope_queueServiceHealthcheck(t *testing.T) {
 	i = NewWithOpts(&InjectorOpts{
 		HealthCheckTimeout: 10 * time.Millisecond,
 	})
-	ProvideValue[*lazyTestHeathcheckerOKTimeout](i, &lazyTestHeathcheckerOKTimeout{})
-	ProvideValue[*lazyTestHeathcheckerOK](i, &lazyTestHeathcheckerOK{})
+	ProvideValue(i, &lazyTestHeathcheckerOKTimeout{})
+	ProvideValue(i, &lazyTestHeathcheckerOK{})
 
 	err1 = i.queueServiceHealthcheck(context.Background(), i.self, NameOf[*lazyTestHeathcheckerOKTimeout]())
 	err2 = i.queueServiceHealthcheck(context.Background(), i.self, NameOf[*lazyTestHeathcheckerOK]())
@@ -106,8 +119,8 @@ func TestRootScope_queueServiceHealthcheck(t *testing.T) {
 	i = NewWithOpts(&InjectorOpts{
 		HealthCheckGlobalTimeout: 10 * time.Millisecond,
 	})
-	ProvideValue[*lazyTestHeathcheckerOKTimeout](i, &lazyTestHeathcheckerOKTimeout{})
-	ProvideValue[*lazyTestHeathcheckerOK](i, &lazyTestHeathcheckerOK{})
+	ProvideValue(i, &lazyTestHeathcheckerOKTimeout{})
+	ProvideValue(i, &lazyTestHeathcheckerOK{})
 
 	errAll := i.HealthCheckWithContext(context.Background())
 	is.Len(errAll, 2)
@@ -121,11 +134,11 @@ func TestRootScope_queueServiceHealthcheck(t *testing.T) {
 	})
 	defer i.Shutdown() // nolint: errcheck
 
-	ProvideNamedValue[*lazyTestHeathcheckerOKTimeout](i, "a", &lazyTestHeathcheckerOKTimeout{})
-	ProvideNamedValue[*lazyTestHeathcheckerOKTimeout](i, "b", &lazyTestHeathcheckerOKTimeout{})
-	ProvideNamedValue[*lazyTestHeathcheckerOKTimeout](i, "c", &lazyTestHeathcheckerOKTimeout{})
-	ProvideNamedValue[*lazyTestHeathcheckerOKTimeout](i, "d", &lazyTestHeathcheckerOKTimeout{})
-	ProvideValue[*lazyTestHeathcheckerOK](i, &lazyTestHeathcheckerOK{})
+	ProvideNamedValue(i, "a", &lazyTestHeathcheckerOKTimeout{})
+	ProvideNamedValue(i, "b", &lazyTestHeathcheckerOKTimeout{})
+	ProvideNamedValue(i, "c", &lazyTestHeathcheckerOKTimeout{})
+	ProvideNamedValue(i, "d", &lazyTestHeathcheckerOKTimeout{})
+	ProvideValue(i, &lazyTestHeathcheckerOK{})
 
 	errAll = i.HealthCheckWithContext(context.Background())
 	errors := values(errAll)
@@ -148,9 +161,14 @@ func TestRootScope_Clone(t *testing.T) {
 	is := assert.New(t)
 
 	opts := &InjectorOpts{
-		HookAfterRegistration: func(scope *Scope, serviceName string) {},
-		HookAfterShutdown:     func(scope *Scope, serviceName string) {},
-		Logf:                  func(format string, args ...any) {},
+		HookBeforeRegistration: []func(*Scope, string){},
+		HookAfterRegistration:  []func(*Scope, string){},
+		HookBeforeInvocation:   []func(*Scope, string){},
+		HookAfterInvocation:    []func(*Scope, string, error){},
+		HookBeforeShutdown:     []func(*Scope, string){},
+		HookAfterShutdown:      []func(*Scope, string, error){},
+
+		Logf: func(format string, args ...any) {},
 
 		HealthCheckParallelism:   42,
 		HealthCheckGlobalTimeout: 42 * time.Second,
@@ -165,15 +183,23 @@ func TestRootScope_Clone(t *testing.T) {
 
 	is.Equal(i.opts, clone.opts)
 
-	is.NotNil(i.opts.HookAfterRegistration)
-	is.NotNil(i.opts.HookAfterShutdown)
+	is.Empty(i.opts.HookBeforeRegistration)
+	is.Empty(i.opts.HookAfterRegistration)
+	is.Empty(i.opts.HookBeforeInvocation)
+	is.Empty(i.opts.HookAfterInvocation)
+	is.Empty(i.opts.HookBeforeShutdown)
+	is.Empty(i.opts.HookAfterShutdown)
 	is.NotNil(i.opts.Logf)
 	is.NotNil(i.opts.HealthCheckParallelism)
 	is.NotNil(i.opts.HealthCheckGlobalTimeout)
 	is.NotNil(i.opts.HealthCheckTimeout)
 
-	is.NotNil(clone.opts.HookAfterRegistration)
-	is.NotNil(clone.opts.HookAfterShutdown)
+	is.Empty(clone.opts.HookBeforeRegistration)
+	is.Empty(clone.opts.HookAfterRegistration)
+	is.Empty(clone.opts.HookBeforeInvocation)
+	is.Empty(clone.opts.HookAfterInvocation)
+	is.Empty(clone.opts.HookBeforeShutdown)
+	is.Empty(clone.opts.HookAfterShutdown)
 	is.NotNil(clone.opts.Logf)
 	is.NotNil(clone.opts.HealthCheckParallelism)
 	is.NotNil(clone.opts.HealthCheckGlobalTimeout)
@@ -192,9 +218,14 @@ func TestRootScope_CloneWithOpts(t *testing.T) {
 
 	i := New()
 	clone := i.CloneWithOpts(&InjectorOpts{
-		HookAfterRegistration: func(scope *Scope, serviceName string) {},
-		HookAfterShutdown:     func(scope *Scope, serviceName string) {},
-		Logf:                  func(format string, args ...any) {},
+		HookBeforeRegistration: []func(*Scope, string){},
+		HookAfterRegistration:  []func(*Scope, string){},
+		HookBeforeInvocation:   []func(*Scope, string){},
+		HookAfterInvocation:    []func(*Scope, string, error){},
+		HookBeforeShutdown:     []func(*Scope, string){},
+		HookAfterShutdown:      []func(*Scope, string, error){},
+
+		Logf: func(format string, args ...any) {},
 
 		HealthCheckParallelism:   42,
 		HealthCheckGlobalTimeout: 42 * time.Second,
@@ -204,15 +235,23 @@ func TestRootScope_CloneWithOpts(t *testing.T) {
 	defer i.Shutdown()     // nolint: errcheck
 	defer clone.Shutdown() // nolint: errcheck
 
-	is.Nil(i.opts.HookAfterRegistration)
-	is.Nil(i.opts.HookAfterShutdown)
+	is.Empty(i.opts.HookBeforeRegistration)
+	is.Empty(i.opts.HookAfterRegistration)
+	is.Empty(i.opts.HookBeforeInvocation)
+	is.Empty(i.opts.HookAfterInvocation)
+	is.Empty(i.opts.HookBeforeShutdown)
+	is.Empty(i.opts.HookAfterShutdown)
 	is.NotNil(i.opts.Logf)
 	is.Empty(i.opts.HealthCheckParallelism)
 	is.Empty(i.opts.HealthCheckGlobalTimeout)
 	is.Empty(i.opts.HealthCheckTimeout)
 
-	is.NotNil(clone.opts.HookAfterRegistration)
-	is.NotNil(clone.opts.HookAfterShutdown)
+	is.Empty(clone.opts.HookBeforeRegistration)
+	is.Empty(clone.opts.HookAfterRegistration)
+	is.Empty(clone.opts.HookBeforeInvocation)
+	is.Empty(clone.opts.HookAfterInvocation)
+	is.Empty(clone.opts.HookBeforeShutdown)
+	is.Empty(clone.opts.HookAfterShutdown)
 	is.NotNil(clone.opts.Logf)
 	is.Equal(uint(42), clone.opts.HealthCheckParallelism)
 	is.Equal(42*time.Second, clone.opts.HealthCheckGlobalTimeout)
