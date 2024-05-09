@@ -21,6 +21,30 @@ type InjectorOpts struct {
 	StructTagKey string
 }
 
+func (o *InjectorOpts) AddBeforeRegistrationHook(hook func(scope *Scope, serviceName string)) {
+	o.HookBeforeRegistration = append(o.HookBeforeRegistration, hook)
+}
+
+func (o *InjectorOpts) AddAfterRegistrationHook(hook func(scope *Scope, serviceName string)) {
+	o.HookAfterRegistration = append(o.HookAfterRegistration, hook)
+}
+
+func (o *InjectorOpts) AddBeforeInvocationHook(hook func(scope *Scope, serviceName string)) {
+	o.HookBeforeInvocation = append(o.HookBeforeInvocation, hook)
+}
+
+func (o *InjectorOpts) AddAfterInvocationHook(hook func(scope *Scope, serviceName string, err error)) {
+	o.HookAfterInvocation = append(o.HookAfterInvocation, hook)
+}
+
+func (o *InjectorOpts) AddBeforeShutdownHook(hook func(scope *Scope, serviceName string)) {
+	o.HookBeforeShutdown = append(o.HookBeforeShutdown, hook)
+}
+
+func (o *InjectorOpts) AddAfterShutdownHook(hook func(scope *Scope, serviceName string, err error)) {
+	o.HookAfterShutdown = append(o.HookAfterShutdown, hook)
+}
+
 func (o *InjectorOpts) onBeforeRegistration(scope *Scope, serviceName string) {
 	for _, fn := range o.HookBeforeRegistration {
 		fn(scope, serviceName)
