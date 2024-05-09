@@ -41,7 +41,9 @@ func invokeAnyByName(i Injector, name string) (any, error) {
 		return nil, serviceNotFound(injector, ErrServiceNotFound, invokerChain)
 	}
 
+	injector.RootScope().opts.onBeforeInvocation(serviceScope, name)
 	instance, err := service.getInstanceAny(&virtualScope{invokerChain: invokerChain, self: serviceScope})
+	injector.RootScope().opts.onAfterInvocation(serviceScope, name, err)
 	if err != nil {
 		return nil, err
 	}
@@ -84,7 +86,10 @@ func invokeByName[T any](i Injector, name string) (T, error) {
 		return empty[T](), serviceNotFound(injector, ErrServiceNotFound, invokerChain)
 	}
 
+	injector.RootScope().opts.onBeforeInvocation(serviceScope, name)
 	instance, err := service.getInstance(&virtualScope{invokerChain: invokerChain, self: serviceScope})
+	injector.RootScope().opts.onAfterInvocation(serviceScope, name, err)
+
 	if err != nil {
 		return empty[T](), err
 	}
@@ -140,12 +145,15 @@ func invokeByGenericType[T any](i Injector) (T, error) {
 		}
 	}
 
+	injector.RootScope().opts.onBeforeInvocation(serviceScope, serviceAliasName)
 	instance, err := serviceInstance.(serviceGetInstanceAny).getInstanceAny(
 		&virtualScope{
 			invokerChain: append(invokerChain, serviceRealName),
 			self:         serviceScope,
 		},
 	)
+	injector.RootScope().opts.onAfterInvocation(serviceScope, serviceAliasName, err)
+
 	if err != nil {
 		return empty[T](), err
 	}
@@ -249,7 +257,6 @@ func getServiceNames(services []EdgeService) []string {
 // sortServiceNames sorts a list of service names.
 func sortServiceNames(names []string) []string {
 	sort.Strings(names)
-
 	return names
 }
 

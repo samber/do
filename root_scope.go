@@ -23,6 +23,25 @@ func NewWithOpts(opts *InjectorOpts, packages ...func(Injector)) *RootScope {
 		opts.Logf = noOpLogf
 	}
 
+	if opts.HookBeforeRegistration == nil {
+		opts.HookBeforeRegistration = []func(*Scope, string){}
+	}
+	if opts.HookAfterRegistration == nil {
+		opts.HookAfterRegistration = []func(*Scope, string){}
+	}
+	if opts.HookBeforeInvocation == nil {
+		opts.HookBeforeInvocation = []func(*Scope, string){}
+	}
+	if opts.HookAfterInvocation == nil {
+		opts.HookAfterInvocation = []func(*Scope, string, error){}
+	}
+	if opts.HookBeforeShutdown == nil {
+		opts.HookBeforeShutdown = []func(*Scope, string){}
+	}
+	if opts.HookAfterShutdown == nil {
+		opts.HookAfterShutdown = []func(*Scope, string, error){}
+	}
+
 	root := &RootScope{
 		self:            newScope(DefaultRootScopeName, nil, nil),
 		opts:            opts,
