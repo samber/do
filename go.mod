@@ -7,16 +7,8 @@ go 1.18
 //
 
 require (
-<<<<<<< HEAD
 	github.com/samber/go-type-to-string v1.1.0
-<<<<<<< HEAD
 	github.com/stretchr/testify v1.10.0
-=======
-=======
-	github.com/samber/go-type-to-string v1.2.0
->>>>>>> 81b3d8f (feat: auto-magically inject dependencies into struct)
-	github.com/stretchr/testify v1.8.3
->>>>>>> 503c05f (feat: adding http package and examples)
 	go.uber.org/goleak v1.2.1
 )
 

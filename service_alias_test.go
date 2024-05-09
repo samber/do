@@ -59,15 +59,15 @@ func TestServiceAlias_getInstanceAny(t *testing.T) {
 	is.Nil(As[*lazyTestHeathcheckerOK, Healthchecker](i))
 
 	// basic type
-	service1 := newServiceAlias[*lazyTestHeathcheckerOK, Healthchecker]("*github.com/samber/do/v2.Healthchecker", i, "*github.com/samber/do/v2.lazyTestHeathcheckerOK")
+	service1 := newServiceAlias[*lazyTestHeathcheckerOK, Healthchecker]("github.com/samber/do/v2.Healthchecker", i, "*github.com/samber/do/v2.lazyTestHeathcheckerOK")
 	instance1, err1 := service1.getInstanceAny(i)
 	is.Nil(err1)
 	is.EqualValues(&lazyTestHeathcheckerOK{foobar: "foobar"}, instance1)
 
 	// target service not found
-	service2 := newServiceAlias[*lazyTestHeathcheckerOK, int]("*github.com/samber/do/v2.Healthchecker", i, "int")
+	service2 := newServiceAlias[*lazyTestHeathcheckerOK, int]("github.com/samber/do/v2.Healthchecker", i, "int")
 	instance2, err2 := service2.getInstanceAny(i)
-	is.EqualError(err2, "DI: could not find service `int`, available services: `*github.com/samber/do/v2.Healthchecker`, `*github.com/samber/do/v2.lazyTestHeathcheckerOK`")
+	is.EqualError(err2, "DI: could not find service `int`, available services: `*github.com/samber/do/v2.lazyTestHeathcheckerOK`, `github.com/samber/do/v2.Healthchecker`")
 	is.EqualValues(0, instance2)
 
 	Provide(i, func(i Injector) (int, error) {
@@ -75,9 +75,9 @@ func TestServiceAlias_getInstanceAny(t *testing.T) {
 	})
 
 	// target service found but not convertible type
-	service3 := newServiceAlias[*lazyTestHeathcheckerOK, int]("*github.com/samber/do/v2.Healthchecker", i, "int")
+	service3 := newServiceAlias[*lazyTestHeathcheckerOK, int]("github.com/samber/do/v2.Healthchecker", i, "int")
 	instance3, err3 := service3.getInstanceAny(i)
-	is.EqualError(err3, "DI: could not find service `int`, available services: `*github.com/samber/do/v2.Healthchecker`, `*github.com/samber/do/v2.lazyTestHeathcheckerOK`, `int`")
+	is.EqualError(err3, "DI: could not find service `int`, available services: `*github.com/samber/do/v2.lazyTestHeathcheckerOK`, `github.com/samber/do/v2.Healthchecker`, `int`")
 	is.EqualValues(0, instance3)
 
 	// @TODO: missing test with child scopes
@@ -95,15 +95,15 @@ func TestServiceAlias_getInstance(t *testing.T) {
 	is.Nil(As[*lazyTestHeathcheckerOK, Healthchecker](i))
 
 	// basic type
-	service1 := newServiceAlias[*lazyTestHeathcheckerOK, Healthchecker]("*github.com/samber/do/v2.Healthchecker", i, "*github.com/samber/do/v2.lazyTestHeathcheckerOK")
+	service1 := newServiceAlias[*lazyTestHeathcheckerOK, Healthchecker]("github.com/samber/do/v2.Healthchecker", i, "*github.com/samber/do/v2.lazyTestHeathcheckerOK")
 	instance1, err1 := service1.getInstance(i)
 	is.Nil(err1)
 	is.EqualValues(&lazyTestHeathcheckerOK{foobar: "foobar"}, instance1)
 
 	// target service not found
-	service2 := newServiceAlias[*lazyTestHeathcheckerOK, int]("*github.com/samber/do/v2.Healthchecker", i, "int")
+	service2 := newServiceAlias[*lazyTestHeathcheckerOK, int]("github.com/samber/do/v2.Healthchecker", i, "int")
 	instance2, err2 := service2.getInstance(i)
-	is.EqualError(err2, "DI: could not find service `int`, available services: `*github.com/samber/do/v2.Healthchecker`, `*github.com/samber/do/v2.lazyTestHeathcheckerOK`")
+	is.EqualError(err2, "DI: could not find service `int`, available services: `*github.com/samber/do/v2.lazyTestHeathcheckerOK`, `github.com/samber/do/v2.Healthchecker`")
 	is.EqualValues(0, instance2)
 
 	Provide(i, func(i Injector) (int, error) {
@@ -111,9 +111,9 @@ func TestServiceAlias_getInstance(t *testing.T) {
 	})
 
 	// target service found but not convertible type
-	service3 := newServiceAlias[*lazyTestHeathcheckerOK, int]("*github.com/samber/do/v2.Healthchecker", i, "int")
+	service3 := newServiceAlias[*lazyTestHeathcheckerOK, int]("github.com/samber/do/v2.Healthchecker", i, "int")
 	instance3, err3 := service3.getInstance(i)
-	is.EqualError(err3, "DI: could not find service `int`, available services: `*github.com/samber/do/v2.Healthchecker`, `*github.com/samber/do/v2.lazyTestHeathcheckerOK`, `int`")
+	is.EqualError(err3, "DI: could not find service `int`, available services: `*github.com/samber/do/v2.lazyTestHeathcheckerOK`, `github.com/samber/do/v2.Healthchecker`, `int`")
 	is.EqualValues(0, instance3)
 
 	// @TODO: missing test with child scopes
@@ -139,7 +139,7 @@ func TestServiceAlias_isHealthchecker(t *testing.T) {
 		return &lazyTestHeathcheckerOK{foobar: "foobar"}, nil
 	})
 	is.Nil(As[*lazyTestHeathcheckerOK, Healthchecker](i2))
-	service2, _ := i2.serviceGet("*github.com/samber/do/v2.Healthchecker")
+	service2, _ := i2.serviceGet("github.com/samber/do/v2.Healthchecker")
 	is.False(service2.(serviceIsHealthchecker).isHealthchecker())
 	_, _ = service2.(serviceGetInstanceAny).getInstanceAny(nil)
 	is.True(service2.(serviceIsHealthchecker).isHealthchecker())
@@ -150,21 +150,21 @@ func TestServiceAlias_isHealthchecker(t *testing.T) {
 		return &lazyTestHeathcheckerKO{foobar: "foobar"}, nil
 	})
 	is.Nil(As[*lazyTestHeathcheckerKO, Healthchecker](i3))
-	service3, _ := i3.serviceGet("*github.com/samber/do/v2.Healthchecker")
+	service3, _ := i3.serviceGet("github.com/samber/do/v2.Healthchecker")
 	is.False(service3.(serviceIsHealthchecker).isHealthchecker())
 	_, _ = service3.(serviceGetInstanceAny).getInstanceAny(nil)
 	is.True(service3.(serviceIsHealthchecker).isHealthchecker())
 
 	// service not found (wrong type)
 	i4 := New()
-	service4 := newServiceAlias[*lazyTestHeathcheckerKO, Healthchecker]("*github.com/samber/do/v2.Healthchecker", i4, "*github.com/samber/do/v2.lazyTestHeathcheckerKO")
+	service4 := newServiceAlias[*lazyTestHeathcheckerKO, Healthchecker]("github.com/samber/do/v2.Healthchecker", i4, "*github.com/samber/do/v2.lazyTestHeathcheckerKO")
 	is.False(service4.isHealthchecker())
 	_, _ = service4.getInstanceAny(nil)
 	is.False(service4.isHealthchecker())
 
 	// service not found (wrong name)
 	i5 := New()
-	service5 := newServiceAlias[*lazyTestHeathcheckerOK, Healthchecker]("*github.com/samber/do/v2.Healthchecker", i5, "*github.com/samber/do/v2.lazyTestHeathcheckerKO")
+	service5 := newServiceAlias[*lazyTestHeathcheckerOK, Healthchecker]("github.com/samber/do/v2.Healthchecker", i5, "*github.com/samber/do/v2.lazyTestHeathcheckerKO")
 	is.False(service5.isHealthchecker())
 	_, _ = service5.getInstanceAny(nil)
 	is.False(service5.isHealthchecker())
@@ -192,7 +192,7 @@ func TestServiceAlias_healthcheck(t *testing.T) {
 		return &lazyTestHeathcheckerOK{foobar: "foobar"}, nil
 	})
 	is.Nil(As[*lazyTestHeathcheckerOK, Healthchecker](i2))
-	service2, _ := i2.serviceGet("*github.com/samber/do/v2.Healthchecker")
+	service2, _ := i2.serviceGet("github.com/samber/do/v2.Healthchecker")
 	is.Nil(service2.(Service[Healthchecker]).healthcheck(ctx))
 	_, _ = service2.(Service[Healthchecker]).getInstance(nil)
 	is.Nil(service2.(Service[Healthchecker]).healthcheck(ctx))
@@ -203,21 +203,21 @@ func TestServiceAlias_healthcheck(t *testing.T) {
 		return &lazyTestHeathcheckerKO{foobar: "foobar"}, nil
 	})
 	is.Nil(As[*lazyTestHeathcheckerKO, Healthchecker](i3))
-	service3, _ := i3.serviceGet("*github.com/samber/do/v2.Healthchecker")
+	service3, _ := i3.serviceGet("github.com/samber/do/v2.Healthchecker")
 	is.Nil(service3.(Service[Healthchecker]).healthcheck(ctx))
 	_, _ = service3.(Service[Healthchecker]).getInstance(nil)
 	is.Equal(assert.AnError, service3.(Service[Healthchecker]).healthcheck(ctx))
 
 	// service not found (wrong type)
 	i4 := New()
-	service4 := newServiceAlias[*lazyTestHeathcheckerKO, Healthchecker]("*github.com/samber/do/v2.Healthchecker", i4, "*github.com/samber/do/v2.lazyTestHeathcheckerKO")
+	service4 := newServiceAlias[*lazyTestHeathcheckerKO, Healthchecker]("github.com/samber/do/v2.Healthchecker", i4, "*github.com/samber/do/v2.lazyTestHeathcheckerKO")
 	is.Nil(service4.healthcheck(ctx))
 	_, _ = service4.getInstanceAny(nil)
 	is.Nil(service4.healthcheck(ctx))
 
 	// service not found (wrong name)
 	i5 := New()
-	service5 := newServiceAlias[*lazyTestHeathcheckerOK, Healthchecker]("*github.com/samber/do/v2.Healthchecker", i5, "*github.com/samber/do/v2.lazyTestHeathcheckerKO")
+	service5 := newServiceAlias[*lazyTestHeathcheckerOK, Healthchecker]("github.com/samber/do/v2.Healthchecker", i5, "*github.com/samber/do/v2.lazyTestHeathcheckerKO")
 	is.Nil(service5.healthcheck(ctx))
 	_, _ = service5.getInstanceAny(nil)
 	is.Nil(service5.healthcheck(ctx))
@@ -243,7 +243,7 @@ func TestServiceAlias_isShutdowner(t *testing.T) {
 		return &lazyTestShutdownerOK{foobar: "foobar"}, nil
 	})
 	is.Nil(As[*lazyTestShutdownerOK, ShutdownerWithContextAndError](i2))
-	service2, _ := i2.serviceGet("*github.com/samber/do/v2.ShutdownerWithContextAndError")
+	service2, _ := i2.serviceGet("github.com/samber/do/v2.ShutdownerWithContextAndError")
 	is.False(service2.(Service[ShutdownerWithContextAndError]).isShutdowner())
 	_, _ = service2.(Service[ShutdownerWithContextAndError]).getInstance(nil)
 	is.True(service2.(Service[ShutdownerWithContextAndError]).isShutdowner())
@@ -254,7 +254,7 @@ func TestServiceAlias_isShutdowner(t *testing.T) {
 		return &lazyTestShutdownerKO{foobar: "foobar"}, nil
 	})
 	is.Nil(As[*lazyTestShutdownerKO, ShutdownerWithError](i3))
-	service3, _ := i3.serviceGet("*github.com/samber/do/v2.ShutdownerWithError")
+	service3, _ := i3.serviceGet("github.com/samber/do/v2.ShutdownerWithError")
 	is.False(service3.(Service[ShutdownerWithError]).isShutdowner())
 	_, _ = service3.(Service[ShutdownerWithError]).getInstance(nil)
 	is.True(service3.(Service[ShutdownerWithError]).isShutdowner())
@@ -295,7 +295,7 @@ func TestServiceAlias_shutdown(t *testing.T) {
 		return &lazyTestShutdownerOK{foobar: "foobar"}, nil
 	})
 	is.Nil(As[*lazyTestShutdownerOK, ShutdownerWithContextAndError](i2))
-	service2, _ := i2.serviceGet("*github.com/samber/do/v2.ShutdownerWithContextAndError")
+	service2, _ := i2.serviceGet("github.com/samber/do/v2.ShutdownerWithContextAndError")
 	is.Nil(service2.(Service[ShutdownerWithContextAndError]).shutdown(ctx))
 	_, _ = service2.(Service[ShutdownerWithContextAndError]).getInstance(nil)
 	is.Nil(service2.(Service[ShutdownerWithContextAndError]).shutdown(ctx))
@@ -306,21 +306,21 @@ func TestServiceAlias_shutdown(t *testing.T) {
 		return &lazyTestShutdownerKO{foobar: "foobar"}, nil
 	})
 	is.Nil(As[*lazyTestShutdownerKO, ShutdownerWithError](i3))
-	service3, _ := i3.serviceGet("*github.com/samber/do/v2.ShutdownerWithError")
+	service3, _ := i3.serviceGet("github.com/samber/do/v2.ShutdownerWithError")
 	is.Nil(service3.(Service[ShutdownerWithError]).shutdown(ctx))
 	_, _ = service3.(Service[ShutdownerWithError]).getInstance(nil)
 	is.Equal(assert.AnError, service3.(Service[ShutdownerWithError]).shutdown(ctx))
 
 	// service not found (wrong type)
 	i4 := New()
-	service4 := newServiceAlias[*lazyTestShutdownerKO, Healthchecker]("*github.com/samber/do/v2.Healthchecker", i4, "*github.com/samber/do/v2.lazyTestShutdownerKO")
+	service4 := newServiceAlias[*lazyTestShutdownerKO, Healthchecker]("github.com/samber/do/v2.Healthchecker", i4, "*github.com/samber/do/v2.lazyTestShutdownerKO")
 	is.Nil(service4.shutdown(ctx))
 	_, _ = service4.getInstanceAny(nil)
 	is.Nil(service4.shutdown(ctx))
 
 	// service not found (wrong name)
 	i5 := New()
-	service5 := newServiceAlias[*lazyTestShutdownerOK, Healthchecker]("*github.com/samber/do/v2.Healthchecker", i5, "*github.com/samber/do/v2.lazyTestHeathcheckerKO")
+	service5 := newServiceAlias[*lazyTestShutdownerOK, Healthchecker]("github.com/samber/do/v2.Healthchecker", i5, "*github.com/samber/do/v2.lazyTestHeathcheckerKO")
 	is.Nil(service5.shutdown(ctx))
 	_, _ = service5.getInstanceAny(nil)
 	is.Nil(service5.shutdown(ctx))

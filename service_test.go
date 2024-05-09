@@ -14,7 +14,7 @@ func TestInferServiceName(t *testing.T) {
 	is.Equal("int", inferServiceName[int]())
 	is.Equal("github.com/samber/do/v2.eagerTest", inferServiceName[eagerTest]())
 	is.Equal("*github.com/samber/do/v2.eagerTest", inferServiceName[*eagerTest]())
-	is.Equal("*github.com/samber/do/v2.Healthchecker", inferServiceName[Healthchecker]())
+	is.Equal("github.com/samber/do/v2.Healthchecker", inferServiceName[Healthchecker]())
 }
 
 func TestInferServiceProviderStacktrace(t *testing.T) {
