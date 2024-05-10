@@ -64,12 +64,12 @@ injector := do.New(stores.Package)
 import "github.com/samber/do/v2"
 
 injector := do.NewWithOps(&do.InjectorOpts{
-    HookAfterRegistration func(scope *do.Scope, serviceName string) {
-        // ...
-    },
-    HookAfterShutdown     func(scope *do.Scope, serviceName string) {
-        // ...
-    },
+    HookBeforeRegistration []func(scope *do.Scope, serviceName string),
+    HookAfterRegistration  []func(scope *do.Scope, serviceName string),
+    HookBeforInvocation    []func(scope *do.Scope, serviceName string),
+    HookAfterInvocation    []func(scope *do.Scope, serviceName string, err error),
+    HookBeforeShutdown     []func(scope *do.Scope, serviceName string),
+    HookAfterShutdown      []func(scope *do.Scope, serviceName string, err error),
 
     Logf func(format string, args ...any) {
         // ...
