@@ -147,6 +147,40 @@ func (s *RootScope) queueServiceHealthcheck(ctx context.Context, scope *Scope, s
 	})
 }
 
+/**
+ * RootScope stuff
+ */
+
+// AddBeforeRegistrationHook adds a hook that will be called before a service is registered.
+func (s *RootScope) AddBeforeRegistrationHook(hook func(*Scope, string)) {
+	s.opts.HookBeforeRegistration = append(s.opts.HookBeforeRegistration, hook)
+}
+
+// AddAfterRegistrationHook adds a hook that will be called after a service is registered.
+func (s *RootScope) AddAfterRegistrationHook(hook func(*Scope, string)) {
+	s.opts.HookAfterRegistration = append(s.opts.HookAfterRegistration, hook)
+}
+
+// AddBeforeInvocationHook adds a hook that will be called before a service is invoked.
+func (s *RootScope) AddBeforeInvocationHook(hook func(*Scope, string)) {
+	s.opts.HookBeforeInvocation = append(s.opts.HookBeforeInvocation, hook)
+}
+
+// AddAfterInvocationHook adds a hook that will be called after a service is invoked.
+func (s *RootScope) AddAfterInvocationHook(hook func(*Scope, string, error)) {
+	s.opts.HookAfterInvocation = append(s.opts.HookAfterInvocation, hook)
+}
+
+// AddBeforeShutdownHook adds a hook that will be called before a service is shutdown.
+func (s *RootScope) AddBeforeShutdownHook(hook func(*Scope, string)) {
+	s.opts.HookBeforeShutdown = append(s.opts.HookBeforeShutdown, hook)
+}
+
+// AddAfterShutdownHook adds a hook that will be called after a service is shutdown.
+func (s *RootScope) AddAfterShutdownHook(hook func(*Scope, string, error)) {
+	s.opts.HookAfterShutdown = append(s.opts.HookAfterShutdown, hook)
+}
+
 // Clone clones injector with provided services but not with invoked instances.
 func (s *RootScope) Clone() *RootScope {
 	return s.CloneWithOpts(s.opts)
