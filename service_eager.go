@@ -15,6 +15,7 @@ var _ serviceClone = (*serviceEager[int])(nil)
 
 type serviceEager[T any] struct {
 	name     string
+	typeName string
 	instance T
 
 	providerFrame           stacktrace.Frame
@@ -28,6 +29,7 @@ func newServiceEager[T any](name string, instance T) *serviceEager[T] {
 
 	return &serviceEager[T]{
 		name:     name,
+		typeName: inferServiceName[T](),
 		instance: instance,
 
 		providerFrame:           providerFrame,
@@ -41,7 +43,11 @@ func (s *serviceEager[T]) getName() string {
 	return s.name
 }
 
-func (s *serviceEager[T]) getType() ServiceType {
+func (s *serviceEager[T]) getTypeName() string {
+	return s.typeName
+}
+
+func (s *serviceEager[T]) getServiceType() ServiceType {
 	return ServiceTypeEager
 }
 
@@ -112,6 +118,7 @@ func (s *serviceEager[T]) shutdown(ctx context.Context) error {
 func (s *serviceEager[T]) clone() any {
 	return &serviceEager[T]{
 		name:     s.name,
+		typeName: s.typeName,
 		instance: s.instance,
 
 		providerFrame:           s.providerFrame,

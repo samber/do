@@ -83,7 +83,7 @@ func invokeByName[T any](i Injector, name string) (T, error) {
 
 	service, ok := serviceAny.(Service[T])
 	if !ok {
-		return empty[T](), serviceNotFound(injector, ErrServiceNotFound, invokerChain)
+		return empty[T](), serviceTypeMismatch(inferServiceName[T](), serviceAny.(ServiceAny).getTypeName())
 	}
 
 	injector.RootScope().opts.onBeforeInvocation(serviceScope, name)
@@ -245,6 +245,11 @@ func serviceNotFound(injector Injector, err error, chain []string) error {
 		return fmt.Errorf("%w `%s`, available services: %s, path: %s", err, name, strings.Join(sortedServiceNames, ", "), humanReadableInvokerChain(chain))
 	}
 	return fmt.Errorf("%w `%s`, available services: %s", err, name, strings.Join(sortedServiceNames, ", "))
+}
+
+// serviceTypeMismatch returns an error indicating that the specified service was found, but its type does not match the expected type.
+func serviceTypeMismatch(invoking string, registered string) error {
+	return fmt.Errorf("DI: service found, but type mismatch: invoking `%s` but registered `%s`", invoking, registered)
 }
 
 // getServiceNames formats a list of EdgeService names.

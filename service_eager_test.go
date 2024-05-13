@@ -68,17 +68,30 @@ func TestServiceEager_getName(t *testing.T) {
 	is.Equal("foobar2", service2.getName())
 }
 
-func TestServiceEager_getType(t *testing.T) {
+func TestServiceEager_getTypeName(t *testing.T) {
 	t.Parallel()
 	is := assert.New(t)
 
 	test := eagerTest{foobar: "foobar"}
 
 	service1 := newServiceEager("foobar1", 42)
-	is.Equal(ServiceTypeEager, service1.getType())
+	is.Equal("int", service1.getTypeName())
 
 	service2 := newServiceEager("foobar2", test)
-	is.Equal(ServiceTypeEager, service2.getType())
+	is.Equal("github.com/samber/do/v2.eagerTest", service2.getTypeName())
+}
+
+func TestServiceEager_getServiceType(t *testing.T) {
+	t.Parallel()
+	is := assert.New(t)
+
+	test := eagerTest{foobar: "foobar"}
+
+	service1 := newServiceEager("foobar1", 42)
+	is.Equal(ServiceTypeEager, service1.getServiceType())
+
+	service2 := newServiceEager("foobar2", test)
+	is.Equal(ServiceTypeEager, service2.getServiceType())
 }
 
 func TestServiceEager_getEmptyInstance(t *testing.T) {

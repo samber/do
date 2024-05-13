@@ -18,6 +18,7 @@ var _ serviceClone = (*serviceLazy[int])(nil)
 type serviceLazy[T any] struct {
 	mu       sync.RWMutex
 	name     string
+	typeName string
 	instance T
 
 	// lazy loading
@@ -34,8 +35,9 @@ func newServiceLazy[T any](name string, provider Provider[T]) *serviceLazy[T] {
 	providerFrame, _ := stacktrace.NewFrameFromPtr(reflect.ValueOf(provider).Pointer())
 
 	return &serviceLazy[T]{
-		mu:   sync.RWMutex{},
-		name: name,
+		mu:       sync.RWMutex{},
+		name:     name,
+		typeName: inferServiceName[T](),
 
 		built:     false,
 		buildTime: 0,
@@ -51,7 +53,11 @@ func (s *serviceLazy[T]) getName() string {
 	return s.name
 }
 
-func (s *serviceLazy[T]) getType() ServiceType {
+func (s *serviceLazy[T]) getTypeName() string {
+	return s.typeName
+}
+
+func (s *serviceLazy[T]) getServiceType() ServiceType {
 	return ServiceTypeLazy
 }
 
@@ -179,8 +185,9 @@ func (s *serviceLazy[T]) shutdown(ctx context.Context) error {
 func (s *serviceLazy[T]) clone() any {
 	// reset `build` flag and instance
 	return &serviceLazy[T]{
-		mu:   sync.RWMutex{},
-		name: s.name,
+		mu:       sync.RWMutex{},
+		name:     s.name,
+		typeName: s.typeName,
 
 		built:     false,
 		provider:  s.provider,

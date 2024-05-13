@@ -108,7 +108,7 @@ func TestServiceLazy_getName(t *testing.T) {
 	is.Equal("foobar2", service2.getName())
 }
 
-func TestServiceLazy_getType(t *testing.T) {
+func TestServiceLazy_getTypeName(t *testing.T) {
 	t.Parallel()
 	is := assert.New(t)
 
@@ -122,10 +122,30 @@ func TestServiceLazy_getType(t *testing.T) {
 	}
 
 	service1 := newServiceLazy("foobar1", provider1)
-	is.Equal(ServiceTypeLazy, service1.getType())
+	is.Equal("int", service1.getTypeName())
 
 	service2 := newServiceLazy("foobar2", provider2)
-	is.Equal(ServiceTypeLazy, service2.getType())
+	is.Equal("github.com/samber/do/v2.lazyTest", service2.getTypeName())
+}
+
+func TestServiceLazy_getServiceType(t *testing.T) {
+	t.Parallel()
+	is := assert.New(t)
+
+	test := lazyTest{foobar: "foobar"}
+
+	provider1 := func(i Injector) (int, error) {
+		return 42, nil
+	}
+	provider2 := func(i Injector) (lazyTest, error) {
+		return test, nil
+	}
+
+	service1 := newServiceLazy("foobar1", provider1)
+	is.Equal(ServiceTypeLazy, service1.getServiceType())
+
+	service2 := newServiceLazy("foobar2", provider2)
+	is.Equal(ServiceTypeLazy, service2.getServiceType())
 }
 
 func TestServiceLazy_getEmptyInstance(t *testing.T) {
