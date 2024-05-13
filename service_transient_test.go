@@ -76,7 +76,7 @@ func TestServiceTransient_getName(t *testing.T) {
 	is.Equal("foobar2", service2.getName())
 }
 
-func TestServiceTransient_getType(t *testing.T) {
+func TestServiceTransient_getTypeName(t *testing.T) {
 	t.Parallel()
 	is := assert.New(t)
 
@@ -90,10 +90,30 @@ func TestServiceTransient_getType(t *testing.T) {
 	}
 
 	service1 := newServiceTransient("foobar1", provider1)
-	is.Equal(ServiceTypeTransient, service1.getType())
+	is.Equal("int", service1.getTypeName())
 
 	service2 := newServiceTransient("foobar2", provider2)
-	is.Equal(ServiceTypeTransient, service2.getType())
+	is.Equal("github.com/samber/do/v2.transientTest", service2.getTypeName())
+}
+
+func TestServiceTransient_getServiceType(t *testing.T) {
+	t.Parallel()
+	is := assert.New(t)
+
+	test := transientTest{foobar: "foobar"}
+
+	provider1 := func(i Injector) (int, error) {
+		return 42, nil
+	}
+	provider2 := func(i Injector) (transientTest, error) {
+		return test, nil
+	}
+
+	service1 := newServiceTransient("foobar1", provider1)
+	is.Equal(ServiceTypeTransient, service1.getServiceType())
+
+	service2 := newServiceTransient("foobar2", provider2)
+	is.Equal(ServiceTypeTransient, service2.getServiceType())
 }
 
 func TestServiceTransient_getEmptyInstance(t *testing.T) {

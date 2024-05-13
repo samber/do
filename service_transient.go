@@ -12,7 +12,8 @@ var _ serviceShutdown = (*serviceTransient[int])(nil)
 var _ serviceClone = (*serviceTransient[int])(nil)
 
 type serviceTransient[T any] struct {
-	name string
+	name     string
+	typeName string
 
 	// lazy loading
 	provider Provider[T]
@@ -20,7 +21,8 @@ type serviceTransient[T any] struct {
 
 func newServiceTransient[T any](name string, provider Provider[T]) *serviceTransient[T] {
 	return &serviceTransient[T]{
-		name: name,
+		name:     name,
+		typeName: inferServiceName[T](),
 
 		provider: provider,
 	}
@@ -30,7 +32,11 @@ func (s *serviceTransient[T]) getName() string {
 	return s.name
 }
 
-func (s *serviceTransient[T]) getType() ServiceType {
+func (s *serviceTransient[T]) getTypeName() string {
+	return s.typeName
+}
+
+func (s *serviceTransient[T]) getServiceType() ServiceType {
 	return ServiceTypeTransient
 }
 
@@ -68,7 +74,8 @@ func (s *serviceTransient[T]) shutdown(ctx context.Context) error {
 
 func (s *serviceTransient[T]) clone() any {
 	return &serviceTransient[T]{
-		name: s.name,
+		name:     s.name,
+		typeName: s.typeName,
 
 		provider: s.provider,
 	}

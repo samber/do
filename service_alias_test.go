@@ -29,14 +29,24 @@ func TestServiceAlias_getName(t *testing.T) {
 	is.Equal("foobar1", service1.getName())
 }
 
-func TestServiceAlias_getType(t *testing.T) {
+func TestServiceAlias_getTypeName(t *testing.T) {
+	t.Parallel()
+	is := assert.New(t)
+
+	i := New()
+
+	service1 := newServiceAlias[string, int]("foobar1", i, "foobar2")
+	is.Equal("int", service1.getTypeName())
+}
+
+func TestServiceAlias_getServiceType(t *testing.T) {
 	t.Parallel()
 	is := assert.New(t)
 
 	i := New()
 
 	service1 := newServiceAlias[string, string]("foobar1", i, "foobar2")
-	is.Equal(ServiceTypeAlias, service1.getType())
+	is.Equal(ServiceTypeAlias, service1.getServiceType())
 }
 
 func TestServiceAlias_getEmptyInstance(t *testing.T) {
@@ -77,7 +87,7 @@ func TestServiceAlias_getInstanceAny(t *testing.T) {
 	// target service found but not convertible type
 	service3 := newServiceAlias[*lazyTestHeathcheckerOK, int]("github.com/samber/do/v2.Healthchecker", i, "int")
 	instance3, err3 := service3.getInstanceAny(i)
-	is.EqualError(err3, "DI: could not find service `int`, available services: `*github.com/samber/do/v2.lazyTestHeathcheckerOK`, `github.com/samber/do/v2.Healthchecker`, `int`")
+	is.EqualError(err3, "DI: service found, but type mismatch: invoking `*github.com/samber/do/v2.lazyTestHeathcheckerOK` but registered `int`")
 	is.EqualValues(0, instance3)
 
 	// @TODO: missing test with child scopes
@@ -113,7 +123,7 @@ func TestServiceAlias_getInstance(t *testing.T) {
 	// target service found but not convertible type
 	service3 := newServiceAlias[*lazyTestHeathcheckerOK, int]("github.com/samber/do/v2.Healthchecker", i, "int")
 	instance3, err3 := service3.getInstance(i)
-	is.EqualError(err3, "DI: could not find service `int`, available services: `*github.com/samber/do/v2.lazyTestHeathcheckerOK`, `github.com/samber/do/v2.Healthchecker`, `int`")
+	is.EqualError(err3, "DI: service found, but type mismatch: invoking `*github.com/samber/do/v2.lazyTestHeathcheckerOK` but registered `int`")
 	is.EqualValues(0, instance3)
 
 	// @TODO: missing test with child scopes

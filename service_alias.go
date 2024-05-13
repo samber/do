@@ -17,6 +17,7 @@ var _ serviceClone = (*serviceAlias[int, int])(nil)
 type serviceAlias[Initial any, Alias any] struct {
 	mu         sync.RWMutex
 	name       string
+	typeName   string
 	scope      Injector
 	targetName string
 
@@ -31,6 +32,7 @@ func newServiceAlias[Initial any, Alias any](name string, scope Injector, target
 	return &serviceAlias[Initial, Alias]{
 		mu:         sync.RWMutex{},
 		name:       name,
+		typeName:   inferServiceName[Alias](),
 		scope:      scope,
 		targetName: targetName,
 
@@ -44,7 +46,11 @@ func (s *serviceAlias[Initial, Alias]) getName() string {
 	return s.name
 }
 
-func (s *serviceAlias[Initial, Alias]) getType() ServiceType {
+func (s *serviceAlias[Initial, Alias]) getTypeName() string {
+	return s.typeName
+}
+
+func (s *serviceAlias[Initial, Alias]) getServiceType() ServiceType {
 	return ServiceTypeAlias
 }
 
@@ -79,7 +85,8 @@ func (s *serviceAlias[Initial, Alias]) getInstance(i Injector) (Alias, error) {
 		return target, nil
 	default:
 		// should never happen, since invoke() checks the type
-		return empty[Alias](), fmt.Errorf("DI: could not cast `%s` as `%s`", s.targetName, s.name)
+		return empty[Alias](), serviceTypeMismatch(inferServiceName[Alias](), inferServiceName[Initial]())
+		// return empty[Alias](), fmt.Errorf("DI: could not cast `%s` as `%s`", s.targetName, s.name)
 	}
 }
 
@@ -161,8 +168,9 @@ func (s *serviceAlias[Initial, Alias]) shutdown(ctx context.Context) error {
 
 func (s *serviceAlias[Initial, Alias]) clone() any {
 	return &serviceAlias[Initial, Alias]{
-		mu:   sync.RWMutex{},
-		name: s.name,
+		mu:       sync.RWMutex{},
+		name:     s.name,
+		typeName: s.typeName,
 		// scope:      s.scope,		<-- @TODO: we should inject here the cloned scope
 		targetName: s.targetName,
 
