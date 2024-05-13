@@ -255,6 +255,7 @@ func TestProvideTransient(t *testing.T) {
 
 	// @TODO: check that all services share the same references
 }
+
 func TestProvideNamedTransient(t *testing.T) {
 	is := assert.New(t)
 
@@ -460,6 +461,11 @@ func TestInvoke(t *testing.T) {
 	_, err2 := Invoke[*test](i)
 	is.NotNil(err2)
 	is.Errorf(err2, "do: service not found")
+
+	ProvideNamedValue(i, NameOf[any](), 0)
+
+	_, err3 := Invoke[any](i)
+	is.ErrorContains(err3, "type mismatch: invoking `interface {}` but registered `int`")
 }
 
 func TestMustInvoke(t *testing.T) {
@@ -512,9 +518,17 @@ func TestInvokeNamed(t *testing.T) {
 	is.EqualValues(_test, instance1)
 	is.EqualValues("foobar", instance1.foobar)
 
+	instance1any, err2 := InvokeNamed[any](i, "hello")
+	is.Nil(err2)
+	is.Equal(instance1, instance1any)
+
 	instance2, err2 := InvokeNamed[int](i, "foobar")
 	is.Nil(err2)
 	is.EqualValues(42, instance2)
+
+	instance2any, err2 := InvokeNamed[any](i, "foobar")
+	is.Nil(err2)
+	is.Equal(instance2, instance2any)
 
 	instance3, err3 := InvokeNamed[string](i, "foobar")
 	is.EqualError(err3, "DI: service found, but type mismatch: invoking `string` but registered `int`")

@@ -122,6 +122,27 @@ func TestUtilsInvertMap(t *testing.T) {
 	// is.Equal(result2, map[int]string{1: "b", 3: "c"})
 }
 
+func TestTypesEqual(t *testing.T) {
+	t.Parallel()
+	is := assert.New(t)
+
+	is.True(typesEqual[any, any]())
+	is.True(typesEqual[*any, *any]())
+	is.True(typesEqual[int, int]())
+	is.True(typesEqual[struct{}, struct{}]())
+	is.True(typesEqual[struct{ int }, struct{ int }]())
+	is.True(typesEqual[interface{}, any]())
+	is.True(typesEqual[interface{ fun() }, interface{ fun() }]())
+
+	is.False(typesEqual[int, any]())
+	is.False(typesEqual[*any, any]())
+	is.False(typesEqual[int, string]())
+	is.False(typesEqual[string, any]())
+	is.False(typesEqual[struct{ int }, struct{ any }]())
+	is.False(typesEqual[any, interface{ fun() }]())
+	is.False(typesEqual[interface{ fun1() }, interface{ fun2() }]())
+}
+
 func TestFilter(t *testing.T) {
 	t.Parallel()
 	is := assert.New(t)
