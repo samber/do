@@ -74,6 +74,11 @@ func mAp[T any, R any](collection []T, iteratee func(T, int) R) []R {
 	return result
 }
 
+func typesEqual[A, B any]() bool {
+	_, ok := any((*A)(nil)).(*B)
+	return ok
+}
+
 func filter[V any](collection []V, predicate func(item V, index int) bool) []V {
 	result := make([]V, 0, len(collection))
 
