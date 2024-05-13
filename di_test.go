@@ -515,6 +515,10 @@ func TestInvokeNamed(t *testing.T) {
 	instance2, err2 := InvokeNamed[int](i, "foobar")
 	is.Nil(err2)
 	is.EqualValues(42, instance2)
+
+	instance3, err3 := InvokeNamed[string](i, "foobar")
+	is.EqualError(err3, "DI: service found, but type mismatch: invoking `string` but registered `int`")
+	is.EqualValues("", instance3)
 }
 
 func TestMustInvokeNamed(t *testing.T) {
