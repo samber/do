@@ -81,7 +81,7 @@ func (c *Car) Start() {
 ```go
 func main() {
     // create DI container and inject package services
-    injector := do.New(Pkg)
+    injector := do.New()
 
     do.Provide(injector, NewCar)
     do.Provide(injector, NewEngine)
