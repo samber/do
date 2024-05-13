@@ -50,10 +50,7 @@ var Package = do.Package(
 ```go
 // cmd/main.go
 
-import (
-    "example/pkg/stores"
-    "example/pkg/handlers"
-)
+import "example/pkg/stores"
 
 injector := do.New(stores.Package)
 ```

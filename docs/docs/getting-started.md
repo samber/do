@@ -34,22 +34,63 @@ injector := do.New()
 
 Services can be declared as a singleton or a factory. In this example, we will create 2 services `Car` and `Engine`, with a simple dependency relation.
 
-```go
-// export services into a package
-var Pkg = do.Package(
-    do.Lazy(NewCar),
-    do.Lazy(NewEngine),
-    do.Eager(&Config{
-        Port: 4242,
-    })
-)
+Engine:
 
+```go
+// Provider
+func NewEngine(i do.Injector) (*Engine, error) {
+    return &Engine{
+        Started: false,
+    }, nil
+}
+
+type Engine struct {
+    Started bool
+}
+
+func (e *Engine) Shutdown() error {
+    // called on injector shutdown
+    e.Started = false
+    return nil
+}
+```
+
+Car:
+
+```go
+// Provider
+func NewCar(i do.Injector) (*Car, error) {
+    return &Car{
+        // import dependency
+        Engine: do.MustInvoke[*Engine](i),
+    }, nil
+}
+
+type Car struct {
+    Engine *Engine
+}
+
+func (c *Car) Start() {
+    c.Engine.Started = true
+    println("vroooom")
+}
+```
+
+### Register services using individual declaration
+
+```go
 func main() {
     // create DI container and inject package services
-    i := do.New(Pkg)
+    injector := do.New(Pkg)
+
+    do.Provide(injector, NewCar)
+    do.Provide(injector, NewEngine)
+    do.ProvideValue(&Config{
+        Port: 4242,
+    })
 
     // invoking car will instantiate Car services and its Engine dependency
-    car, err := Invoke[*Car](i)
+    car, err := do.Invoke[*Car](i)
     if err != nil {
         log.Fatal(err.Error())
     }
@@ -61,44 +102,32 @@ func main() {
 }
 ```
 
-Engine:
+### Register services using package declaration
+
+The services can be assembled into a package, and then, imported all at once into a new container.
 
 ```go
-type Engine struct {
-    Started bool
-}
+var Package = do.Package(
+    do.Lazy(NewCar),
+    do.Lazy(NewEngine),
+    do.Eager(&Config{
+        Port: 4242,
+    })
+)
 
-func (e *Engine) Shutdown() error {
-    // called on injector shutdown
-    e.Started = false
-    return nil
-}
+func main() {
+    // create DI container and inject package services
+    injector := do.New(Package)
 
-// Provider
-func NewEngine(i do.Injector) (*Engine, error) {
-    return &Engine{
-        Started: false,
-    }, nil
-}
-```
+    // invoking car will instantiate Car services and its Engine dependency
+    car, err := do.Invoke[*Car](i)
+    if err != nil {
+        log.Fatal(err.Error())
+    }
 
-Car:
+    car.Start()  // that's all folk 🤗
 
-```go
-type Car struct {
-    Engine *Engine
-}
-
-func (c *Car) Start() {
-    c.Engine.Started = true
-    println("vroooom")
-}
-
-// Provider
-func NewCar(i do.Injector) (*Car, error) {
-    return &Car{
-        // import dependency
-        Engine: do.MustInvoke[*Engine](i),
-    }, nil
+    // handle ctrl-c and shutdown services
+    i.ShutdownOnSignals(syscall.SIGTERM, os.Interrupt)
 }
 ```
