@@ -19,7 +19,15 @@ var Package = do.Package(
     do.Lazy(NewPostgresqlConnectionService),
     do.Lazy(NewUserRepository),
     do.Lazy(NewArticleRepository),
-    do.EagerNamed("repository.logger", slog.New(slog.NewTextHandler(os.Stdout, nil))),
+)
+```
+
+```go
+// pkg/observability/package.go
+
+var Package = do.Package(
+    do.Eager(slog.New(slog.NewTextHandler(os.Stdout, nil))),
+    do.EagerNamed("prometheus.collector", DefaultMetricCollector),
 )
 ```
 
@@ -28,11 +36,19 @@ var Package = do.Package(
 
 import (
     "example/pkg/stores"
+    "example/pkg/observability"
     "example/pkg/handlers"
 )
 
 func main() {
-    injector := do.New(stores.Package)
+    injector := do.New(stores.Package, observability.Package)
+    // 
+    // equivalent to:
+    // 
+    // injector := do.New()
+    // stores.Package(injector)
+    // observability.Package(injector)
+
     // ...
 
     // optional scope:
