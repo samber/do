@@ -58,13 +58,13 @@ func main() {
 }
 ```
 
-The traditional vocab can be translated for service registration:
+The traditional vocab can be translated for package registration:
 
-- `Provide[T](Injector)` -> `Lazy(T)`
-- `ProvideNamed[T](Injector, string)` -> `LazyNamed(string, T)`
+- `Provide[T](Injector, Provider[T])` -> `Lazy(Provider[T])`
+- `ProvideNamed[T](Injector, string, Provider[T])` -> `LazyNamed(string, Provider[T])`
 - `ProvideValue(Injector, T)` -> `Eager(T)`
 - `ProvideNamedValue[T](Injector, string, T)` -> `EagerNamed(string, T)`
-- `ProvideTransient[T](Injector)` -> `Transient(T)`
-- `ProvideNamedTransient[T](Injector, string)` -> `TransientNamed(string, T)`
+- `ProvideTransient[T](Injector, Provider[T])` -> `Transient(Provider[T])`
+- `ProvideNamedTransient[T](Injector, string, Provider[T])` -> `TransientNamed(string, Provider[T])`
 - `As[Initial, Alias](Injector)` -> `Bind[Initial, Alias]()`
 - `AsNamed[Initial, Alias](Injector, string, string)` -> `BindNamed[Initial, Alias](string, string)`
