@@ -73,3 +73,21 @@ To scan a project at the speed light, just run:
 ```bash
 grep -nrE 'InvokeNamed|OverrideNamed|HealthCheckNamed|ShutdownNamed' .
 ```
+
+## 5- Hooks
+
+Hooks have been converted into slices, and now receive a nullable error.
+
+```go
+# from
+HookAfterShutdown: func(scope *do.Scope, serviceName string) {
+    slog.Debug("[samber/do] SHUTDOWN "+serviceName)
+},
+
+# to
+HookAfterShutdown: []func(scope *do.Scope, serviceName string, err error){
+    func(scope *do.Scope, serviceName string, err error) {
+        slog.Debug("[samber/do] SHUTDOWN "+serviceName)
+    },
+},
+```
