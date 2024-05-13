@@ -114,7 +114,7 @@ func override[T any, A any](i Injector, name string, valueOrProvider A, serviceC
 // Invoke invokes a service in the DI container, using type inference to determine the service name.
 func Invoke[T any](i Injector) (T, error) {
 	name := inferServiceName[T]()
-	return InvokeNamed[T](i, name)
+	return invokeByName[T](i, name)
 }
 
 // MustInvoke invokes a service in the DI container, using type inference to determine the service name. It panics on error.
@@ -124,6 +124,12 @@ func MustInvoke[T any](i Injector) T {
 
 // InvokeNamed invokes a named service in the DI container.
 func InvokeNamed[T any](i Injector, name string) (T, error) {
+	if typesEqual[T, any]() {
+		v, err := invokeAnyByName(i, name)
+		t, _ := v.(T) // just skip if v == nil
+		return t, err
+	}
+
 	return invokeByName[T](i, name)
 }
 
