@@ -165,7 +165,7 @@ func ExplainNamedService(scope Injector, name string) (description ExplainServic
 		ScopeID:          serviceScope.ID(),
 		ScopeName:        serviceScope.Name(),
 		ServiceName:      name,
-		ServiceType:      service.getType(),
+		ServiceType:      service.getServiceType(),
 		ServiceBuildTime: buildTime,
 		Invoked:          invoked,
 		Dependencies:     newExplainServiceDependencies(_i, newEdgeService(_i.ID(), _i.Name(), name), "dependencies"),

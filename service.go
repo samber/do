@@ -28,7 +28,8 @@ var serviceTypeToIcon = map[ServiceType]string{
 
 type Service[T any] interface {
 	getName() string
-	getType() ServiceType
+	getTypeName() string
+	getServiceType() ServiceType
 	getEmptyInstance() any
 	getInstanceAny(Injector) (any, error)
 	getInstance(Injector) (T, error)
@@ -43,7 +44,8 @@ type Service[T any] interface {
 // Like Service[T] but without the generic type.
 type ServiceAny interface {
 	getName() string
-	getType() ServiceType
+	getTypeName() string
+	getServiceType() ServiceType
 	getEmptyInstance() any
 	getInstanceAny(Injector) (any, error)
 	// getInstance(Injector) (T, error)
@@ -56,7 +58,8 @@ type ServiceAny interface {
 }
 
 type serviceGetName interface{ getName() string }
-type serviceGetType interface{ getType() ServiceType }
+type serviceGetTypeName interface{ getTypeName() string }
+type serviceGetServiceType interface{ getServiceType() ServiceType }
 type serviceGetEmptyInstance interface{ getEmptyInstance() any }
 type serviceGetInstanceAny interface{ getInstanceAny(Injector) (any, error) }
 type serviceGetInstance[T any] interface{ getInstance(Injector) (T, error) } //nolint:unused
@@ -73,7 +76,8 @@ type serviceBuildTime interface {
 }
 
 var _ serviceGetName = (Service[int])(nil)
-var _ serviceGetType = (Service[int])(nil)
+var _ serviceGetTypeName = (Service[int])(nil)
+var _ serviceGetServiceType = (Service[int])(nil)
 var _ serviceGetEmptyInstance = (Service[int])(nil)
 var _ serviceGetInstanceAny = (Service[int])(nil)
 var _ serviceIsHealthchecker = (Service[int])(nil)
@@ -88,7 +92,7 @@ func inferServiceName[T any]() string {
 }
 
 func inferServiceProviderStacktrace(service ServiceAny) (stacktrace.Frame, bool) {
-	if service.getType() == ServiceTypeTransient {
+	if service.getServiceType() == ServiceTypeTransient {
 		return stacktrace.Frame{}, false
 	} else {
 		providerFrame, _ := service.source()
@@ -113,7 +117,7 @@ func inferServiceInfo(injector Injector, name string) (serviceInfo, bool) {
 
 		return serviceInfo{
 			name:             name,
-			serviceType:      serviceAny.(serviceGetType).getType(),
+			serviceType:      serviceAny.(serviceGetServiceType).getServiceType(),
 			serviceBuildTime: buildTime,
 			healthchecker:    serviceAny.(serviceIsHealthchecker).isHealthchecker(),
 			shutdowner:       serviceAny.(serviceIsShutdowner).isShutdowner(),
