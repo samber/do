@@ -7,8 +7,11 @@ go 1.18
 //
 
 require (
-	github.com/samber/go-type-to-string v1.4.0
+<<<<<<< HEAD
 	github.com/stretchr/testify v1.10.0
+=======
+	github.com/samber/go-type-to-string v1.5.0
+>>>>>>> 0067806 (chore: upgrade go-type-to-string)
 	go.uber.org/goleak v1.2.1
 )
 
