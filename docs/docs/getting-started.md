@@ -81,11 +81,11 @@ func (c *Car) Start() {
 ```go
 func main() {
     // create DI container and inject package services
-    injector := do.New()
+    i := do.New()
 
-    do.Provide(injector, NewCar)
-    do.Provide(injector, NewEngine)
-    do.ProvideValue(&Config{
+    do.Provide(i, NewCar)
+    do.Provide(i, NewEngine)
+    do.ProvideValue(i, &Config{
         Port: 4242,
     })
 
@@ -95,7 +95,7 @@ func main() {
         log.Fatal(err.Error())
     }
 
-    car.Start()  // that's all folk 🤗
+    car.Start() // that's all folk 🤗
 
     // handle ctrl-c and shutdown services
     i.ShutdownOnSignals(syscall.SIGTERM, os.Interrupt)
@@ -112,12 +112,12 @@ var Package = do.Package(
     do.Lazy(NewEngine),
     do.Eager(&Config{
         Port: 4242,
-    })
+    }),
 )
 
 func main() {
     // create DI container and inject package services
-    injector := do.New(Package)
+    i := do.New(Package)
 
     // invoking car will instantiate Car services and its Engine dependency
     car, err := do.Invoke[*Car](i)
