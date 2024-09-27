@@ -1,7 +1,7 @@
 package do
 
 import (
-	"fmt"
+	"reflect"
 )
 
 type Service[T any] interface {
@@ -24,13 +24,13 @@ func generateServiceName[T any]() string {
 	var t T
 
 	// struct
-	name := fmt.Sprintf("%T", t)
+	name := reflect.TypeOf(t).String()
 	if name != "<nil>" {
 		return name
 	}
 
 	// interface
-	return fmt.Sprintf("%T", new(T))
+	return reflect.TypeOf((new(T))).String()
 }
 
 type Healthcheckable interface {
