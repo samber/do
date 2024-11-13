@@ -632,6 +632,18 @@ func TestInvokeStruct(t *testing.T) {
 	test8, err := InvokeStruct[namedServiceWithCustomTag](i)
 	is.Nil(err)
 	is.Equal(42, test8.EagerTest)
+
+	// assign to interface
+	i = New()
+	Provide(i, func(i Injector) (Healthchecker, error) {
+		return &eagerTestHeathcheckerOK{foobar: "foobar"}, nil
+	})
+	type serviceWithInterface struct {
+		eagerTest Healthchecker `do:""`
+	}
+	test9, err := InvokeStruct[serviceWithInterface](i)
+	is.Nil(err)
+	is.NotNil(test9.eagerTest)
 }
 
 func TestMustInvokeStruct(t *testing.T) {
