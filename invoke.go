@@ -215,8 +215,8 @@ func invokeByTags(i Injector, structName string, structValue reflect.Value) erro
 		dependencyValue := reflect.ValueOf(dependency)
 
 		// Should be check before invocation, because we just built something that is not assignable to the field.
-		if !fieldValue.Type().AssignableTo(dependencyValue.Type()) {
-			return fmt.Errorf("DI: field `%s.%s` is not assignable to service %s", structName, field.Name, serviceName)
+		if !dependencyValue.Type().AssignableTo(fieldValue.Type()) {
+			return fmt.Errorf("DI: %s is not assignable to field `%s.%s`", serviceName, structName, field.Name)
 		}
 
 		// Should not panic, since we checked CanAddr() and CanSet() earlier.
