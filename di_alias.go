@@ -48,12 +48,12 @@ func MustAsNamed[Initial any, Alias any](i Injector, initial string, alias strin
 // 							Implicit aliases
 /////////////////////////////////////////////////////////////////////////////
 
-// InvokeAs invokes a service in the DI container. The first service matching the provided type or interface will be invoked.
+// InvokeAs invokes a service in the DI container. The last registered service matching the provided type or interface will be invoked.
 func InvokeAs[T any](i Injector) (T, error) {
 	return invokeByGenericType[T](i)
 }
 
-// MustInvokeAs invokes a service in the DI container. The first service matching the provided type or interface will be invoked. It panics on error.
+// MustInvokeAs invokes a service in the DI container. The last registered service matching the provided type or interface will be invoked. It panics on error.
 func MustInvokeAs[T any](i Injector) T {
 	return must1(InvokeAs[T](i))
 }
