@@ -14,8 +14,9 @@ func newScope(name string, root *RootScope, parent *Scope) *Scope {
 		parentScope: parent,
 		childScopes: map[string]*Scope{},
 
-		mu:       sync.RWMutex{},
-		services: make(map[string]any),
+		mu:                   sync.RWMutex{},
+		services:             make(map[string]any),
+		serviceRegisterOrder: make([]string, 0),
 
 		orderedInvocation:      map[string]int{},
 		orderedInvocationIndex: 0,
@@ -32,8 +33,9 @@ type Scope struct {
 	parentScope *Scope            // immutable
 	childScopes map[string]*Scope // append only
 
-	mu       sync.RWMutex
-	services map[string]any
+	mu                   sync.RWMutex
+	services             map[string]any
+	serviceRegisterOrder []string
 
 	// It should be a graph instead of simple ordered list.
 	orderedInvocation      map[string]int // map is faster than slice
@@ -338,7 +340,9 @@ func (s *Scope) clone(root *RootScope, parent *Scope) *Scope {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	for name, serviceAny := range s.services {
+	for _, name := range s.serviceRegisterOrder {
+		serviceAny := s.services[name]
+
 		s.rootScope.opts.onBeforeRegistration(clone, name)
 
 		if service, ok := serviceAny.(serviceClone); ok {
@@ -346,6 +350,7 @@ func (s *Scope) clone(root *RootScope, parent *Scope) *Scope {
 		} else {
 			clone.services[name] = service
 		}
+		clone.serviceRegisterOrder = append(clone.serviceRegisterOrder, name)
 
 		s.rootScope.opts.onAfterRegistration(clone, name)
 	}
@@ -415,7 +420,15 @@ func (s *Scope) serviceSet(name string, service any) {
 	s.RootScope().opts.onBeforeRegistration(s, name)
 
 	s.mu.Lock()
+	if _, ok := s.services[name]; ok {
+		if idx := indexOf(s.serviceRegisterOrder, name); idx != -1 {
+			// s.serviceRegisterOrder = append(s.serviceRegisterOrder[:idx], s.serviceRegisterOrder[idx+1:]...)
+			s.serviceRegisterOrder = splice(s.serviceRegisterOrder, idx, 1)
+		}
+	}
 	s.services[name] = service
+	s.serviceRegisterOrder = append(s.serviceRegisterOrder, name)
+
 	s.mu.Unlock()
 
 	s.RootScope().opts.onAfterRegistration(s, name)
@@ -425,10 +438,13 @@ func (s *Scope) serviceForEach(cb func(name string, scope *Scope, service any) b
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	for name, service := range s.services {
+	for i := len(s.serviceRegisterOrder) - 1; i >= 0; i-- {
+		name := s.serviceRegisterOrder[i]
+		service := s.services[name]
+
 		keepGoing := cb(name, s, service)
 		if !keepGoing {
-			break
+			return
 		}
 	}
 }
@@ -437,7 +453,10 @@ func (s *Scope) serviceForEachRec(cb func(name string, scope *Scope, service any
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	for name, service := range s.services {
+	for i := len(s.serviceRegisterOrder) - 1; i >= 0; i-- {
+		name := s.serviceRegisterOrder[i]
+		service := s.services[name]
+
 		keepGoing := cb(name, s, service)
 		if !keepGoing {
 			return
@@ -500,6 +519,9 @@ func (s *Scope) serviceShutdown(ctx context.Context, name string) error {
 	s.mu.Lock()
 	delete(s.services, name) // service is removed from DI container
 	delete(s.orderedInvocation, name)
+	if idx := indexOf(s.serviceRegisterOrder, name); idx != -1 {
+		s.serviceRegisterOrder = splice(s.serviceRegisterOrder, idx, 1)
+	}
 	s.RootScope().dag.removeService(s.id, s.name, name)
 	s.mu.Unlock()
 

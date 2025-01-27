@@ -70,6 +70,80 @@ func TestInvokeAs(t *testing.T) {
 	is.EqualError(err, "DI: could not find service satisfying interface `github.com/samber/do/v2.Shutdowner`, available services: `*github.com/samber/do/v2.lazyTestHeathcheckerOK`")
 }
 
+type otherHealthChecker struct {
+	foobar string
+}
+
+func (o *otherHealthChecker) HealthCheck() error {
+	return nil
+}
+
+func TestInvokeAs_picksLatest(t *testing.T) {
+	is := assert.New(t)
+
+	lazy := "hello world"
+	other := "hello from other"
+
+	matches := 0
+	failure := 0
+	for i := 0; i < 100; i++ {
+		injector := New()
+		Provide(injector, func(i Injector) (*lazyTestHeathcheckerOK, error) {
+			return &lazyTestHeathcheckerOK{foobar: lazy}, nil
+		})
+		Provide(injector, func(i Injector) (*otherHealthChecker, error) {
+			return &otherHealthChecker{foobar: other}, nil
+		})
+
+		// should find via interface
+		svc, err := InvokeAs[Healthchecker](injector)
+		if is.EqualValues(&otherHealthChecker{foobar: other}, svc, "iteration %d should have returned the other health checker", i) {
+			matches++
+		} else {
+			failure++
+		}
+		is.Nil(err)
+	}
+
+	is.Equal(100, matches, "all iterations should have returned the other health checker")
+	is.Equal(0, failure, "no iterations should have failed")
+}
+
+func TestInvokeAs_picksLatestWithOverrides(t *testing.T) {
+	is := assert.New(t)
+
+	lazy := "hello world"
+	other := "hello from other"
+	third := "hello from third, still other"
+
+	matches := 0
+	failure := 0
+	for i := 0; i < 100; i++ {
+		injector := New()
+		Provide(injector, func(i Injector) (*lazyTestHeathcheckerOK, error) {
+			return &lazyTestHeathcheckerOK{foobar: lazy}, nil
+		})
+		Provide(injector, func(i Injector) (*otherHealthChecker, error) {
+			return &otherHealthChecker{foobar: other}, nil
+		})
+		Override(injector, func(i Injector) (*otherHealthChecker, error) {
+			return &otherHealthChecker{foobar: third}, nil
+		})
+
+		// should find via interface
+		svc, err := InvokeAs[Healthchecker](injector)
+		if is.EqualValues(&otherHealthChecker{foobar: third}, svc, "iteration %d should have returned the other health checker", i) {
+			matches++
+		} else {
+			failure++
+		}
+		is.Nil(err)
+	}
+
+	is.Equal(100, matches, "all iterations should have returned the other health checker")
+	is.Equal(0, failure, "no iterations should have failed")
+}
+
 func TestMustInvokeAs(t *testing.T) {
 	// @TODO
 }
