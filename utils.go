@@ -143,6 +143,26 @@ func contains[T comparable](list []T, elem T) bool {
 	return false
 }
 
+func indexOf[T comparable](list []T, elem T) int {
+	for i, v := range list {
+		if v == elem {
+			return i
+		}
+	}
+
+	return -1
+}
+
+func splice[T any](list []T, start, deleteCount int, items ...T) []T {
+	result := make([]T, 0, len(list)-deleteCount+len(items))
+
+	result = append(result, list[:start]...)
+	result = append(result, items...)
+	result = append(result, list[start+deleteCount:]...)
+
+	return result
+}
+
 func coalesce[T comparable](v ...T) (result T) {
 	for _, e := range v {
 		if e != result {

@@ -159,6 +159,7 @@ func TestFilter(t *testing.T) {
 
 	is.Equal(r2, []string{"foo", "bar"})
 }
+
 func TestUtilsOrderedUniq(t *testing.T) {
 	t.Parallel()
 	is := assert.New(t)
@@ -178,6 +179,25 @@ func TestUtilsContains(t *testing.T) {
 
 	is.True(contains([]string{"a", "b", "c"}, "a"))
 	is.False(contains([]string{"a", "b", "c"}, "z"))
+}
+
+func TestUtilsIndexOf(t *testing.T) {
+	t.Parallel()
+	is := assert.New(t)
+
+	is.Equal(indexOf([]string{"a", "b", "c"}, "a"), 0)
+	is.Equal(indexOf([]string{"a", "b", "c"}, "b"), 1)
+	is.Equal(indexOf([]string{"a", "b", "c"}, "c"), 2)
+	is.Equal(indexOf([]string{"a", "b", "c"}, "z"), -1)
+}
+
+func TestUtilsSplice(t *testing.T) {
+	t.Parallel()
+	is := assert.New(t)
+
+	s := []int{1, 2, 3, 4, 5}
+	is.Equal(splice(s, 1, 2), []int{1, 4, 5})
+	is.Equal(splice(s, 1, 2, 6, 7, 8), []int{1, 6, 7, 8, 4, 5})
 }
 
 func TestUtilsCoalesce(t *testing.T) {
