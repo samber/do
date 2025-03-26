@@ -52,27 +52,27 @@ func TestProvide(t *testing.T) {
 
 	is.Len(i.services, 2)
 
-	s1, ok1 := i.services["*do.test"]
+	s1, ok1 := i.services["github.com/samber/do.*test"]
 	is.True(ok1)
 	if ok1 {
 		s, ok := s1.(Service[*test])
 		is.True(ok)
 		if ok {
-			is.Equal("*do.test", s.getName())
+			is.Equal("github.com/samber/do.*test", s.getName())
 		}
 	}
 
-	s2, ok2 := i.services["do.test"]
+	s2, ok2 := i.services["github.com/samber/do.test"]
 	is.True(ok2)
 	if ok2 {
 		s, ok := s2.(Service[test])
 		is.True(ok)
 		if ok {
-			is.Equal("do.test", s.getName())
+			is.Equal("github.com/samber/do.test", s.getName())
 		}
 	}
 
-	_, ok3 := i.services["*do.plop"]
+	_, ok3 := i.services["github.com/samber/do.*plop"]
 	is.False(ok3)
 }
 
@@ -133,7 +133,7 @@ func TestInvoke(t *testing.T) {
 
 	is.Len(i.services, 1)
 
-	s0a, ok0a := i.services["do.test"]
+	s0a, ok0a := i.services["github.com/samber/do.test"]
 	is.True(ok0a)
 
 	s0b, ok0b := s0a.(*ServiceLazy[test])
@@ -348,24 +348,24 @@ func TestDoubleInjection(t *testing.T) {
 		})
 	})
 
-	is.PanicsWithError("DI: service `*do.test` has already been declared", func() {
+	is.PanicsWithError("DI: service `github.com/samber/do.*test` has already been declared", func() {
 		Provide(i, func(i *Injector) (*test, error) {
 			return &test{}, nil
 		})
 	})
 
-	is.PanicsWithError("DI: service `*do.test` has already been declared", func() {
+	is.PanicsWithError("DI: service `github.com/samber/do.*test` has already been declared", func() {
 		ProvideValue(i, &test{})
 	})
 
-	is.PanicsWithError("DI: service `*do.test` has already been declared", func() {
-		ProvideNamed(i, "*do.test", func(i *Injector) (*test, error) {
+	is.PanicsWithError("DI: service `github.com/samber/do.*test` has already been declared", func() {
+		ProvideNamed(i, "github.com/samber/do.*test", func(i *Injector) (*test, error) {
 			return &test{}, nil
 		})
 	})
 
-	is.PanicsWithError("DI: service `*do.test` has already been declared", func() {
-		ProvideNamedValue(i, "*do.test", &test{})
+	is.PanicsWithError("DI: service `github.com/samber/do.*test` has already been declared", func() {
+		ProvideNamedValue(i, "github.com/samber/do.*test", &test{})
 	})
 }
 
@@ -389,7 +389,7 @@ func TestOverride(t *testing.T) {
 		})
 		is.Equal(1, MustInvoke[*test](i).foobar)
 
-		OverrideNamed(i, "*do.test", func(i *Injector) (*test, error) {
+		OverrideNamed(i, "github.com/samber/do.*test", func(i *Injector) (*test, error) {
 			return &test{2}, nil
 		})
 		is.Equal(2, MustInvoke[*test](i).foobar)
@@ -397,7 +397,7 @@ func TestOverride(t *testing.T) {
 		OverrideValue(i, &test{3})
 		is.Equal(3, MustInvoke[*test](i).foobar)
 
-		OverrideNamedValue(i, "*do.test", &test{4})
+		OverrideNamedValue(i, "github.com/samber/do.*test", &test{4})
 		is.Equal(4, MustInvoke[*test](i).foobar)
 	})
 }
