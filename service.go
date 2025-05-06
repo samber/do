@@ -1,7 +1,7 @@
 package do
 
 import (
-	"fmt"
+	"reflect"
 )
 
 type Service[T any] interface {
@@ -22,15 +22,34 @@ type shutdownableService interface {
 
 func generateServiceName[T any]() string {
 	var t T
+	typeOfT := reflect.TypeOf(t)
+	prefix := ""
 
-	// struct
-	name := fmt.Sprintf("%T", t)
-	if name != "<nil>" {
-		return name
+	if typeOfT == nil {
+		typeOfT = reflect.TypeOf(&t)
 	}
 
-	// interface
-	return fmt.Sprintf("%T", new(T))
+	for {
+		if typeOfT.Kind() == reflect.Pointer {
+			typeOfT = typeOfT.Elem()
+			prefix += "*"
+		} else if typeOfT.Kind() == reflect.Slice || typeOfT.Kind() == reflect.Array {
+			typeOfT = typeOfT.Elem()
+			prefix += "[]"
+		} else {
+			break
+		}
+	}
+
+	if typeOfT.Name() == "" {
+		// @TODO: handle "any" and "interface{}" types
+	}
+
+	pkgPath := typeOfT.PkgPath()
+	if pkgPath != "" {
+		pkgPath += "."
+	}
+	return pkgPath + prefix + typeOfT.Name()
 }
 
 type Healthcheckable interface {
