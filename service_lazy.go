@@ -1,6 +1,7 @@
 package do
 
 import (
+	"fmt"
 	"sync"
 	"sync/atomic"
 )
@@ -33,7 +34,7 @@ func (s *ServiceLazy[T]) getName() string {
 
 func (s *ServiceLazy[T]) getInstance(i *Injector) (T, error) {
 	if s.building.Load() {
-		panic("DI: circular dependency detected for service " + s.name)
+		panic(fmt.Sprintf("DI: circular dependency detected for service %q", s.name))
 	}
 
 	s.mu.Lock()
