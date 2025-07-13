@@ -11,23 +11,23 @@ func must(err error) {
 }
 
 func keys[K comparable, V any](in map[K]V) []K {
-	result := make([]K, 0, len(in))
+	out := make([]K, 0, len(in))
 
 	for k := range in {
-		result = append(result, k)
+		out = append(out, k)
 	}
 
-	return result
+	return out
 }
 
-func mAp[T any, R any](collection []T, iteratee func(T) R) []R {
-	result := make([]R, len(collection))
+func mAp[T any, R any](in []T, f func(T) R) []R {
+	out := make([]R, len(in))
 
-	for i, item := range collection {
-		result[i] = iteratee(item)
+	for i, item := range in {
+		out[i] = f(item)
 	}
 
-	return result
+	return out
 }
 
 func invertMap[K comparable, V comparable](in map[K]V) map[V]K {
