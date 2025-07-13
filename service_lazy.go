@@ -2,6 +2,7 @@ package do
 
 import (
 	"sync"
+	"sync/atomic"
 )
 
 type Provider[T any] func(*Injector) (T, error)
@@ -14,6 +15,7 @@ type ServiceLazy[T any] struct {
 	// lazy loading
 	built    bool
 	provider Provider[T]
+	building atomic.Bool
 }
 
 func newServiceLazy[T any](name string, provider Provider[T]) Service[T] {
@@ -25,15 +27,22 @@ func newServiceLazy[T any](name string, provider Provider[T]) Service[T] {
 	}
 }
 
-//nolint:unused
 func (s *ServiceLazy[T]) getName() string {
 	return s.name
 }
 
-//nolint:unused
 func (s *ServiceLazy[T]) getInstance(i *Injector) (T, error) {
+	if s.building.Load() {
+		panic("DI: circular dependency detected for service " + s.name)
+	}
+
 	s.mu.Lock()
-	defer s.mu.Unlock()
+	s.building.Store(true)
+
+	defer func() {
+		s.building.Store(false)
+		s.mu.Unlock()
+	}()
 
 	if !s.built {
 		err := s.build(i)
@@ -45,7 +54,6 @@ func (s *ServiceLazy[T]) getInstance(i *Injector) (T, error) {
 	return s.instance, nil
 }
 
-//nolint:unused
 func (s *ServiceLazy[T]) build(i *Injector) (err error) {
 	defer func() {
 		if r := recover(); r != nil {

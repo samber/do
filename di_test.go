@@ -153,6 +153,27 @@ func TestInvoke(t *testing.T) {
 	is.Errorf(err2, "do: service not found")
 }
 
+func TestInvokeCircularDependency(t *testing.T) {
+	is := assert.New(t)
+
+	type test struct{}
+
+	i := New()
+
+	is.Panics(func() {
+		Provide(i, func(i *Injector) (test, error) {
+			instance, err := Invoke[test](i)
+			if err != nil {
+				return test{}, nil
+			}
+
+			return instance, nil
+		})
+
+		_ = MustInvoke[test](i)
+	}, "circular dependency was not detected (this message will only be read in here when the test never finishes because of infinite recursion)")
+}
+
 func TestInvokeNamed(t *testing.T) {
 	is := assert.New(t)
 
