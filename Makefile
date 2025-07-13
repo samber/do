@@ -16,6 +16,7 @@ watch-test:
 
 bench:
 	go test -benchmem -count 3 -bench ./...
+
 watch-bench:
 	reflex -t 50ms -s -- sh -c 'go test -benchmem -count 3 -bench ./...'
 
@@ -36,6 +37,7 @@ tools:
 
 lint:
 	golangci-lint run --timeout 60s --max-same-issues 50 ./...
+
 lint-fix:
 	golangci-lint run --timeout 60s --max-same-issues 50 --fix ./...
 
