@@ -39,7 +39,6 @@ func generateServiceNameWithSprintf[T any]() string {
 	return fmt.Sprintf("%T", new(T))
 }
 
-
 func generateServiceNameWithReflect[T any]() string {
 	var t T
 	// For non-pointer types, reflect.TypeOf(t) will never be nil.
@@ -56,23 +55,26 @@ func generateServiceNameWithReflect[T any]() string {
 	return reflect.TypeOf(new(T)).String()
 }
 
-// func generateServiceName[T any]() string {
-// 	var t T
-// 	// For non-pointer types, reflect.TypeOf(t) will never be nil.
-// 	// For pointer types, reflect.TypeOf(t) can be nil if t is nil.
-// 	typ := reflect.TypeOf(t)
-// 	if typ == nil {
-// 		return ""
-// 	}
-//
-// 	name := typ.Name()
-// 	if name != "" {
-// 		return name
-// 	}
-//
-// 	return reflect.TypeOf(new(T)).Name()
-// }
+// generateServiceNameWithFQSN generates a fully qualified service name.
+// It uses the package path and type name to create a unique identifier for the service.
+// This is useful for services that are defined in different packages but have the same type name.
+// Example: "github.com/user/project/service.MyService"
+func generateServiceNameWithFQSN[T any]() string {
+	var t T
+	// For non-pointer types, reflect.TypeOf(t) will never be nil.
+	// For pointer types, reflect.TypeOf(t) can be nil if t is nil.
+	typ := reflect.TypeOf(t)
+	if typ == nil {
+		return ""
+	}
 
+	name := typ.PkgPath() + "." + typ.Name()
+	if name != "" {
+		return name
+	}
+
+	return reflect.TypeOf(new(T)).String()
+}
 
 type Healthcheckable interface {
 	HealthCheck() error
