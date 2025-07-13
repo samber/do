@@ -31,7 +31,7 @@ func mAp[T any, R any](collection []T, iteratee func(T) R) []R {
 }
 
 func invertMap[K comparable, V comparable](in map[K]V) map[V]K {
-	out := map[V]K{}
+	out := make(map[V]K, len(in))
 
 	for k, v := range in {
 		out[v] = k
