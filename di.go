@@ -7,7 +7,7 @@ import (
 func Provide[T any](i *Injector, provider Provider[T]) {
 	name := generateServiceName[T]()
 
-	ProvideNamed[T](i, name, provider)
+	ProvideNamed(i, name, provider)
 }
 
 func ProvideNamed[T any](i *Injector, name string, provider Provider[T]) {
@@ -43,7 +43,7 @@ func ProvideNamedValue[T any](i *Injector, name string, value T) {
 func Override[T any](i *Injector, provider Provider[T]) {
 	name := generateServiceName[T]()
 
-	OverrideNamed[T](i, name, provider)
+	OverrideNamed(i, name, provider)
 }
 
 func OverrideNamed[T any](i *Injector, name string, provider Provider[T]) {
@@ -58,7 +58,7 @@ func OverrideNamed[T any](i *Injector, name string, provider Provider[T]) {
 func OverrideValue[T any](i *Injector, value T) {
 	name := generateServiceName[T]()
 
-	OverrideNamedValue[T](i, name, value)
+	OverrideNamedValue(i, name, value)
 }
 
 func OverrideNamedValue[T any](i *Injector, name string, value T) {
