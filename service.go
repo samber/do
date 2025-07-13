@@ -68,12 +68,14 @@ func generateServiceNameWithFQSN[T any]() string {
 		return ""
 	}
 
-	name := typ.PkgPath() + "." + typ.Name()
-	if name != "" {
-		return name
+	prefix := ""
+	typName := typ
+	if typ.Kind() == reflect.Ptr {
+		prefix = "*"
+		typName = typ.Elem()
 	}
 
-	return reflect.TypeOf(new(T)).String()
+	return prefix + typName.PkgPath() + "." + typName.Name()
 }
 
 type Healthcheckable interface {
