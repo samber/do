@@ -154,13 +154,12 @@ func TestInvoke(t *testing.T) {
 }
 
 func TestInvokeCircularDependency(t *testing.T) {
-	is := assert.New(t)
+	t.Run("simple circular dependency", func(t *testing.T) {
+		type test struct{}
 
-	type test struct{}
+		is := assert.New(t)
+		i := New()
 
-	i := New()
-
-	is.Panics(func() {
 		Provide(i, func(i *Injector) (test, error) {
 			instance, err := Invoke[test](i)
 			if err != nil {
@@ -170,8 +169,58 @@ func TestInvokeCircularDependency(t *testing.T) {
 			return instance, nil
 		})
 
-		_ = MustInvoke[test](i)
-	}, "circular dependency was not detected (this message will only be read in here when the test never finishes because of infinite recursion)")
+		is.Panics(func() {
+			_ = MustInvoke[test](i)
+		}, "circular dependency was not detected (this message will only be read in here when the test never finishes because of infinite recursion)")
+
+	})
+
+	t.Run("subtle circular dependency", func(t *testing.T) {
+		type itest any
+
+		type test4 struct {
+			t itest
+		}
+		type test3 struct {
+			t itest
+		}
+		type test2 struct {
+			t itest
+		}
+		type test1 struct {
+			t itest
+		}
+
+		is := assert.New(t)
+		i := New()
+
+		// test1 -> test2 -> test3 -> test4 --
+		//    ^______________________________|
+		Provide(i, func(i *Injector) (test1, error) {
+			return test1{
+				t: MustInvoke[test2](i),
+			}, nil
+		})
+		Provide(i, func(i *Injector) (test2, error) {
+			return test2{
+				t: MustInvoke[test3](i),
+			}, nil
+		})
+		Provide(i, func(i *Injector) (test3, error) {
+			return test3{
+				t: MustInvoke[test4](i),
+			}, nil
+		})
+		Provide(i, func(i *Injector) (test4, error) {
+			return test4{
+				t: MustInvoke[test1](i),
+			}, nil
+		})
+
+		is.Panics(func() {
+			_ = MustInvoke[test1](i)
+		}, "circular dependency was not detected (this message will only be read in here when the test never finishes because of infinite recursion)")
+	})
 }
 
 func TestInvokeNamed(t *testing.T) {
