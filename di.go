@@ -25,7 +25,7 @@ func ProvideNamed[T any](i *Injector, name string, provider Provider[T]) {
 func ProvideValue[T any](i *Injector, value T) {
 	name := generateServiceName[T]()
 
-	ProvideNamedValue[T](i, name, value)
+	ProvideNamedValue(i, name, value)
 }
 
 func ProvideNamedValue[T any](i *Injector, name string, value T) {
