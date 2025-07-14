@@ -81,8 +81,19 @@ func (i *Injector) ListProvidedServices() []string {
 
 func (i *Injector) ListInvokedServices() []string {
 	i.mu.RLock()
-	names := keys(i.orderedInvocation)
+	invocations := invertMap(i.orderedInvocation)
+	invocationIndex := i.orderedInvocationIndex
 	i.mu.RUnlock()
+
+	names := make([]string, 0, invocationIndex+1)
+	for index := 0; index <= invocationIndex; index++ {
+		name, ok := invocations[index]
+		if !ok {
+			continue
+		}
+
+		names = append(names, name)
+	}
 
 	i.logf("exported list of invoked services: %v", names)
 
