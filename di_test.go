@@ -161,12 +161,7 @@ func TestInvokeCircularDependency(t *testing.T) {
 		i := New()
 
 		Provide(i, func(i *Injector) (test, error) {
-			instance, err := Invoke[test](i)
-			if err != nil {
-				return test{}, nil
-			}
-
-			return instance, nil
+			return MustInvoke[test](i), nil
 		})
 
 		is.Panics(func() {

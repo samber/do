@@ -26,6 +26,7 @@ func New() *Injector {
 type InjectorOpts struct {
 	HookAfterRegistration func(injector *Injector, serviceName string)
 	HookAfterShutdown     func(injector *Injector, serviceName string)
+	UseFQSN               bool // Use Fully Qualified Service Name (FQSN) for service names
 
 	Logf func(format string, args ...any)
 }
@@ -47,6 +48,7 @@ func NewWithOpts(opts *InjectorOpts) *Injector {
 
 		hookAfterRegistration: opts.HookAfterRegistration,
 		hookAfterShutdown:     opts.HookAfterShutdown,
+		useFQSN:               opts.UseFQSN,
 
 		logf: logf,
 	}
@@ -62,6 +64,7 @@ type Injector struct {
 
 	hookAfterRegistration func(injector *Injector, serviceName string)
 	hookAfterShutdown     func(injector *Injector, serviceName string)
+	useFQSN               bool // Use Fully Qualified Service Name (FQSN) for service names
 
 	logf func(format string, args ...any)
 }

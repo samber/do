@@ -21,6 +21,13 @@ type shutdownableService interface {
 	shutdown() error
 }
 
+func generateServiceNameFromInjector[T any](i *Injector) string {
+	if i != nil && i.useFQSN {
+		return generateServiceNameWithFQSN[T]()
+	}
+	return generateServiceName[T]()
+}
+
 func generateServiceName[T any]() string {
 	return generateServiceNameWithReflect[T]()
 }
@@ -41,18 +48,13 @@ func generateServiceNameWithSprintf[T any]() string {
 
 func generateServiceNameWithReflect[T any]() string {
 	var t T
-	// For non-pointer types, reflect.TypeOf(t) will never be nil.
-	// For pointer types, reflect.TypeOf(t) can be nil if t is nil.
+	// reflect.TypeOf(t) will be nil when T is an interface type.
 	typ := reflect.TypeOf(t)
 	if typ == nil {
-		return ""
+		typ = reflect.TypeOf(new(T)).Elem()
 	}
 
-	if name := typ.String(); name != "" {
-		return name
-	}
-
-	return reflect.TypeOf(new(T)).String()
+	return typ.String()
 }
 
 // generateServiceNameWithFQSN generates a fully qualified service name.
@@ -61,11 +63,10 @@ func generateServiceNameWithReflect[T any]() string {
 // Example: "github.com/user/project/service.MyService"
 func generateServiceNameWithFQSN[T any]() string {
 	var t T
-	// For non-pointer types, reflect.TypeOf(t) will never be nil.
-	// For pointer types, reflect.TypeOf(t) can be nil if t is nil.
+	// reflect.TypeOf(t) will be nil when T is an interface type.
 	typ := reflect.TypeOf(t)
 	if typ == nil {
-		return ""
+		typ = reflect.TypeOf(new(T)).Elem()
 	}
 
 	prefix := ""
@@ -75,7 +76,13 @@ func generateServiceNameWithFQSN[T any]() string {
 		typName = typ.Elem()
 	}
 
-	return prefix + typName.PkgPath() + "." + typName.Name()
+	name := typName.Name()
+	pkg := typName.PkgPath()
+	if name != "" && pkg != "" {
+		return prefix + pkg + "." + name
+	}
+
+	return prefix + typName.String()
 }
 
 type Healthcheckable interface {

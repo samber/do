@@ -45,18 +45,43 @@ func TestInjectorNewWithOpts(t *testing.T) {
 }
 
 func TestInjectorListProvidedServices(t *testing.T) {
+	type test struct{}
+
 	is := assert.New(t)
 
 	i := New()
 
 	is.NotPanics(func() {
-		ProvideValue[int](i, 42)
-		ProvideValue[float64](i, 21)
+		ProvideValue(i, 42)
+		ProvideValue(i, 21.0)
+		ProvideValue(i, test{})
 	})
 
 	is.NotPanics(func() {
 		services := i.ListProvidedServices()
-		is.ElementsMatch([]string{"int", "float64"}, services)
+		is.ElementsMatch([]string{"int", "float64", "do.test"}, services)
+	})
+}
+
+
+func TestInjectorListProvidedServicesWithFQSN(t *testing.T) {
+	type test struct{}
+	is := assert.New(t)
+
+	i := NewWithOpts(&InjectorOpts{
+		UseFQSN: true,
+	})
+
+	is.NotPanics(func() {
+		ProvideValue(i, 42)
+		ProvideValue(i, 21.0)
+		ProvideValue(i, "test")
+		ProvideValue(i, test{})
+	})
+
+	is.NotPanics(func() {
+		services := i.ListProvidedServices()
+		is.ElementsMatch([]string{"int", "float64", "string", "github.com/samber/do.test"}, services)
 	})
 }
 
@@ -66,14 +91,40 @@ func TestInjectorListInvokedServices(t *testing.T) {
 	i := New()
 
 	is.NotPanics(func() {
-		ProvideValue[int](i, 42)
-		ProvideValue[float64](i, 21)
+		ProvideValue(i, 42)
+		ProvideValue(i, 21.0)
 		MustInvoke[int](i)
 	})
 
 	is.NotPanics(func() {
 		services := i.ListInvokedServices()
 		is.Equal([]string{"int"}, services)
+	})
+}
+
+func TestInjectorListInvokedServicesWithFQSN(t *testing.T) {
+	type test struct{}
+	is := assert.New(t)
+
+	i := NewWithOpts(&InjectorOpts{
+		UseFQSN: true,
+	})
+
+	is.NotPanics(func() {
+		ProvideValue(i, 42)
+		ProvideValue(i, 21.0)
+		ProvideValue(i, "test")
+		ProvideValue(i, test{})
+
+		MustInvoke[int](i)
+		MustInvoke[float64](i)
+		MustInvoke[string](i)
+		MustInvoke[test](i)
+	})
+
+	is.NotPanics(func() {
+		services := i.ListInvokedServices()
+		is.Equal([]string{"int", "float64", "string", "github.com/samber/do.test"}, services)
 	})
 }
 
@@ -90,7 +141,7 @@ func TestInjectorHealthCheck(t *testing.T) {
 	i := New()
 
 	is.NotPanics(func() {
-		ProvideValue[int](i, 42)
+		ProvideValue(i, 42)
 		ProvideNamed(i, "testHealthCheck", func(i *Injector) (*testHealthCheck, error) {
 			return &testHealthCheck{}, nil
 		})
