@@ -36,6 +36,15 @@ func TestGenerateServiceName(t *testing.T) {
 
 	name = generateServiceName[*int]()
 	is.Equal("*int", name)
+
+	name = generateServiceName[[]int]()
+	is.Equal("[]int", name)
+
+	name = generateServiceName[map[string]string]()
+	is.Equal("map[string]string", name)
+
+	name = generateServiceName[map[string]test]()
+	is.Equal("map[string]do.test", name)
 }
 
 func TestGenerateServiceNameWithFQSN(t *testing.T) {
@@ -68,4 +77,10 @@ func TestGenerateServiceNameWithFQSN(t *testing.T) {
 
 	name = generateServiceNameWithFQSN[*int]()
 	is.Equal("*int", name)
+
+	name = generateServiceNameWithFQSN[[]int]()
+	is.Equal("[]int", name)
+
+	name = generateServiceNameWithFQSN[map[string]string]()
+	is.Equal("map[string]string", name)
 }
