@@ -1,6 +1,7 @@
 package do
 
 import (
+	"context"
 	"fmt"
 )
 
@@ -141,4 +142,22 @@ func ShutdownNamed(i *Injector, name string) error {
 
 func MustShutdownNamed(i *Injector, name string) {
 	must(getInjectorOrDefault(i).shutdownImplem(name))
+}
+
+func ShutdownContext[T any](ctx context.Context, i *Injector) error {
+	name := generateServiceNameFromInjector[T](i)
+	return getInjectorOrDefault(i).shutdownContextImplem(ctx, name)
+}
+
+func MustShutdownContext[T any](ctx context.Context, i *Injector) {
+	name := generateServiceNameFromInjector[T](i)
+	must(getInjectorOrDefault(i).shutdownContextImplem(ctx, name))
+}
+
+func ShutdownNamedContext(ctx context.Context, i *Injector, name string) error {
+	return getInjectorOrDefault(i).shutdownContextImplem(ctx, name)
+}
+
+func MustShutdownNamedContext(ctx context.Context, i *Injector, name string) {
+	must(getInjectorOrDefault(i).shutdownContextImplem(ctx, name))
 }

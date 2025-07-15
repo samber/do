@@ -1,6 +1,7 @@
 package do
 
 import (
+	"context"
 	"fmt"
 	"reflect"
 )
@@ -10,6 +11,7 @@ type Service[T any] interface {
 	getInstance(*Injector) (T, error)
 	healthcheck() error
 	shutdown() error
+	shutdownWithContext(context.Context) error
 	clone() any
 }
 
@@ -19,6 +21,10 @@ type healthcheckableService interface {
 
 type shutdownableService interface {
 	shutdown() error
+}
+
+type shutdownableWithContextService interface {
+	shutdownWithContext(context.Context) error
 }
 
 func generateServiceNameFromInjector[T any](i *Injector) string {
@@ -91,6 +97,10 @@ type Healthcheckable interface {
 
 type Shutdownable interface {
 	Shutdown() error
+}
+
+type ShutdownableWithContext interface {
+	Shutdown(context.Context) error
 }
 
 type cloneableService interface {

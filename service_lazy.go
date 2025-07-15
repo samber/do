@@ -1,6 +1,7 @@
 package do
 
 import (
+	"context"
 	"fmt"
 	"sync"
 	"sync/atomic"
@@ -111,6 +112,25 @@ func (s *ServiceLazy[T]) shutdown() error {
 
 	s.built = false
 	s.instance = empty[T]()
+
+	return nil
+}
+
+func (s *ServiceLazy[T]) shutdownWithContext(ctx context.Context) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	if !s.built {
+		return nil
+	}
+
+	instance, ok := any(s.instance).(ShutdownableWithContext)
+	if ok {
+		return instance.Shutdown(ctx)
+	}
+	s.built = false
+	s.instance = empty[T]()
+
 
 	return nil
 }

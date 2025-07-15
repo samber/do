@@ -1,6 +1,7 @@
 package do
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"os/signal"
@@ -119,6 +120,10 @@ func (i *Injector) HealthCheck() map[string]error {
 }
 
 func (i *Injector) Shutdown() error {
+	return i.ShutdownContext(context.Background())
+}
+
+func (i *Injector) ShutdownContext(ctx context.Context) error {
 	i.mu.RLock()
 	invocations := invertMap(i.orderedInvocation)
 	invocationIndex := i.orderedInvocationIndex
@@ -132,7 +137,7 @@ func (i *Injector) Shutdown() error {
 			continue
 		}
 
-		err := i.shutdownImplem(name)
+		err := i.shutdownContextImplem(ctx, name)
 		if err != nil {
 			return err
 		}
@@ -193,6 +198,10 @@ func (i *Injector) healthcheckImplem(name string) error {
 }
 
 func (i *Injector) shutdownImplem(name string) error {
+	return i.shutdownContextImplem(context.Background(), name)
+}
+
+func (i *Injector) shutdownContextImplem(ctx context.Context, name string) error {
 	i.mu.Lock()
 
 	serviceAny, ok := i.services[name]
@@ -203,13 +212,23 @@ func (i *Injector) shutdownImplem(name string) error {
 
 	i.mu.Unlock()
 
-	service, ok := serviceAny.(shutdownableService)
+	serviceWithCtx, ok := serviceAny.(shutdownableWithContextService)
 	if ok {
 		i.logf("requested shutdown for service %s", name)
 
-		err := service.shutdown()
+		err := serviceWithCtx.shutdownWithContext(ctx)
 		if err != nil {
 			return err
+		}
+	} else {
+		service, ok := serviceAny.(shutdownableService)
+		if ok {
+			i.logf("requested shutdown for service %s", name)
+
+			err := service.shutdown()
+			if err != nil {
+				return err
+			}
 		}
 	}
 

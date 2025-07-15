@@ -1,6 +1,7 @@
 package do
 
 import (
+	"context"
 	"fmt"
 	"reflect"
 	"testing"
@@ -62,7 +63,6 @@ func TestInjectorListProvidedServices(t *testing.T) {
 		is.ElementsMatch([]string{"int", "float64", "do.test"}, services)
 	})
 }
-
 
 func TestInjectorListProvidedServicesWithFQSN(t *testing.T) {
 	type test struct{}
@@ -395,4 +395,66 @@ func TestInjectorCloneLazy(t *testing.T) {
 	is.NoError(err)
 	is.Equal(54, s2)
 	is.Equal(3, count)
+}
+
+type testShutdownableWithCtx struct {
+	waitForCtx     bool
+	CalledShutdown bool
+}
+
+func (t *testShutdownableWithCtx) Shutdown(ctx context.Context) error {
+	t.CalledShutdown = true
+	if t.waitForCtx {
+		<-ctx.Done()
+		return ctx.Err()
+	}
+
+	return nil
+}
+
+
+func TestInjectorShutdownContext(t *testing.T) {
+	is := assert.New(t)
+
+	i := New()
+	first := &testShutdownableWithCtx{waitForCtx: true}
+	second := &testShutdownableWithCtx{waitForCtx: true}
+	ProvideNamedValue(i, "foobar", first)
+	ProvideNamedValue(i, "barfoo", second)
+
+	is.NotPanics(func() {
+		MustInvokeNamed[*testShutdownableWithCtx](i, "foobar")
+		MustInvokeNamed[*testShutdownableWithCtx](i, "barfoo")
+	})
+
+	ctx, cancel := context.WithCancel(context.Background())
+	cancel()
+	err := i.ShutdownContext(ctx)
+	is.Error(err)
+
+	is.False(first.CalledShutdown)
+	is.True(second.CalledShutdown)
+}
+
+func TestInjectorShutdownContextCallsEveryServicesShutdown(t *testing.T) {
+	is := assert.New(t)
+
+	i := New()
+	first := &testShutdownableWithCtx{waitForCtx: false}
+	second := &testShutdownableWithCtx{waitForCtx: false}
+	ProvideNamedValue(i, "foobar", first)
+	ProvideNamedValue(i, "barfoo", second)
+
+	is.NotPanics(func() {
+		MustInvokeNamed[*testShutdownableWithCtx](i, "foobar")
+		MustInvokeNamed[*testShutdownableWithCtx](i, "barfoo")
+	})
+
+	ctx, cancel := context.WithCancel(context.Background())
+	cancel()
+	err := i.ShutdownContext(ctx)
+	is.Nil(err)
+
+	is.True(first.CalledShutdown)
+	is.True(second.CalledShutdown)
 }

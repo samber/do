@@ -1,6 +1,7 @@
 package do
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
@@ -397,6 +398,143 @@ func TestMustShutdownNamed(t *testing.T) {
 
 	is.Panics(func() {
 		MustShutdownNamed(i, "foobar")
+	})
+}
+
+type test struct {
+	waitForCtx bool
+}
+
+func (t test) Shutdown(ctx context.Context) error {
+	if t.waitForCtx {
+		<-ctx.Done()
+		return ctx.Err()
+	}
+
+	return nil
+}
+
+func TestShutdownContext(t *testing.T) {
+	t.Run("context without cancellation returns nil", func(t *testing.T) {
+		is := assert.New(t)
+
+		i := New()
+
+		Provide(i, func(i *Injector) (test, error) {
+			return test{waitForCtx: false}, nil
+		})
+
+		is.NotPanics(func() {
+			MustInvoke[test](i)
+		})
+
+		ctx := context.Background()
+		err := ShutdownContext[test](ctx, i)
+		is.NoError(err)
+
+		instance, err := Invoke[test](i)
+		is.Empty(instance)
+		is.Error(err)
+	})
+
+	t.Run("cancelled context returns an error", func(t *testing.T) {
+		is := assert.New(t)
+
+		i := New()
+
+		Provide(i, func(i *Injector) (test, error) {
+			return test{waitForCtx: true}, nil
+		})
+
+		is.NotPanics(func() {
+			MustInvoke[test](i)
+		})
+
+		ctx, cancel := context.WithCancel(context.Background())
+		cancel()
+		err := ShutdownContext[test](ctx, i)
+		is.Error(err)
+	})
+}
+
+func TestMustShutdownContext(t *testing.T) {
+	t.Run("context without cancellation returns nil", func(t *testing.T) {
+		is := assert.New(t)
+
+		i := New()
+
+		Provide(i, func(i *Injector) (test, error) {
+			return test{waitForCtx: false}, nil
+		})
+
+		is.NotPanics(func() {
+			MustInvoke[test](i)
+		})
+
+		ctx := context.Background()
+		is.NotPanics(func() {
+			MustShutdownContext[test](ctx, i)
+		})
+	})
+
+	t.Run("cancelled context returns an error", func(t *testing.T) {
+		is := assert.New(t)
+
+		i := New()
+
+		Provide(i, func(i *Injector) (test, error) {
+			return test{waitForCtx: true}, nil
+		})
+
+		is.NotPanics(func() {
+			MustInvoke[test](i)
+		})
+
+		ctx, cancel := context.WithCancel(context.Background())
+		cancel()
+		is.Panics(func() {
+			MustShutdownContext[test](ctx, i)
+		})
+	})
+}
+
+func TestShutdownContextNamed(t *testing.T) {
+	t.Run("cancelled context returns an error", func(t *testing.T) {
+		is := assert.New(t)
+
+		i := New()
+
+		ProvideNamedValue(i, "foobar", test{waitForCtx: true})
+
+		is.NotPanics(func() {
+			MustInvokeNamed[test](i, "foobar")
+		})
+
+		ctx, cancel := context.WithCancel(context.Background())
+		cancel()
+		err := ShutdownNamedContext(ctx, i, "foobar")
+		is.Error(err)
+
+	})
+
+	t.Run("context without cancellation returns nil", func(t *testing.T) {
+		is := assert.New(t)
+
+		i := New()
+
+		ProvideNamedValue(i, "foobar", test{waitForCtx: false})
+
+		is.NotPanics(func() {
+			MustInvokeNamed[test](i, "foobar")
+		})
+
+		ctx := context.Background()
+		err := ShutdownNamedContext(ctx, i, "foobar")
+		is.NoError(err)
+
+		instance, err := InvokeNamed[test](i, "foobar")
+		is.Empty(instance)
+		is.Error(err)
 	})
 }
 
