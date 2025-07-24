@@ -124,7 +124,7 @@ func MustInvoke[T any](i Injector) T {
 
 // InvokeNamed invokes a named service in the DI container.
 func InvokeNamed[T any](i Injector, name string) (T, error) {
-	if typesEqual[T, any]() {
+	if typeIsAssignable[T, any]() {
 		v, err := invokeAnyByName(i, name)
 		t, _ := v.(T) // just skip if v == nil
 		return t, err
