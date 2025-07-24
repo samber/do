@@ -74,8 +74,8 @@ func mAp[T any, R any](collection []T, iteratee func(T, int) R) []R {
 	return result
 }
 
-func typesEqual[A, B any]() bool {
-	_, ok := any((*A)(nil)).(*B)
+func typeIsAssignable[T, AssignTo any]() bool {
+	_, ok := any((*T)(nil)).(*AssignTo)
 	return ok
 }
 

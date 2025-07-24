@@ -18,6 +18,6 @@ func TestParallelShutdown(t *testing.T) {
 		_ = do.MustInvokeNamed[*fixtures.Passenger](passenger, "passenger-1")
 		_ = do.MustInvokeNamed[*fixtures.Passenger](passenger, "passenger-2")
 		_ = do.MustInvokeNamed[*fixtures.Passenger](passenger, "passenger-3")
-		root.Shutdown()
+		_ = root.Shutdown()
 	})
 }
