@@ -81,16 +81,16 @@ func (c *Car) Start() {
 ```go
 func main() {
     // create DI container and inject package services
-    i := do.New()
+    injector := do.New()
 
-    do.Provide(i, NewCar)
-    do.Provide(i, NewEngine)
-    do.ProvideValue(i, &Config{
+    do.Provide(injector, NewCar)
+    do.Provide(injector, NewEngine)
+    do.ProvideValue(injector, &Config{
         Port: 4242,
     })
 
     // invoking car will instantiate Car services and its Engine dependency
-    car, err := do.Invoke[*Car](i)
+    car, err := do.Invoke[*Car](injector)
     if err != nil {
         log.Fatal(err.Error())
     }
@@ -98,7 +98,7 @@ func main() {
     car.Start() // that's all folk 🤗
 
     // handle ctrl-c and shutdown services
-    i.ShutdownOnSignals(syscall.SIGTERM, os.Interrupt)
+    injector.ShutdownOnSignals(syscall.SIGTERM, os.Interrupt)
 }
 ```
 
@@ -117,10 +117,10 @@ var Package = do.Package(
 
 func main() {
     // create DI container and inject package services
-    i := do.New(Package)
+    injector := do.New(Package)
 
     // invoking car will instantiate Car services and its Engine dependency
-    car, err := do.Invoke[*Car](i)
+    car, err := do.Invoke[*Car](injector)
     if err != nil {
         log.Fatal(err.Error())
     }
@@ -128,6 +128,6 @@ func main() {
     car.Start()  // that's all folk 🤗
 
     // handle ctrl-c and shutdown services
-    i.ShutdownOnSignals(syscall.SIGTERM, os.Interrupt)
+    injector.ShutdownOnSignals(syscall.SIGTERM, os.Interrupt)
 }
 ```
