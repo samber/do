@@ -45,7 +45,7 @@ type Car struct {
 
 func (c *Car) Shutdown() error {
 	println("car stopped")
-	return fmt.Errorf("💥 BOOOOM!")
+	return fmt.Errorf("💥 BOOOOM!") //nolint:staticcheck
 }
 
 func (c *Car) Start() {
