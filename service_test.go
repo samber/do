@@ -6,17 +6,34 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestGenerateServiceName(t *testing.T) {
+func TestInferServiceName(t *testing.T) {
+	t.Parallel()
 	is := assert.New(t)
 
-	type test struct{} //nolint:unused
+	// more tests in the package
+	is.Equal("int", inferServiceName[int]())
+	is.Equal("github.com/samber/do/v2.eagerTest", inferServiceName[eagerTest]())
+	is.Equal("*github.com/samber/do/v2.eagerTest", inferServiceName[*eagerTest]())
+	is.Equal("github.com/samber/do/v2.Healthchecker", inferServiceName[Healthchecker]())
+}
 
-	name := generateServiceName[test]()
-	is.Equal("do.test", name)
+func TestInferServiceProviderStacktrace(t *testing.T) {
+	// @TODO
+}
 
-	name = generateServiceName[*test]()
-	is.Equal("*do.test", name)
+func TestInferServiceInfo(t *testing.T) {
+	// @TODO
+}
 
-	name = generateServiceName[int]()
-	is.Equal("int", name)
+func TestServiceIsAssignable(t *testing.T) {
+	t.Parallel()
+	is := assert.New(t)
+
+	svc1 := newServiceLazy("foobar", func(i Injector) (*lazyTestHeathcheckerOK, error) {
+		return &lazyTestHeathcheckerOK{foobar: "foobar"}, nil
+	})
+	is.True(serviceIsAssignable[*lazyTestHeathcheckerOK](svc1))
+	is.True(serviceIsAssignable[Healthchecker](svc1))
+	is.False(serviceIsAssignable[Shutdowner](svc1))
+	is.False(serviceIsAssignable[*lazyTestHeathcheckerKO](svc1))
 }
