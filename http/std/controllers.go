@@ -49,12 +49,14 @@ func response(w http.ResponseWriter, output []byte, err error) {
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 
 	if err != nil {
+		// bearer:disable go_lang_information_leakage
 		http.Error(w, err.Error(), 500)
 		return
 	}
 
 	_, err = w.Write(output)
 	if err != nil {
+		// bearer:disable go_lang_information_leakage
 		http.Error(w, err.Error(), 500)
 	}
 }

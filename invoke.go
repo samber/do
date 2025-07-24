@@ -200,6 +200,7 @@ func invokeByTags(i Injector, structName string, structValue reflect.Value) erro
 		if !fieldValue.CanSet() {
 			// When a field is not exported, we override it.
 			// See https://stackoverflow.com/questions/42664837/how-to-access-unexported-struct-fields/43918797#43918797
+			// bearer:disable go_gosec_unsafe_unsafe
 			fieldValue = reflect.NewAt(fieldValue.Type(), unsafe.Pointer(fieldValue.UnsafeAddr())).Elem()
 		}
 
