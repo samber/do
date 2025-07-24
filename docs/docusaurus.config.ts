@@ -169,6 +169,7 @@ $screeb('init', 'da88b088-6c02-40d2-b576-e218b90192a4');
     },
     algolia: {
       appId: '9Q5MHPPFJM',
+      // bearer:disable javascript_lang_hardcoded_secret
       apiKey: '2f2e0e9a4f2ee85073da2a4357631401',
       externalUrlRegex: 'do\\.samber\\.dev',
       indexName: 'do',
