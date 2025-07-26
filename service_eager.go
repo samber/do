@@ -1,5 +1,7 @@
 package do
 
+import "context"
+
 type ServiceEager[T any] struct {
 	name     string
 	instance T
@@ -39,6 +41,17 @@ func (s *ServiceEager[T]) shutdown() error {
 
 	return nil
 }
+
+
+func (s *ServiceEager[T]) shutdownWithContext(ctx context.Context) error {
+	instance, ok := any(s.instance).(ShutdownableWithContext)
+	if ok {
+		return instance.Shutdown(ctx)
+	}
+
+	return nil
+}
+
 
 func (s *ServiceEager[T]) clone() any {
 	return s
