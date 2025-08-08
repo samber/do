@@ -227,12 +227,10 @@ func (i *Injector) get(name string) (any, bool) {
 
 func (i *Injector) set(name string, service any) {
 	i.mu.Lock()
-	defer i.mu.Unlock()
-
 	i.services[name] = service
+	i.mu.Unlock()
 
-	// defering hook call will unlock mutex
-	defer i.onServiceRegistration(name)
+	i.onServiceRegistration(name)
 }
 
 func (i *Injector) remove(name string) {
