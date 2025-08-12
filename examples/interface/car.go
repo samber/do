@@ -1,6 +1,6 @@
 package main
 
-import "github.com/samber/do"
+import "github.com/samber/do/v2"
 
 type Car interface {
 	Start()
@@ -11,11 +11,11 @@ type carImplem struct {
 	Wheels []*Wheel
 }
 
-func (c *carImplem) Start() {
+func (c carImplem) Start() {
 	println("vroooom")
 }
 
-func NewCar(i *do.Injector) (Car, error) {
+func NewCar(i do.Injector) (*carImplem, error) {
 	wheels := []*Wheel{
 		do.MustInvokeNamed[*Wheel](i, "wheel-1"),
 		do.MustInvokeNamed[*Wheel](i, "wheel-2"),
