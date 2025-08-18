@@ -148,24 +148,27 @@ func MustInvokeNamed[T any](i Injector, name string) T {
 // The struct fields must be tagged with `do:""` or `do:"name"`, where `name` is the service name in the DI container.
 // If the service is not found in the DI container, an error is returned.
 // If the service is found but not assignable to the struct field, an error is returned.
-func InvokeStruct[T any](i Injector) (*T, error) {
-	output := empty[T]()
+func InvokeStruct[T any](i Injector) (T, error) {
+	structName := inferServiceName[T]()
+	output := deepEmpty[T]() // if the struct is hidden behind a pointer, we need to init the struct value deep enough
 	value := reflect.ValueOf(&output)
+
+	for value.Elem().Kind() == reflect.Ptr {
+		value = value.Elem()
+	}
 
 	// Check if the empty value is a struct (before passing a pointer to reflect.ValueOf).
 	// It will be checked in invokeByTags, but the error message is different.
-	if value.Kind() != reflect.Ptr || value.Elem().Kind() != reflect.Struct {
-		return nil, fmt.Errorf("DI: not a struct")
+	if value.Kind() != reflect.Pointer || value.Elem().Kind() != reflect.Struct {
+		return empty[T](), fmt.Errorf("DI: must be a struct or a pointer to a struct, but got `%s`", structName)
 	}
-
-	structName := inferServiceName[T]()
 
 	err := invokeByTags(i, structName, value)
 	if err != nil {
-		return nil, err
+		return empty[T](), err
 	}
 
-	return &output, nil
+	return output, nil
 }
 
 // InvokeStruct invokes services located in struct properties.
@@ -173,6 +176,6 @@ func InvokeStruct[T any](i Injector) (*T, error) {
 // If the service is not found in the DI container, an error is returned.
 // If the service is found but not assignable to the struct field, an error is returned.
 // It panics on error.
-func MustInvokeStruct[T any](i Injector) *T {
+func MustInvokeStruct[T any](i Injector) T {
 	return must1(InvokeStruct[T](i))
 }

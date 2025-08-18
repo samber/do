@@ -17,6 +17,28 @@ func empty[T any]() (t T) {
 	return
 }
 
+func deepEmpty[T any]() T {
+	var o T
+	t := reflect.TypeOf(o)
+
+	v := deepEmptyMakeValue(t) // reflect.Value with the desired shape
+	return v.Interface().(T)
+}
+
+func deepEmptyMakeValue(t reflect.Type) reflect.Value {
+	// Base case: not a pointer -> just zero of this type.
+	if t.Kind() != reflect.Ptr {
+		return reflect.Zero(t)
+	}
+
+	// Recursive case: pointer -> allocate pointer, set its Elem to the
+	// recursively-constructed zero value of the element type.
+	elem := deepEmptyMakeValue(t.Elem())
+	p := reflect.New(t.Elem())
+	p.Elem().Set(elem)
+	return p
+}
+
 func must0(err error) {
 	if err != nil {
 		panic(err)

@@ -176,7 +176,7 @@ func invokeByTags(i Injector, structName string, structValue reflect.Value) erro
 
 	// Ensure that servicePtr is a pointer to a struct
 	if structValue.Kind() != reflect.Ptr || structValue.Elem().Kind() != reflect.Struct {
-		return fmt.Errorf("DI: not a pointer")
+		return fmt.Errorf("DI: must be a pointer to a struct")
 	}
 
 	structValue = structValue.Elem()

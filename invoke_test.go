@@ -248,7 +248,7 @@ func TestInvokeByTags(t *testing.T) {
 
 	// not pointer
 	err = invokeByTags(i, "*myStruct", reflect.ValueOf(eagerTest{}))
-	is.Equal("DI: not a pointer", err.Error())
+	is.Equal("DI: must be a pointer to a struct", err.Error())
 
 	// exported field - generic type
 	type hasExportedEagerTestDependency struct {

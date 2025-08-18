@@ -42,7 +42,7 @@ func main() {
 
 	// provide car
 	do.Provide(injector, func(i do.Injector) (*Car, error) {
-		car := do.MustInvokeStruct[Car](i)
+		car := do.MustInvokeStruct[*Car](i)
 		car.Wheels = []*Wheel{
 			do.MustInvokeNamed[*Wheel](i, "wheel-1"),
 			do.MustInvokeNamed[*Wheel](i, "wheel-2"),

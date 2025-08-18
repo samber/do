@@ -571,8 +571,8 @@ func TestInvokeStruct(t *testing.T) {
 
 	// not a struct
 	test1, err := InvokeStruct[int](i)
-	is.Nil(test1)
-	is.Equal("DI: not a struct", err.Error())
+	is.Equal("DI: must be a struct or a pointer to a struct, but got `int`", err.Error())
+	is.Empty(test1)
 
 	// exported field - generic type
 	type hasExportedEagerTestDependency struct {
@@ -596,7 +596,7 @@ func TestInvokeStruct(t *testing.T) {
 	}
 	test4, err := InvokeStruct[dependencyNotFound](i)
 	is.Equal(serviceNotFound(i, ErrServiceNotFound, []string{inferServiceName[*hasNonExportedEagerTestDependency]()}).Error(), err.Error())
-	is.Nil(test4)
+	is.Empty(test4)
 
 	// use tag
 	type namedDependency struct {
@@ -604,7 +604,7 @@ func TestInvokeStruct(t *testing.T) {
 	}
 	test5, err := InvokeStruct[namedDependency](i)
 	is.Equal(serviceNotFound(i, ErrServiceNotFound, []string{inferServiceName[int]()}).Error(), err.Error())
-	is.Nil(test5)
+	is.Empty(test5)
 
 	// named service
 	ProvideNamedValue(i, "foobar", 42)
@@ -621,7 +621,7 @@ func TestInvokeStruct(t *testing.T) {
 	}
 	test7, err := InvokeStruct[namedDependencyButTypeMismatch](i)
 	is.Equal("DI: *github.com/samber/do/v2.eagerTest is not assignable to field `github.com/samber/do/v2.namedDependencyButTypeMismatch.EagerTest`", err.Error())
-	is.Nil(test7)
+	is.Empty(test7)
 
 	// use a custom tag
 	i = NewWithOpts(&InjectorOpts{StructTagKey: "hello"})
@@ -644,6 +644,14 @@ func TestInvokeStruct(t *testing.T) {
 	test9, err := InvokeStruct[serviceWithInterface](i)
 	is.Nil(err)
 	is.NotNil(test9.eagerTest)
+
+	test10, err := InvokeStruct[*serviceWithInterface](i)
+	is.Nil(err)
+	is.NotNil((*test10).eagerTest)
+
+	test11, err := InvokeStruct[****serviceWithInterface](i)
+	is.Nil(err)
+	is.NotNil((****test11).eagerTest)
 }
 
 func TestMustInvokeStruct(t *testing.T) {
