@@ -13,6 +13,12 @@ type lazyTest struct {
 	foobar string
 }
 
+// Alias to HealthChecker.
+// Used for testing interface implements interface.
+type iTestHeathchecker interface {
+	HealthCheck() error
+}
+
 var _ Healthchecker = (*lazyTestHeathcheckerOK)(nil)
 
 type lazyTestHeathcheckerOK struct {
@@ -148,15 +154,36 @@ func TestServiceLazy_getServiceType(t *testing.T) {
 	is.Equal(ServiceTypeLazy, service2.getServiceType())
 }
 
-func TestServiceLazy_getEmptyInstance(t *testing.T) {
+func TestServiceLazy_getReflectType(t *testing.T) {
 	t.Parallel()
 	is := assert.New(t)
 
-	svc := newServiceLazy("foobar", func(i Injector) (*lazyTest, error) {
-		return &lazyTest{foobar: "foobar"}, nil
-	})
-	is.Empty(svc.getEmptyInstance())
-	is.EqualValues((*lazyTest)(nil), svc.getEmptyInstance())
+	test := lazyTest{foobar: "foobar"}
+
+	provider1 := func(i Injector) (int, error) {
+		return 42, nil
+	}
+	provider2 := func(i Injector) (lazyTest, error) {
+		return test, nil
+	}
+	provider3 := func(i Injector) (Healthchecker, error) {
+		return nil, nil
+	}
+	provider4 := func(i Injector) (*lazyTest, error) {
+		return &test, nil
+	}
+
+	service1 := newServiceLazy("foobar1", provider1)
+	is.Equal("int", service1.getReflectType().String())
+
+	service2 := newServiceLazy("foobar2", provider2)
+	is.Equal("do.lazyTest", service2.getReflectType().String())
+
+	service3 := newServiceLazy("foobar3", provider3)
+	is.Equal("do.Healthchecker", service3.getReflectType().String())
+
+	service4 := newServiceLazy("foobar1", provider4)
+	is.Equal("*do.lazyTest", service4.getReflectType().String())
 }
 
 func TestServiceLazy_getInstanceAny(t *testing.T) {

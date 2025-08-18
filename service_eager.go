@@ -2,6 +2,7 @@ package do
 
 import (
 	"context"
+	"reflect"
 	"sync"
 	"sync/atomic"
 
@@ -51,8 +52,8 @@ func (s *serviceEager[T]) getServiceType() ServiceType {
 	return ServiceTypeEager
 }
 
-func (s *serviceEager[T]) getEmptyInstance() any {
-	return empty[T]()
+func (s *serviceEager[T]) getReflectType() reflect.Type {
+	return reflect.TypeOf((*T)(nil)).Elem() // if T is a pointer or interface, it will return a typed nil
 }
 
 func (s *serviceEager[T]) getInstanceAny(i Injector) (any, error) {

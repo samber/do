@@ -121,9 +121,7 @@ func invokeByGenericType[T any](i Injector) (T, error) {
 	var ok bool
 
 	injector.serviceForEachRec(func(name string, scope *Scope, s any) bool {
-		if serviceIsAssignable[T](s) {
-			// we need an empty instance here, because we don't want to instantiate the service when not needed
-
+		if serviceCanCastTo[T](s) {
 			serviceInstance = s
 			serviceScope = scope
 			serviceRealName = s.(serviceGetName).getName()

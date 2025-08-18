@@ -94,13 +94,26 @@ func TestServiceEager_getServiceType(t *testing.T) {
 	is.Equal(ServiceTypeEager, service2.getServiceType())
 }
 
-func TestServiceEager_getEmptyInstance(t *testing.T) {
+func TestServiceEager_getReflectType(t *testing.T) {
 	t.Parallel()
 	is := assert.New(t)
 
-	svc := newServiceEager("foobar", &eagerTest{foobar: "foobar"})
-	is.Empty(svc.getEmptyInstance())
-	is.EqualValues((*eagerTest)(nil), svc.getEmptyInstance())
+	test := eagerTest{foobar: "foobar"}
+
+	service1 := newServiceEager("foobar1", 42)
+	is.Equal("int", service1.getReflectType().String())
+
+	service2 := newServiceEager("foobar2", test)
+	is.Equal("do.eagerTest", service2.getReflectType().String())
+
+	service3 := newServiceEager("foobar3", (Healthchecker)(nil))
+	is.Equal("do.Healthchecker", service3.getReflectType().String())
+
+	service4 := newServiceEager[Healthchecker]("foobar4", nil)
+	is.Equal("do.Healthchecker", service4.getReflectType().String())
+
+	service5 := newServiceEager("foobar1", &test)
+	is.Equal("*do.eagerTest", service5.getReflectType().String())
 }
 
 func TestServiceEager_getInstanceAny(t *testing.T) {

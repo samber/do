@@ -2,6 +2,7 @@ package do
 
 import (
 	"context"
+	"reflect"
 
 	"github.com/samber/do/v2/stacktrace"
 )
@@ -40,8 +41,8 @@ func (s *serviceTransient[T]) getServiceType() ServiceType {
 	return ServiceTypeTransient
 }
 
-func (s *serviceTransient[T]) getEmptyInstance() any {
-	return empty[T]()
+func (s *serviceTransient[T]) getReflectType() reflect.Type {
+	return reflect.TypeOf((*T)(nil)).Elem() // if T is a pointer or interface, it will return a typed nil
 }
 
 func (s *serviceTransient[T]) getInstanceAny(i Injector) (any, error) {

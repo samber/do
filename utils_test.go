@@ -2,6 +2,7 @@ package do
 
 import (
 	"fmt"
+	"reflect"
 	"sort"
 	"strconv"
 	"testing"
@@ -185,9 +186,9 @@ func TestUtilsCoalesce(t *testing.T) {
 	is := assert.New(t)
 
 	is.Empty(coalesce[int]())
-	is.Empty(coalesce[int](0))
-	is.Equal(1, coalesce[int](0, 1, 2))
-	is.Equal(1, coalesce[int](1, 2, 0))
+	is.Empty(coalesce(0))
+	is.Equal(1, coalesce(0, 1, 2))
+	is.Equal(1, coalesce(1, 2, 0))
 }
 
 func TestUtilsJobPool(t *testing.T) {
@@ -196,4 +197,59 @@ func TestUtilsJobPool(t *testing.T) {
 
 	p := newJobPool[error](42)
 	is.Equal(p.parallelism, uint(42))
+}
+
+type test1 struct{}
+
+func (t test1) aMethod() string {
+	return "test"
+}
+
+type test2 struct{}
+
+func (t test2) aMethod() string {
+	return "test"
+}
+
+type iTest1 interface {
+	aMethod() string
+}
+type iTest2 interface {
+	aMethod() string
+}
+
+func TestUtilsCanCastTo(t *testing.T) {
+	t.Parallel()
+	is := assert.New(t)
+
+	is.True(canCastTo[test1, iTest1]())
+	is.True(canCastTo[test1, iTest2]())
+	is.True(canCastTo[iTest1, iTest2]())
+	is.False(canCastTo[test1, test2]())
+	is.False(canCastTo[*test1, *test2]())
+	is.False(canCastTo[iTest1, test1]())
+	is.False(canCastTo[iTest1, *test1]())
+	is.False(canCastTo[*lazyTestHeathcheckerOK, iTest1]())
+}
+
+func TestUtilsTypeCanCastTo(t *testing.T) {
+	t.Parallel()
+	is := assert.New(t)
+
+	// // nil without type
+	is.False(typeCanCastTo[iTest1](reflect.TypeOf(nil)))
+	is.False(typeCanCastTo[test1](reflect.TypeOf(nil)))
+	is.False(typeCanCastTo[iTest1](reflect.TypeOf((iTest1)(nil)))) // no concret type, only interface
+
+	// nil with type
+	is.True(typeCanCastTo[*test1](reflect.TypeOf((*test1)(nil))))
+	is.True(typeCanCastTo[iTest1](reflect.TypeOf((*test1)(nil))))
+
+	is.True(typeCanCastTo[*test1](reflect.TypeOf(&test1{})))
+	is.True(typeCanCastTo[iTest1](reflect.TypeOf(&test1{})))
+	is.True(typeCanCastTo[iTest2](reflect.TypeOf(&test1{})))
+	is.True(typeCanCastTo[iTest2](reflect.TypeOf((iTest1)(&test1{}))))
+	is.False(typeCanCastTo[test1](reflect.TypeOf((iTest1)(&test1{}))))
+	is.False(typeCanCastTo[*test2](reflect.TypeOf(&test1{})))
+	is.False(typeCanCastTo[iTest1](reflect.TypeOf(&lazyTestHeathcheckerOK{})))
 }

@@ -5,6 +5,7 @@ import (
 	"crypto/rand"
 	"fmt"
 	"io"
+	"reflect"
 	"sync"
 )
 
@@ -231,4 +232,44 @@ func raceWithTimeout(ctx context.Context, fn func(context.Context) error) error 
 	case <-ctx.Done():
 		return fmt.Errorf("%s: %w", ErrHealthCheckTimeout.Error(), ctx.Err())
 	}
+}
+
+// Previously, we used to perform check like this:
+// _, ok := any(empty[Initial]()).(Alias)
+// But it was not working when Initial was an interface, so we now
+// use reflection to check if Initial implements Alias.
+func canCastTo[From any, To any]() bool {
+	var from From
+	anyFrom := any(from)
+
+	if anyFrom == nil { // check for interface by reflect
+		typeFrom := reflect.TypeOf(&from).Elem()
+		typeTo := reflect.TypeOf((*To)(nil)).Elem()
+
+		toInterface := typeTo.Kind() == reflect.Interface
+
+		return toInterface && typeFrom.Implements(typeTo)
+	}
+
+	_, ok := anyFrom.(To)
+	return ok
+}
+
+func typeCanCastTo[To any](fromType reflect.Type) bool {
+	toType := reflect.TypeOf((*To)(nil)).Elem()
+
+	if fromType == nil {
+		return false
+	}
+
+	if fromType == toType {
+		return true
+	}
+
+	// Check assignable
+	if fromType.AssignableTo(toType) {
+		return true
+	}
+
+	return false
 }

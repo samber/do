@@ -2,7 +2,7 @@ package do
 
 import (
 	"context"
-	"fmt"
+	"reflect"
 	"sync"
 	"sync/atomic"
 
@@ -17,9 +17,9 @@ var _ serviceClone = (*serviceAlias[int, int])(nil)
 type serviceAlias[Initial any, Alias any] struct {
 	mu         sync.RWMutex
 	name       string
-	typeName   string
+	typeName   string // string representation of the Alias type
 	scope      Injector
-	targetName string
+	targetName string // string representation of the Initial type
 
 	providerFrame           stacktrace.Frame
 	invokationFrames        map[stacktrace.Frame]struct{} // map garanties uniqueness
@@ -54,8 +54,8 @@ func (s *serviceAlias[Initial, Alias]) getServiceType() ServiceType {
 	return ServiceTypeAlias
 }
 
-func (s *serviceAlias[Initial, Alias]) getEmptyInstance() any {
-	return empty[Alias]()
+func (s *serviceAlias[Initial, Alias]) getReflectType() reflect.Type {
+	return reflect.TypeOf((*Alias)(nil)).Elem() // if T is a pointer or interface, it will return a typed nil
 }
 
 func (s *serviceAlias[Initial, Alias]) getInstanceAny(i Injector) (any, error) {
@@ -101,12 +101,7 @@ func (s *serviceAlias[Initial, Alias]) isHealthchecker() bool {
 		return false
 	}
 
-	switch service.getEmptyInstance().(type) {
-	case Alias:
-		return service.isHealthchecker()
-	default:
-		return false
-	}
+	return service.isHealthchecker()
 }
 
 func (s *serviceAlias[Initial, Alias]) healthcheck(ctx context.Context) error {
@@ -120,12 +115,7 @@ func (s *serviceAlias[Initial, Alias]) healthcheck(ctx context.Context) error {
 		return nil
 	}
 
-	switch service.getEmptyInstance().(type) {
-	case Alias:
-		return service.healthcheck(ctx)
-	default:
-		return fmt.Errorf("DI: could not cast `%s` as `%s`", s.targetName, s.name)
-	}
+	return service.healthcheck(ctx)
 }
 
 func (s *serviceAlias[Initial, Alias]) isShutdowner() bool {
@@ -139,12 +129,7 @@ func (s *serviceAlias[Initial, Alias]) isShutdowner() bool {
 		return false
 	}
 
-	switch service.getEmptyInstance().(type) {
-	case Alias:
-		return service.isShutdowner()
-	default:
-		return false
-	}
+	return service.isShutdowner()
 }
 
 func (s *serviceAlias[Initial, Alias]) shutdown(ctx context.Context) error {
@@ -158,12 +143,7 @@ func (s *serviceAlias[Initial, Alias]) shutdown(ctx context.Context) error {
 		return nil
 	}
 
-	switch service.getEmptyInstance().(type) {
-	case Alias:
-		return service.shutdown(ctx)
-	default:
-		return fmt.Errorf("DI: could not cast `%s` as `%s`", s.targetName, s.name)
-	}
+	return service.shutdown(ctx)
 }
 
 func (s *serviceAlias[Initial, Alias]) clone() any {

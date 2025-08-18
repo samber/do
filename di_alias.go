@@ -22,9 +22,8 @@ func MustAs[Initial any, Alias any](i Injector) {
 // AsNamed declares a named alias for a named service.
 func AsNamed[Initial any, Alias any](i Injector, initial string, alias string) error {
 	// first, we check if Initial can be cast to Alias
-	_, ok := any(empty[Initial]()).(Alias)
-	if !ok {
-		return fmt.Errorf("DI: `%s` is not `%s`", initial, alias)
+	if !canCastTo[Initial, Alias]() {
+		return fmt.Errorf("DI: `%s` does not implement `%s`", alias, initial)
 	}
 
 	_i := getInjectorOrDefault(i)

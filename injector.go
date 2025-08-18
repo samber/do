@@ -26,7 +26,7 @@ type Injector interface {
 	serviceExistRec(string) bool
 	serviceGet(string) (any, bool)
 	serviceGetRec(string) (any, *Scope, bool)
-	serviceSet(string, any)
+	serviceSet(string, any) // serviceSet is not protected against double registration
 	serviceForEach(func(string, *Scope, any) bool)
 	serviceForEachRec(func(string, *Scope, any) bool)
 	serviceHealthCheck(context.Context, string) error
