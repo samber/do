@@ -300,7 +300,7 @@ func TestInvokeByTags(t *testing.T) {
 	}
 	test6 := namedDependencyButTypeMismatch{}
 	err = invokeByTags(i, "*myStruct", reflect.ValueOf(&test6))
-	is.Equal("DI: field `*myStruct.EagerTest` is not assignable to service *github.com/samber/do/v2.eagerTest", err.Error())
+	is.Equal("DI: *github.com/samber/do/v2.eagerTest is not assignable to field `*myStruct.EagerTest`", err.Error())
 
 	// use a custom tag
 	i = NewWithOpts(&InjectorOpts{StructTagKey: "hello"})
