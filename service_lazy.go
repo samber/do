@@ -61,8 +61,8 @@ func (s *serviceLazy[T]) getServiceType() ServiceType {
 	return ServiceTypeLazy
 }
 
-func (s *serviceLazy[T]) getEmptyInstance() any {
-	return empty[T]()
+func (s *serviceLazy[T]) getReflectType() reflect.Type {
+	return reflect.TypeOf((*T)(nil)).Elem() // if T is a pointer or interface, it will return a typed nil
 }
 
 func (s *serviceLazy[T]) getInstanceAny(i Injector) (any, error) {

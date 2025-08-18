@@ -25,15 +25,20 @@ func TestInferServiceInfo(t *testing.T) {
 	// @TODO
 }
 
-func TestServiceIsAssignable(t *testing.T) {
+func TestServiceCanCastTo(t *testing.T) {
 	t.Parallel()
 	is := assert.New(t)
 
 	svc1 := newServiceLazy("foobar", func(i Injector) (*lazyTestHeathcheckerOK, error) {
 		return &lazyTestHeathcheckerOK{foobar: "foobar"}, nil
 	})
-	is.True(serviceIsAssignable[*lazyTestHeathcheckerOK](svc1))
-	is.True(serviceIsAssignable[Healthchecker](svc1))
-	is.False(serviceIsAssignable[Shutdowner](svc1))
-	is.False(serviceIsAssignable[*lazyTestHeathcheckerKO](svc1))
+	is.True(serviceCanCastTo[*lazyTestHeathcheckerOK](svc1))
+	is.True(serviceCanCastTo[Healthchecker](svc1))
+	is.False(serviceCanCastTo[Shutdowner](svc1))
+	is.False(serviceCanCastTo[*lazyTestHeathcheckerKO](svc1))
+
+	svc2 := newServiceLazy("foobar", func(i Injector) (iTestHeathchecker, error) {
+		return &lazyTestHeathcheckerOK{}, nil
+	})
+	is.True(serviceCanCastTo[Healthchecker](svc2))
 }

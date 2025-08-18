@@ -39,7 +39,7 @@ func (s *virtualScope) serviceExist(name string) bool                    { retur
 func (s *virtualScope) serviceExistRec(name string) bool                 { return s.self.serviceExistRec(name) }
 func (s *virtualScope) serviceGet(name string) (any, bool)               { return s.self.serviceGet(name) }
 func (s *virtualScope) serviceGetRec(n string) (any, *Scope, bool)       { return s.self.serviceGetRec(n) }
-func (s *virtualScope) serviceSet(name string, service any)              { s.self.serviceSet(name, service) }
+func (s *virtualScope) serviceSet(name string, service any)              { s.self.serviceSet(name, service) } // serviceSet is not protected against double registration.
 func (s *virtualScope) serviceForEach(cb func(string, *Scope, any) bool) { s.self.serviceForEach(cb) }
 func (s *virtualScope) serviceForEachRec(cb func(string, *Scope, any) bool) {
 	s.self.serviceForEachRec(cb)

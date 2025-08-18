@@ -116,15 +116,36 @@ func TestServiceTransient_getServiceType(t *testing.T) {
 	is.Equal(ServiceTypeTransient, service2.getServiceType())
 }
 
-func TestServiceTransient_getEmptyInstance(t *testing.T) {
+func TestServiceTransient_getReflectType(t *testing.T) {
 	t.Parallel()
 	is := assert.New(t)
 
-	svc := newServiceTransient("foobar", func(i Injector) (*transientTest, error) {
-		return &transientTest{foobar: "foobar"}, nil
-	})
-	is.Empty(svc.getEmptyInstance())
-	is.EqualValues((*transientTest)(nil), svc.getEmptyInstance())
+	test := lazyTest{foobar: "foobar"}
+
+	provider1 := func(i Injector) (int, error) {
+		return 42, nil
+	}
+	provider2 := func(i Injector) (lazyTest, error) {
+		return test, nil
+	}
+	provider3 := func(i Injector) (Healthchecker, error) {
+		return nil, nil
+	}
+	provider4 := func(i Injector) (*lazyTest, error) {
+		return &test, nil
+	}
+
+	service1 := newServiceTransient("foobar1", provider1)
+	is.Equal("int", service1.getReflectType().String())
+
+	service2 := newServiceTransient("foobar2", provider2)
+	is.Equal("do.lazyTest", service2.getReflectType().String())
+
+	service3 := newServiceTransient("foobar3", provider3)
+	is.Equal("do.Healthchecker", service3.getReflectType().String())
+
+	service4 := newServiceTransient("foobar1", provider4)
+	is.Equal("*do.lazyTest", service4.getReflectType().String())
 }
 
 func TestServiceTransient_getInstanceAny(t *testing.T) {

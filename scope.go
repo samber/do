@@ -35,7 +35,8 @@ type Scope struct {
 	mu       sync.RWMutex
 	services map[string]any
 
-	// It should be a graph instead of simple ordered list.
+	// Storing the invocation order is not needed anymore, but we keep it
+	// for improved observability in unit tests.
 	orderedInvocation      map[string]int // map is faster than slice
 	orderedInvocationIndex int
 }
@@ -411,6 +412,9 @@ func (s *Scope) serviceGetRec(name string) (any, *Scope, bool) {
 	return s.parentScope.serviceGetRec(name)
 }
 
+// serviceSet is not protected against double registration.
+// Above layers should check if the service is already registered.
+// It permits service override.
 func (s *Scope) serviceSet(name string, service any) {
 	s.RootScope().opts.onBeforeRegistration(s, name)
 

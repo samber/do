@@ -2,6 +2,7 @@ package do
 
 import (
 	"context"
+	"reflect"
 	"time"
 
 	"github.com/samber/do/v2/stacktrace"
@@ -30,7 +31,7 @@ type Service[T any] interface {
 	getName() string
 	getTypeName() string
 	getServiceType() ServiceType
-	getEmptyInstance() any
+	getReflectType() reflect.Type
 	getInstanceAny(Injector) (any, error)
 	getInstance(Injector) (T, error)
 	isHealthchecker() bool
@@ -46,7 +47,7 @@ type ServiceAny interface {
 	getName() string
 	getTypeName() string
 	getServiceType() ServiceType
-	getEmptyInstance() any
+	getReflectType() reflect.Type
 	getInstanceAny(Injector) (any, error)
 	// getInstance(Injector) (T, error)
 	isHealthchecker() bool
@@ -60,7 +61,7 @@ type ServiceAny interface {
 type serviceGetName interface{ getName() string }
 type serviceGetTypeName interface{ getTypeName() string }
 type serviceGetServiceType interface{ getServiceType() ServiceType }
-type serviceGetEmptyInstance interface{ getEmptyInstance() any }
+type serviceGetReflectType interface{ getReflectType() reflect.Type }
 type serviceGetInstanceAny interface{ getInstanceAny(Injector) (any, error) }
 type serviceGetInstance[T any] interface{ getInstance(Injector) (T, error) } //nolint:unused
 type serviceIsHealthchecker interface{ isHealthchecker() bool }
@@ -78,7 +79,7 @@ type serviceBuildTime interface {
 var _ serviceGetName = (Service[int])(nil)
 var _ serviceGetTypeName = (Service[int])(nil)
 var _ serviceGetServiceType = (Service[int])(nil)
-var _ serviceGetEmptyInstance = (Service[int])(nil)
+var _ serviceGetReflectType = (Service[int])(nil)
 var _ serviceGetInstanceAny = (Service[int])(nil)
 var _ serviceIsHealthchecker = (Service[int])(nil)
 var _ serviceHealthcheck = (Service[int])(nil)
@@ -127,12 +128,11 @@ func inferServiceInfo(injector Injector, name string) (serviceInfo, bool) {
 	return serviceInfo{}, false
 }
 
-func serviceIsAssignable[T any](service any) bool {
-	if svc, ok := service.(serviceGetEmptyInstance); ok {
-		// we need an empty instance here, because we don't want to instantiate the service when not needed
-		if _, ok = svc.getEmptyInstance().(T); ok {
-			return true
-		}
+func serviceCanCastTo[T any](service any) bool {
+	if svc, ok := service.(serviceGetReflectType); ok {
+		// we need type reflection here, because we don't want to invoke the service when not needed
+		return typeCanCastTo[T](svc.getReflectType())
 	}
+
 	return false
 }

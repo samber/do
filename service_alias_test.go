@@ -49,13 +49,18 @@ func TestServiceAlias_getServiceType(t *testing.T) {
 	is.Equal(ServiceTypeAlias, service1.getServiceType())
 }
 
-func TestServiceAlias_getEmptyInstance(t *testing.T) {
+func TestServiceAlias_getReflectType(t *testing.T) {
 	t.Parallel()
 	is := assert.New(t)
 
-	svc := newServiceAlias[string, lazyTest]("foo", nil, "bar")
-	is.Empty(svc.getEmptyInstance())
-	is.EqualValues(lazyTest{}, svc.getEmptyInstance())
+	service1 := newServiceAlias[string, int]("foobar1", nil, "foobar2")
+	is.Equal("int", service1.getReflectType().String())
+
+	service2 := newServiceAlias[*lazyTestHeathcheckerOK, Healthchecker]("foobar2", nil, "foobar3")
+	is.Equal("do.Healthchecker", service2.getReflectType().String())
+
+	service3 := newServiceAlias[iTestHeathchecker, Healthchecker]("foobar3", nil, "foobar4")
+	is.Equal("do.Healthchecker", service3.getReflectType().String())
 }
 
 func TestServiceAlias_getInstanceAny(t *testing.T) {
