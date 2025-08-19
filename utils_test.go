@@ -241,38 +241,38 @@ type iTest2 interface {
 	aMethod() string
 }
 
-func TestUtilsCanCastTo(t *testing.T) {
+func TestUtilsGenericCanCastToGeneric(t *testing.T) {
 	t.Parallel()
 	is := assert.New(t)
 
-	is.True(canCastTo[test1, iTest1]())
-	is.True(canCastTo[test1, iTest2]())
-	is.True(canCastTo[iTest1, iTest2]())
-	is.False(canCastTo[test1, test2]())
-	is.False(canCastTo[*test1, *test2]())
-	is.False(canCastTo[iTest1, test1]())
-	is.False(canCastTo[iTest1, *test1]())
-	is.False(canCastTo[*lazyTestHeathcheckerOK, iTest1]())
+	is.True(genericCanCastToGeneric[test1, iTest1]())
+	is.True(genericCanCastToGeneric[test1, iTest2]())
+	is.True(genericCanCastToGeneric[iTest1, iTest2]())
+	is.False(genericCanCastToGeneric[test1, test2]())
+	is.False(genericCanCastToGeneric[*test1, *test2]())
+	is.False(genericCanCastToGeneric[iTest1, test1]())
+	is.False(genericCanCastToGeneric[iTest1, *test1]())
+	is.False(genericCanCastToGeneric[*lazyTestHeathcheckerOK, iTest1]())
 }
 
-func TestUtilsTypeCanCastTo(t *testing.T) {
+func TestUtilsTypeCanCastToGeneric(t *testing.T) {
 	t.Parallel()
 	is := assert.New(t)
 
 	// // nil without type
-	is.False(typeCanCastTo[iTest1](reflect.TypeOf(nil)))
-	is.False(typeCanCastTo[test1](reflect.TypeOf(nil)))
-	is.False(typeCanCastTo[iTest1](reflect.TypeOf((iTest1)(nil)))) // no concret type, only interface
+	is.False(typeCanCastToGeneric[iTest1](reflect.TypeOf(nil)))
+	is.False(typeCanCastToGeneric[test1](reflect.TypeOf(nil)))
+	is.False(typeCanCastToGeneric[iTest1](reflect.TypeOf((iTest1)(nil)))) // no concret type, only interface
 
 	// nil with type
-	is.True(typeCanCastTo[*test1](reflect.TypeOf((*test1)(nil))))
-	is.True(typeCanCastTo[iTest1](reflect.TypeOf((*test1)(nil))))
+	is.True(typeCanCastToGeneric[*test1](reflect.TypeOf((*test1)(nil))))
+	is.True(typeCanCastToGeneric[iTest1](reflect.TypeOf((*test1)(nil))))
 
-	is.True(typeCanCastTo[*test1](reflect.TypeOf(&test1{})))
-	is.True(typeCanCastTo[iTest1](reflect.TypeOf(&test1{})))
-	is.True(typeCanCastTo[iTest2](reflect.TypeOf(&test1{})))
-	is.True(typeCanCastTo[iTest2](reflect.TypeOf((iTest1)(&test1{}))))
-	is.False(typeCanCastTo[test1](reflect.TypeOf((iTest1)(&test1{}))))
-	is.False(typeCanCastTo[*test2](reflect.TypeOf(&test1{})))
-	is.False(typeCanCastTo[iTest1](reflect.TypeOf(&lazyTestHeathcheckerOK{})))
+	is.True(typeCanCastToGeneric[*test1](reflect.TypeOf(&test1{})))
+	is.True(typeCanCastToGeneric[iTest1](reflect.TypeOf(&test1{})))
+	is.True(typeCanCastToGeneric[iTest2](reflect.TypeOf(&test1{})))
+	is.True(typeCanCastToGeneric[iTest2](reflect.TypeOf((iTest1)(&test1{}))))
+	is.False(typeCanCastToGeneric[test1](reflect.TypeOf((iTest1)(&test1{}))))
+	is.False(typeCanCastToGeneric[*test2](reflect.TypeOf(&test1{})))
+	is.False(typeCanCastToGeneric[iTest1](reflect.TypeOf(&lazyTestHeathcheckerOK{})))
 }

@@ -74,7 +74,7 @@ func MustAs[Initial any, Alias any](i Injector) {
 //	db := do.MustInvokeNamed[Database](injector, "db-interface")
 func AsNamed[Initial any, Alias any](i Injector, initial string, alias string) error {
 	// first, we check if Initial can be cast to Alias
-	if !canCastTo[Initial, Alias]() {
+	if !genericCanCastToGeneric[Initial, Alias]() {
 		return fmt.Errorf("DI: `%s` does not implement `%s`", initial, alias)
 	}
 

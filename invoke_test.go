@@ -1,6 +1,7 @@
 package do
 
 import (
+	"fmt"
 	"reflect"
 	"sync"
 	"testing"
@@ -20,7 +21,7 @@ func TestInvokeAnyByName(t *testing.T) {
 	is.Equal("baz", svc)
 
 	// service not found
-	svc, err = invokeAnyByName(nil, "not_found")
+	svc, err = invokeAnyByName(i, "not_found")
 	is.NotNil(err)
 	is.Empty(svc)
 	is.Contains(err.Error(), "DI: could not find service `not_found`, available services: ")
@@ -243,11 +244,11 @@ func TestInvokeByTags(t *testing.T) {
 	ProvideValue(i, &eagerTest{foobar: "foobar"})
 
 	// no dependencies
-	err := invokeByTags(i, "*myStruct", reflect.ValueOf(&eagerTest{}))
+	err := invokeByTags(i, "*myStruct", reflect.ValueOf(&eagerTest{}), false)
 	is.Nil(err)
 
 	// not pointer
-	err = invokeByTags(i, "*myStruct", reflect.ValueOf(eagerTest{}))
+	err = invokeByTags(i, "*myStruct", reflect.ValueOf(eagerTest{}), false)
 	is.Equal("DI: must be a pointer to a struct", err.Error())
 
 	// exported field - generic type
@@ -255,7 +256,7 @@ func TestInvokeByTags(t *testing.T) {
 		EagerTest *eagerTest `do:""`
 	}
 	test1 := hasExportedEagerTestDependency{}
-	err = invokeByTags(i, "*myStruct", reflect.ValueOf(&test1))
+	err = invokeByTags(i, "*myStruct", reflect.ValueOf(&test1), false)
 	is.Nil(err)
 	is.Equal("foobar", test1.EagerTest.foobar)
 
@@ -264,7 +265,7 @@ func TestInvokeByTags(t *testing.T) {
 		eagerTest *eagerTest `do:""`
 	}
 	test2 := hasNonExportedEagerTestDependency{}
-	err = invokeByTags(i, "*myStruct", reflect.ValueOf(&test2))
+	err = invokeByTags(i, "*myStruct", reflect.ValueOf(&test2), false)
 	is.Nil(err)
 	is.Equal("foobar", test2.eagerTest.foobar)
 
@@ -273,7 +274,7 @@ func TestInvokeByTags(t *testing.T) {
 		eagerTest *hasNonExportedEagerTestDependency `do:""` //nolint:unused
 	}
 	test3 := dependencyNotFound{}
-	err = invokeByTags(i, "*myStruct", reflect.ValueOf(&test3))
+	err = invokeByTags(i, "*myStruct", reflect.ValueOf(&test3), false)
 	is.Equal(serviceNotFound(i, ErrServiceNotFound, []string{inferServiceName[*hasNonExportedEagerTestDependency]()}).Error(), err.Error())
 
 	// use tag
@@ -281,7 +282,7 @@ func TestInvokeByTags(t *testing.T) {
 		eagerTest *eagerTest `do:"int"` //nolint:unused
 	}
 	test4 := namedDependency{}
-	err = invokeByTags(i, "*myStruct", reflect.ValueOf(&test4))
+	err = invokeByTags(i, "*myStruct", reflect.ValueOf(&test4), false)
 	is.Equal(serviceNotFound(i, ErrServiceNotFound, []string{inferServiceName[int]()}).Error(), err.Error())
 
 	// named service
@@ -290,7 +291,7 @@ func TestInvokeByTags(t *testing.T) {
 		EagerTest int `do:"foobar"`
 	}
 	test5 := namedService{}
-	err = invokeByTags(i, "*myStruct", reflect.ValueOf(&test5))
+	err = invokeByTags(i, "*myStruct", reflect.ValueOf(&test5), false)
 	is.Nil(err)
 	is.Equal(42, test5.EagerTest)
 
@@ -299,8 +300,8 @@ func TestInvokeByTags(t *testing.T) {
 		EagerTest *int `do:"*github.com/samber/do/v2.eagerTest"`
 	}
 	test6 := namedDependencyButTypeMismatch{}
-	err = invokeByTags(i, "*myStruct", reflect.ValueOf(&test6))
-	is.Equal("DI: *github.com/samber/do/v2.eagerTest is not assignable to field `*myStruct.EagerTest`", err.Error())
+	err = invokeByTags(i, "*myStruct", reflect.ValueOf(&test6), false)
+	is.Equal("DI: `*github.com/samber/do/v2.eagerTest` is not assignable to field `*myStruct.EagerTest`", err.Error())
 
 	// use a custom tag
 	i = NewWithOpts(&InjectorOpts{StructTagKey: "hello"})
@@ -309,9 +310,97 @@ func TestInvokeByTags(t *testing.T) {
 		EagerTest int `hello:"foobar"`
 	}
 	test7 := namedServiceWithCustomTag{}
-	err = invokeByTags(i, "*myStruct", reflect.ValueOf(&test7))
+	err = invokeByTags(i, "*myStruct", reflect.ValueOf(&test7), false)
 	is.Nil(err)
 	is.Equal(42, test7.EagerTest)
+}
+
+func TestInvokeByTags_ImplicitAliasing_FallbackOnNotFound(t *testing.T) {
+	is := assert.New(t)
+
+	i := New()
+
+	type foobar struct {
+		Dep Healthchecker `do:""`
+	}
+
+	// First, declare a service with no dependencies
+
+	s := foobar{}
+	err := invokeByTags(i, "*foobar", reflect.ValueOf(&s), true)
+	is.NotNil(err)
+	is.Equal("DI: could not find service `github.com/samber/do/v2.Healthchecker`, no service available", err.Error())
+	is.Nil(s.Dep)
+
+	// Now, declare a service with the right type
+
+	Provide(i, func(injector Injector) (*lazyTestHeathcheckerOK, error) {
+		return &lazyTestHeathcheckerOK{foobar: "foobar"}, nil
+	})
+
+	s = foobar{}
+	err = invokeByTags(i, "*foobar", reflect.ValueOf(&s), true)
+	is.Nil(err)
+	is.NotNil(s.Dep)
+	is.Equal("foobar", s.Dep.(*lazyTestHeathcheckerOK).foobar)
+
+	// Now, declare a service with an interface assignable to interface
+
+	i = New()
+	Override(i, func(injector Injector) (iTestHeathchecker, error) {
+		return &lazyTestHeathcheckerOK{foobar: "foobar"}, nil
+	})
+
+	s = foobar{}
+	err = invokeByTags(i, "*foobar", reflect.ValueOf(&s), true)
+	is.Nil(err)
+	is.NotNil(s.Dep)
+	is.Equal("foobar", s.Dep.(*lazyTestHeathcheckerOK).foobar)
+}
+
+func TestInvokeByTags_ImplicitAliasing_NoFallbackOnOtherErrors(t *testing.T) {
+	is := assert.New(t)
+
+	i := New()
+	Provide(i, func(injector Injector) (*lazyTestHeathcheckerOK, error) {
+		return &lazyTestHeathcheckerOK{foobar: "foobar"}, nil
+	})
+
+	// First, lets check the situation the service is not found
+
+	type foobar struct {
+		Dep Healthchecker `do:"bad"`
+	}
+
+	s := foobar{}
+	err := invokeByTags(i, "*foobar", reflect.ValueOf(&s), true)
+	is.NotNil(err)
+	is.Equal("DI: could not find service `bad`, available services: `*github.com/samber/do/v2.lazyTestHeathcheckerOK`", err.Error())
+	is.Nil(s.Dep)
+
+	// Now, declare a service with a wrong type
+
+	ProvideNamed(i, "bad", func(ivs Injector) (*eagerTest, error) {
+		return &eagerTest{}, nil
+	})
+
+	s = foobar{}
+	err = invokeByTags(i, "*foobar", reflect.ValueOf(&s), true)
+	is.NotNil(err)
+	is.Equal("DI: `bad` is not assignable to field `*foobar.Dep`", err.Error())
+	is.Nil(s.Dep)
+
+	// Now, declare a service with the right type, but with provider error
+
+	OverrideNamed(i, "bad", func(ivs Injector) (*eagerTest, error) {
+		return nil, fmt.Errorf("boom")
+	})
+
+	s = foobar{}
+	err = invokeByTags(i, "*foobar", reflect.ValueOf(&s), true)
+	is.NotNil(err)
+	is.Equal("boom", err.Error())
+	is.Nil(s.Dep)
 }
 
 func TestServiceNotFound(t *testing.T) {

@@ -255,7 +255,7 @@ func InvokeStruct[T any](i Injector) (T, error) {
 		return empty[T](), fmt.Errorf("DI: must be a struct or a pointer to a struct, but got `%s`", structName)
 	}
 
-	err := invokeByTags(i, structName, value)
+	err := invokeByTags(i, structName, value, true)
 	if err != nil {
 		return empty[T](), err
 	}

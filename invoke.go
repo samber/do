@@ -1,6 +1,7 @@
 package do
 
 import (
+	"errors"
 	"fmt"
 	"reflect"
 	"sort"
@@ -147,12 +148,13 @@ func invokeByGenericType[T any](i Injector) (T, error) {
 	var ok bool
 
 	injector.serviceForEachRec(func(name string, scope *Scope, s any) bool {
-		if serviceCanCastTo[T](s) {
+		if serviceCanCastToGeneric[T](s) {
 			serviceInstance = s
 			serviceScope = scope
 			serviceRealName = s.(serviceGetName).getName()
 			ok = true
 
+			// Stop or not stop, that's the question -> https://github.com/samber/do/issues/114
 			return false
 		}
 
@@ -199,14 +201,19 @@ func invokeByGenericType[T any](i Injector) (T, error) {
 // invokeByTag injects services into struct fields based on struct tags.
 // This function supports automatic dependency injection into struct fields
 // using the `do` tag or a custom tag key specified in the injector options.
+// If `implicitAliasing` is true and a service is not found by tag, the injector
+// will fall back to searching for a service by the field's generic type, like `do.InvokeAs[T]`.
 //
 // Parameters:
 //   - i: The injector to search for services
 //   - structName: The name of the struct for error reporting
 //   - structValue: A reflect.Value pointing to the struct to inject into
+//   - implicitAliasing: Whether to fall back to generic type if service is not found by name
 //
 // Returns an error if injection fails for any reason.
-func invokeByTags(i Injector, structName string, structValue reflect.Value) error {
+//
+// The function does not manipulate virtual scope because it is done by invokeAnyByName or invokeByGenericType.
+func invokeByTags(i Injector, structName string, structValue reflect.Value, implicitAliasing bool) error {
 	injector := getInjectorOrDefault(i)
 
 	// Ensure that servicePtr is a pointer to a struct
@@ -226,6 +233,9 @@ func invokeByTags(i Injector, structName string, structValue reflect.Value) erro
 			continue
 		}
 
+		// Keep track if tag was provided without an explicit name (eg: `do:""`)
+		wasTagNameEmpty := serviceName == ""
+
 		if !fieldValue.CanAddr() {
 			return fmt.Errorf("DI: field is not addressable `%s.%s`", structName, field.Name)
 		}
@@ -242,6 +252,28 @@ func invokeByTags(i Injector, structName string, structValue reflect.Value) erro
 		}
 
 		dependency, err := invokeAnyByName(injector, serviceName)
+		if err != nil && implicitAliasing && wasTagNameEmpty && errors.Is(err, ErrServiceNotFound) {
+			// Fallback: try to resolve by generic type of the field
+			toType := fieldValue.Type()
+
+			var resolvedName string
+			var found bool
+			injector.serviceForEachRec(func(name string, _ *Scope, s any) bool {
+				if serviceCanCastToType(s, toType) {
+					resolvedName = s.(serviceGetName).getName()
+					found = true
+
+					// Stop or not stop, that's the question -> https://github.com/samber/do/issues/114
+					return false
+				}
+
+				return true
+			})
+
+			if found {
+				dependency, err = invokeAnyByName(injector, resolvedName)
+			}
+		}
 		if err != nil {
 			return err
 		}
@@ -250,7 +282,7 @@ func invokeByTags(i Injector, structName string, structValue reflect.Value) erro
 
 		// Should be checked before invocation, because we just built something that is not assignable to the field.
 		if !dependencyValue.Type().AssignableTo(fieldValue.Type()) {
-			return fmt.Errorf("DI: %s is not assignable to field `%s.%s`", serviceName, structName, field.Name)
+			return fmt.Errorf("DI: `%s` is not assignable to field `%s.%s`", serviceName, structName, field.Name)
 		}
 
 		// Should not panic, since we checked CanAddr() and CanSet() earlier.

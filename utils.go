@@ -260,7 +260,7 @@ func raceWithTimeout(ctx context.Context, fn func(context.Context) error) error 
 // _, ok := any(empty[Initial]()).(Alias)
 // But it was not working when Initial was an interface, so we now
 // use reflection to check if Initial implements Alias.
-func canCastTo[From any, To any]() bool {
+func genericCanCastToGeneric[From any, To any]() bool {
 	var from From
 	anyFrom := any(from)
 
@@ -277,9 +277,12 @@ func canCastTo[From any, To any]() bool {
 	return ok
 }
 
-func typeCanCastTo[To any](fromType reflect.Type) bool {
+func typeCanCastToGeneric[To any](fromType reflect.Type) bool {
 	toType := reflect.TypeOf((*To)(nil)).Elem()
+	return typeCanCastToType(fromType, toType)
+}
 
+func typeCanCastToType(fromType reflect.Type, toType reflect.Type) bool {
 	if fromType == nil {
 		return false
 	}

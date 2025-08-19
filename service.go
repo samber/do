@@ -163,10 +163,19 @@ func inferServiceInfo(injector Injector, name string) (serviceInfo, bool) {
 	return serviceInfo{}, false
 }
 
-func serviceCanCastTo[T any](service any) bool {
+func serviceCanCastToGeneric[T any](service any) bool {
 	if svc, ok := service.(serviceGetReflectType); ok {
 		// we need type reflection here, because we don't want to invoke the service when not needed
-		return typeCanCastTo[T](svc.getReflectType())
+		return typeCanCastToGeneric[T](svc.getReflectType())
+	}
+
+	return false
+}
+
+func serviceCanCastToType(service any, toType reflect.Type) bool {
+	if svc, ok := service.(serviceGetReflectType); ok {
+		// we need type reflection here, because we don't want to invoke the service when not needed
+		return typeCanCastToType(svc.getReflectType(), toType)
 	}
 
 	return false
