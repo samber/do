@@ -9,9 +9,9 @@ import (
 	typetostring "github.com/samber/go-type-to-string"
 )
 
-// MaxInvokationFrames defines the maximum number of stack frames to capture
+// MaxInvocationFrames defines the maximum number of stack frames to capture
 // when tracking service invocations for debugging and observability purposes.
-var MaxInvokationFrames uint32 = 100
+var MaxInvocationFrames uint32 = 100
 
 // ServiceType represents the different types of services that can be registered
 // in the dependency injection container. Each type has different lifecycle

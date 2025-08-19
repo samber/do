@@ -64,7 +64,7 @@ func (s *serviceEager[T]) getInstance(i Injector) (T, error) {
 	// Collect up to 100 invokation frames.
 	// In the future, we can implement a LFU list, to evict the oldest
 	// frames and keep the most recent ones, but it would be much more costly.
-	if atomic.AddUint32(&s.invokationFramesCounter, 1) < MaxInvokationFrames {
+	if atomic.AddUint32(&s.invokationFramesCounter, 1) < MaxInvocationFrames {
 		s.invokationFramesMu.Lock()
 		frame, ok := stacktrace.NewFrameFromCaller()
 		if ok {
