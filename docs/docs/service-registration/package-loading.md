@@ -16,7 +16,7 @@ The services can be assembled into a package, and then, exported all at once.
 // pkg/stores/package.go
 
 var Package = do.Package(
-    do.Lazy(NewPostgresqlConnectionService),
+    do.Lazy(NewPostgreSQLConnectionService),
     do.Lazy(NewUserRepository),
     do.Lazy(NewArticleRepository),
 )

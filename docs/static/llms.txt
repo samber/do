@@ -1,10 +1,10 @@
 # do - Dependency Injection for Go
 
-This is the official documentation for the "do" library, a modern, typesafe dependency injection framework for Go applications.
+This is the official documentation for the "do" library, a modern, type-safe dependency injection framework for Go applications.
 
 ## About the Library
 
-do is a lightweight, fast, and typesafe dependency injection library for Go. It provides a simple and intuitive API for managing dependencies in Go applications with support for scopes, lifecycle management, health checks, and graceful shutdown.
+do is a lightweight, fast, and type-safe dependency injection library for Go. It provides a simple and intuitive API for managing dependencies in Go applications with support for scopes, lifecycle management, health checks, and graceful shutdown.
 
 **Key Features:**
 - Type-safe dependency injection using Go generics

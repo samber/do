@@ -50,9 +50,9 @@ do.Provide(i, func(i do.Injector) (*MyService, error) {
 myService, err := do.Invoke[*MyService](i)
 ```
 
-## Auto-magically load service
+## Auto-magically load a service
 
-You can also use the `do.InvokeStruct` function to auto-magically feed a service with its dependencies. The fields can be either exported or not.
+You can also use the `do.InvokeStruct` function to auto-magically provide a service with its dependencies. The fields can be either exported or not.
 
 The `do:""` tag indicates the DI must infer the service name from its type (equivalent to `do.Invoke[*logrus.Logger](i)`).
 
@@ -61,7 +61,7 @@ type MyService struct {
   // injected automatically
   serverPort             int                     `do:"config.listen_port"`
   logger                 *logrus.Logger          `do:""`
-  postgresqlClient       *PostgresqlClient       `do:""`
+  postgresqlClient       *PostgreSQLClient       `do:""`
   dataProcessingService  *DataProcessingService  `do:""`
 
   // other things, not related to DI

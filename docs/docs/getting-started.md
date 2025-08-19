@@ -6,11 +6,11 @@ sidebar_position: 1
 
 # Getting started
 
-Let's discover **samber/do in less than 5 minutes**.
+Discover **samber/do in less than 5 minutes**.
 
 ## What you'll need
 
-Compatible with [Go](https://go.dev/doc/install/) 1.18 or more.
+Compatible with [Go](https://go.dev/doc/install/) 1.18 or later.
 
 This library has no dependencies except the Go std lib.
 
@@ -32,7 +32,7 @@ injector := do.New()
 
 ## Service registration and invocation
 
-Services can be declared as a singleton or a factory. In this example, we will create 2 services `Car` and `Engine`, with a simple dependency relation.
+Services can be declared as a singleton or a factory. In this example, we create two services, `Car` and `Engine`, with a simple dependency relationship.
 
 Engine:
 
@@ -95,7 +95,7 @@ func main() {
         log.Fatal(err.Error())
     }
 
-    car.Start() // that's all folk 🤗
+    car.Start() // that's all folks 🤗
 
     // handle ctrl-c and shutdown services
     injector.ShutdownOnSignals(syscall.SIGTERM, os.Interrupt)
@@ -125,7 +125,7 @@ func main() {
         log.Fatal(err.Error())
     }
 
-    car.Start()  // that's all folk 🤗
+    car.Start()  // that's all folks 🤗
 
     // handle ctrl-c and shutdown services
     injector.ShutdownOnSignals(syscall.SIGTERM, os.Interrupt)

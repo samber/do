@@ -29,8 +29,8 @@ const FeatureList: FeatureItem[] = [
     src: "https://www.svgrepo.com/download/514347/compass.svg",
     description: (
       <>
-        DO provides an API to check health of the active services and to
-        unload gracefuly an application with the reverse dependency order.
+        DO provides an API to check the health of active services and to
+        unload an application gracefully in reverse dependency order.
       </>
     ),
   },
@@ -42,8 +42,8 @@ const FeatureList: FeatureItem[] = [
     description: (
       <>
         Debugging IoC can be painful.
-        DO offers an API to describe application layout easily, and visualize
-        a service with all its dependency tree.
+        DO offers an API to describe the application layout and visualize
+        a service with its full dependency tree.
       </>
     ),
   },

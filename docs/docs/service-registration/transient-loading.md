@@ -4,7 +4,7 @@ description: Transient loading is a factory catalog
 sidebar_position: 3
 ---
 
-# Transient loading - a.k.a Factory
+# Transient loading — a.k.a. Factory
 
 Transient loading is similar to lazy loading, but a new instance is provided at every invocation. It can be considered as a factory registry.
 
@@ -41,7 +41,7 @@ func OverrideNamedTransient[T any](i do.Injector, name string, provider do.Provi
 
 :::info
 
-This is highly recommended to use the anonymous service invocation to let the framework handle naming.
+It is highly recommended to use anonymous service invocation to let the framework handle naming.
 
 :::
 

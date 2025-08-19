@@ -1,24 +1,24 @@
 ---
-title: "Scopes (a.k.a modules)"
+title: "Scopes (a.k.a. modules)"
 description: Group services into independent modules
 sidebar_position: 1
 ---
 
-# Scopes (a.k.a modules)
+# Scopes (a.k.a. modules)
 
-A `Scope` can be viewed as a module of an application, with restricted visibility. We advocate for each project possessing a root scope for common code, and shifting business logic to dedicated Scopes.
+A `Scope` can be viewed as a module of an application with restricted visibility. We advocate having a `RootScope` for common code and moving business logic to dedicated `Scopes`.
 
-The Scopes are structured with a parent (root scope or other scopes), numerous services, and potentially a few children Scopes as well.
+Scopes are structured with a parent (the root scope or another scope), numerous services, and potentially a few child scopes as well.
 
-Root scope owns options and is the only scope that supports cloning.
+The `RootScope` owns options and is the only scope that supports cloning.
 
-Services from a scope can invoke services available locally or in ancestors' scopes. Therefore, a single Service can be instantiated many times in different branches of the scope tree, without conflict.
+Services from a scope can invoke services available locally or in ancestor scopes. Therefore, a single service can be instantiated many times in different branches of the scope tree without conflict.
 
-A chain of service invocation instantiates many virtual scopes, to track dependency cycles.
+A chain of service invocations instantiates multiple virtual scopes to track dependency cycles.
 
-Scopes are almost invisible to developers: services keep using Injector API without awareness of the underlying implementation, whether it's a root scope, scope or virtual scope.
+Scopes are almost invisible to developers: services use the Injector API without awareness of whether the underlying implementation is a root scope, scope, or virtual scope.
 
-`do.Injector` interface is either a `*do.RootScope`, a `*do.Scope` or a `*do.VirtualScope`.
+The `do.Injector` interface is implemented by `*do.RootScope`, `*do.Scope`, or `*do.VirtualScope`.
 
 ## New scope
 

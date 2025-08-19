@@ -23,7 +23,7 @@ func OverrideNamedValue[T any](i do.Injector, name string, value T)
 
 :::info
 
-This is highly recommended to use the anonymous service invocation to let the framework handle naming.
+It is highly recommended to use anonymous service invocation to let the framework handle naming.
 
 :::
 

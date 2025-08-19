@@ -6,11 +6,11 @@ sidebar_position: 2
 
 # Graceful service shutdown
 
-If your service brings a state such as a connection pool, a buffer, etc... you might want to close or flush it gracefully on the application exit.
+If your service maintains state such as a connection pool, a buffer, etc., you might want to close or flush it gracefully when the application exits.
 
-When the `do.Shutdown[type]()` or the `injector.Shutdown()` function is called, the framework triggers `Shutdown` method of each service implementing a `do.Shutdowner` interface, in reverse invocation order.
+When the `do.Shutdown[type]()` or the `injector.Shutdown()` function is called, the framework triggers the `Shutdown` method of each service implementing the `do.Shutdowner` interface, in reverse invocation order.
 
-🛑 Services can be shutdowned properly, in back-initialization order. Requesting a shutdown on a (root?) scope shutdowns its children recursively.
+🛑 Services can be shut down properly, in reverse initialization order. Requesting a shutdown on a scope also shuts down its children recursively.
 
 ## Trigger shutdown
 

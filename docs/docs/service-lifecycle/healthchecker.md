@@ -8,11 +8,11 @@ sidebar_position: 1
 
 If your service relies on a dependency, you might want to periodically check its state.
 
-When the `do.HealthCheck[type]()` or the `injector.HealthCheck()` function is called, the framework triggers `HealthCheck` method of each service implementing a `do.Healthchecker` interface, in reverse invocation order.
+When the `do.HealthCheck[type]()` or the `injector.HealthCheck()` function is called, the framework triggers the `HealthCheck` method of each service implementing the `do.Healthchecker` interface, in reverse invocation order.
 
 🕵️ Service health can be checked individually or globally. Requesting a health check on a nested scope will run checks on ancestors.
 
-Lazy services that were not invoked, are not checked.
+Lazy services that were not invoked are not checked.
 
 ## Trigger health check
 
@@ -70,7 +70,7 @@ ctx := context.WithTimeout(10 * time.Second)
 i.HealthCheckWithContext(ctx)
 ```
 
-## Healthcheck options
+## Health check options
 
 The root scope can be created with health check parameters, for controlling parallelism or timeouts.
 
@@ -78,7 +78,7 @@ The root scope can be created with health check parameters, for controlling para
 do.InjectorOpts{
     // ...
 
-    // By default, heath checks will be triggered concurrently.
+    // By default, health checks are triggered concurrently.
     // HealthCheckParallelism==1 will trigger sequential checks.
     HealthCheckParallelism    uint
 
@@ -91,12 +91,12 @@ do.InjectorOpts{
 Example:
 
 ```go
-type MyPostgresqlConnection struct {
+type MyPostgreSQLConnection struct {
     DB *sql.DB
 }
 
-func (pg *MyPostgresqlConnection) Healthcheck() error {
-    return pg.DB.Ping()     // <- might be very slow
+func (pg *MyPostgreSQLConnection) HealthCheck() error {
+    return pg.DB.Ping() // <- might be very slow
 }
 
 i := do.NewWithOpts(&do.InjectorOpts{
@@ -105,11 +105,11 @@ i := do.NewWithOpts(&do.InjectorOpts{
     HealthCheckTimeout:       100 * time.Millisecond,
 })
 
-Provide(i, NewMyPostgresqlConnection)
-_ = MustInvoke(i, *MyPostgresqlConnection)
+Provide(i, NewMyPostgreSQLConnection)
+_ = MustInvoke(i, *MyPostgreSQLConnection)
 
 status := i.HealthCheckWithContext(ctx)
 // {
-//     "*github.com/samber/example.MyPostgresqlConnection": "DI: health check timeout: context deadline exceeded",
+//     "*github.com/samber/example.MyPostgreSQLConnection": "DI: health check timeout: context deadline exceeded",
 // }
 ```
