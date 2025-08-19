@@ -75,7 +75,7 @@ func MustAs[Initial any, Alias any](i Injector) {
 func AsNamed[Initial any, Alias any](i Injector, initial string, alias string) error {
 	// first, we check if Initial can be cast to Alias
 	if !canCastTo[Initial, Alias]() {
-		return fmt.Errorf("DI: `%s` does not implement `%s`", alias, initial)
+		return fmt.Errorf("DI: `%s` does not implement `%s`", initial, alias)
 	}
 
 	_i := getInjectorOrDefault(i)
