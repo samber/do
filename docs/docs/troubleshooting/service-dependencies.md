@@ -18,7 +18,7 @@ do.ExplainNamedService(do.Injector, string) (do.ExplainServiceOutput, bool)
 ### Print tree
 
 ```go
-debug, found := do.ExplainNamedService[*MyService](scope, "SERVICE-E")
+debug, found := do.ExplainNamedService(scope, "SERVICE-E")
 if found {
     println(debug.String())
 } else {
@@ -55,7 +55,7 @@ Dependents:
 ### Print dependencies or dependents
 
 ```go
-description, found := do.ExplainNamedService[*MyService](scope, "SERVICE-E")
+description, found := do.ExplainNamedService(scope, "SERVICE-E")
 if found {
     println(description.Dependencies)
 } else {

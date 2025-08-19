@@ -18,12 +18,12 @@ A shutdown can be triggered on a root scope:
 
 ```go
 // on demand
-injector.Shutdown() error
-injector.ShutdownWithContext(context.Context) error
-
-// on signal
-injector.ShutdownOnSignals(...os.Signal) (os.Signal, error)
-injector.ShutdownOnSignalsWithContext(context.Context, ...os.Signal) (os.Signal, error)
+injector.Shutdown() *do.ShutdownErrors
+injector.ShutdownWithContext(context.Context) *do.ShutdownErrors
+ 
+// on signal (helper methods on the root scope)
+injector.ShutdownOnSignals(...os.Signal) (os.Signal, *do.ShutdownErrors)
+injector.ShutdownOnSignalsWithContext(context.Context, ...os.Signal) (os.Signal, *do.ShutdownErrors)
 ```
 
 ...on a single service:
@@ -32,14 +32,14 @@ injector.ShutdownOnSignalsWithContext(context.Context, ...os.Signal) (os.Signal,
 // returns error on failure
 do.Shutdown[T any](do.Injector) error
 do.ShutdownWithContext[T any](context.Context, do.Injector) error
-do.ShutdownNamed[T any](do.Injector, string) error
-do.ShutdownNamedWithContext[T any](context.Context, do.Injector, string) error
+do.ShutdownNamed(do.Injector, string) error
+do.ShutdownNamedWithContext(context.Context, do.Injector, string) error
 
 // panics on failure
 do.MustShutdown[T any](do.Injector)
 do.MustShutdownWithContext[T any](context.Context, do.Injector)
-do.MustShutdownNamed[T any](do.Injector, string)
-do.MustShutdownNamedWithContext[T any](context.Context, do.Injector, string)
+do.MustShutdownNamed(do.Injector, string)
+do.MustShutdownNamedWithContext(context.Context, do.Injector, string)
 ```
 
 :::info

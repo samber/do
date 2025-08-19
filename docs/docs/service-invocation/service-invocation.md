@@ -43,7 +43,7 @@ i := do.New()
 do.ProvideNamedValue(i, "config.ip", "127.0.0.1")
 do.Provide(i, func(i do.Injector) (*MyService, error) {
     return &MyService{
-        IP: do.MustInvokeNamed(i, "config.ip"),
+        IP: do.MustInvokeNamed[string](i, "config.ip"),
     }, nil
 })
 
@@ -72,11 +72,21 @@ type MyService struct {
 Then add `*MyService` to the list of available services.
 
 ```go
-err := do.Provide[*MyService](injector, func (i do.Injector) (*MyService, error) {
+do.Provide[*MyService](injector, func (i do.Injector) (*MyService, error) {
   return do.InvokeStruct[MyService](i)
 })
 // or
-err := Provide[*MyService](i, InvokeStruct[MyService])
+do.Provide[*MyService](i, do.InvokeStruct[MyService])
+ 
+### Implicit aliasing behavior with InvokeStruct
+
+When a field uses an empty tag value (eg: `` `do:""` ``) and no service is registered under the inferred name, the injector falls back to finding the first service whose type is assignable to the field type (same resolution strategy as `do.InvokeAs[T]`).
+
+Implications:
+
+- Prefer explicit names when multiple assignable services exist to avoid ambiguity.
+- This fallback only applies when the tag key is present and empty; a missing tag does nothing.
+- The struct tag key can be customized via `do.InjectorOpts.StructTagKey`.
 ```
 
 :::info

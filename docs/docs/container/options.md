@@ -77,3 +77,37 @@ injector := do.NewWithOpts(&do.InjectorOpts{
     HealthCheckTimeout:       100 * time.Millisecond,
 })
 ```
+
+### Add hooks at runtime
+
+Hooks can also be registered after the injector is created using helper methods on the root scope. These append to the corresponding hook lists in `do.InjectorOpts` and apply to subsequent registrations/invocations/shutdowns.
+
+```go
+import "github.com/samber/do/v2"
+
+injector := do.New()
+
+// Registration hooks
+injector.AddBeforeRegistrationHook(func(scope *do.Scope, serviceName string) {
+    // ...
+})
+injector.AddAfterRegistrationHook(func(scope *do.Scope, serviceName string) {
+    // ...
+})
+
+// Invocation hooks
+injector.AddBeforeInvocationHook(func(scope *do.Scope, serviceName string) {
+    // ...
+})
+injector.AddAfterInvocationHook(func(scope *do.Scope, serviceName string, err error) {
+    // ...
+})
+
+// Shutdown hooks
+injector.AddBeforeShutdownHook(func(scope *do.Scope, serviceName string) {
+    // ...
+})
+injector.AddAfterShutdownHook(func(scope *do.Scope, serviceName string, err error) {
+    // ...
+})
+```
