@@ -131,6 +131,9 @@ func invokeByName[T any](i Injector, name string) (T, error) {
 //   - i: The injector to search for the service
 //
 // Returns the service instance with the correct type and any error that occurred during invocation.
+//
+// @TODO: Selection is nondeterministic when multiple services satisfy T; consider deterministic ordering
+// or explicit disambiguation to avoid surprising picks.
 func invokeByGenericType[T any](i Injector) (T, error) {
 	injector := getInjectorOrDefault(i)
 	serviceAliasName := inferServiceName[T]()
@@ -210,6 +213,9 @@ func invokeByGenericType[T any](i Injector) (T, error) {
 // Returns an error if injection fails for any reason.
 //
 // The function does not manipulate virtual scope because it is done by invokeAnyByName or invokeByGenericType.
+//
+// @TODO: When implicitAliasing is enabled and the tag name is empty, fallback by type may select an arbitrary
+// matching service depending on iteration order; consider stable ordering or explicit disambiguation.
 func invokeByTags(i Injector, structName string, structValue reflect.Value, implicitAliasing bool) error {
 	injector := getInjectorOrDefault(i)
 
@@ -249,6 +255,7 @@ func invokeByTags(i Injector, structName string, structValue reflect.Value, impl
 		}
 
 		dependency, err := invokeAnyByName(injector, serviceName)
+		// @TODO: This fallback may pick an arbitrary matching service; selection order is not stable.
 		if err != nil && implicitAliasing && wasTagNameEmpty && errors.Is(err, ErrServiceNotFound) {
 			// Fallback: try to resolve by generic type of the field
 			toType := fieldValue.Type()

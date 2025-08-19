@@ -11,7 +11,7 @@ import (
 )
 
 /////////////////////////////////////////////////////////////////////////////
-// 							Templating helpers
+// 								Templating helpers
 /////////////////////////////////////////////////////////////////////////////
 
 func fromTemplate(tpl string, data any) string {
@@ -22,7 +22,7 @@ func fromTemplate(tpl string, data any) string {
 }
 
 /////////////////////////////////////////////////////////////////////////////
-// 							Explain services
+// 								Explain services
 /////////////////////////////////////////////////////////////////////////////
 
 const explainServiceTemplate = `
@@ -164,13 +164,13 @@ func (sdd *ExplainServiceDependencyOutput) String() string {
 // Example:
 //
 //	// First invoke the service to ensure it's registered
-//	db := do.MustInvoke[*Database](injector)
+//		db := do.MustInvoke[*Database](injector)
 //
 //	// Then explain it
-//	explanation, found := do.ExplainService[*Database](injector)
-//	if found {
-//	    fmt.Println(explanation.String())
-//	}
+//		explanation, found := do.ExplainService[*Database](injector)
+//		if found {
+//			fmt.Println(explanation.String())
+//		}
 func ExplainService[T any](i Injector) (description ExplainServiceOutput, ok bool) {
 	name := inferServiceName[T]()
 	return ExplainNamedService(i, name)
@@ -193,13 +193,13 @@ func ExplainService[T any](i Injector) (description ExplainServiceOutput, ok boo
 // Example:
 //
 //	// First invoke the service to ensure it's registered
-//	db := do.MustInvokeNamed[*Database](injector, "main-db")
+//		db := do.MustInvokeNamed[*Database](injector, "main-db")
 //
 //	// Then explain it
-//	explanation, found := do.ExplainNamedService(injector, "main-db")
-//	if found {
-//	    fmt.Println(explanation.String())
-//	}
+//		explanation, found := do.ExplainNamedService(injector, "main-db")
+//		if found {
+//		    fmt.Println(explanation.String())
+//		}
 func ExplainNamedService(scope Injector, name string) (description ExplainServiceOutput, ok bool) {
 	_i := getInjectorOrDefault(scope)
 
@@ -244,9 +244,12 @@ func newExplainServiceDependencies(i Injector, edge EdgeService, mode string) []
 		deps = dependents
 	}
 
-	// order by id to have a deterministic output in unit tests
+	// order by scope id then service name to have a deterministic output in unit tests
 	sort.Slice(deps, func(i, j int) bool {
-		return deps[i].Service < deps[j].Service
+		if deps[i].ScopeID == deps[j].ScopeID {
+			return deps[i].Service < deps[j].Service
+		}
+		return deps[i].ScopeID < deps[j].ScopeID
 	})
 
 	return mAp(deps, func(item EdgeService, _ int) ExplainServiceDependencyOutput {
@@ -263,7 +266,7 @@ func newExplainServiceDependencies(i Injector, edge EdgeService, mode string) []
 }
 
 /////////////////////////////////////////////////////////////////////////////
-// 							Explain scopes
+// 								Explain scopes
 /////////////////////////////////////////////////////////////////////////////
 
 const explainInjectorTemplate = `Scope ID: {{.ScopeID}}

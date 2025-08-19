@@ -213,6 +213,7 @@ func (p *jobPool[R]) rpc(f func() R) <-chan R {
 	c := make(chan R, 1) // a single message will be sent before closing
 
 	p.jobs <- func() {
+		defer close(c)
 		c <- f()
 	}
 

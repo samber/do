@@ -696,7 +696,8 @@ func (s *Scope) serviceHealthCheck(ctx context.Context, name string) error {
 		)
 	}
 
-	return nil
+	// Should never happen.
+	panic(fmt.Errorf("DI: service `%s` is not healthchecker", name))
 }
 
 // serviceShutdown gracefully shuts down a specific service in the current scope.
@@ -728,6 +729,7 @@ func (s *Scope) serviceShutdown(ctx context.Context, name string) error {
 		err = service.shutdown(ctx)
 		s.RootScope().opts.onAfterShutdown(s, name, err)
 	} else {
+		// Should never happen.
 		panic(fmt.Errorf("DI: service `%s` is not shutdowner", name))
 	}
 

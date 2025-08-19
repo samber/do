@@ -65,12 +65,12 @@ type InjectorOpts struct {
 
 func (o *InjectorOpts) copy() *InjectorOpts {
 	return &InjectorOpts{
-		HookBeforeRegistration:   o.HookBeforeRegistration,
-		HookAfterRegistration:    o.HookAfterRegistration,
-		HookBeforeInvocation:     o.HookBeforeInvocation,
-		HookAfterInvocation:      o.HookAfterInvocation,
-		HookBeforeShutdown:       o.HookBeforeShutdown,
-		HookAfterShutdown:        o.HookAfterShutdown,
+		HookBeforeRegistration:   append([]func(*Scope, string){}, o.HookBeforeRegistration...),
+		HookAfterRegistration:    append([]func(*Scope, string){}, o.HookAfterRegistration...),
+		HookBeforeInvocation:     append([]func(*Scope, string){}, o.HookBeforeInvocation...),
+		HookAfterInvocation:      append([]func(*Scope, string, error){}, o.HookAfterInvocation...),
+		HookBeforeShutdown:       append([]func(*Scope, string){}, o.HookBeforeShutdown...),
+		HookAfterShutdown:        append([]func(*Scope, string, error){}, o.HookAfterShutdown...),
 		Logf:                     o.Logf,
 		HealthCheckParallelism:   o.HealthCheckParallelism,
 		HealthCheckGlobalTimeout: o.HealthCheckGlobalTimeout,
