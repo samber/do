@@ -53,7 +53,7 @@ func invokeAnyByName(i Injector, name string) (any, error) {
 	}
 
 	injector.RootScope().opts.onBeforeInvocation(serviceScope, name)
-	instance, err := service.getInstanceAny(&virtualScope{invokerChain: invokerChain, self: serviceScope})
+	instance, err := service.getInstanceAny(newVirtualScope(serviceScope, invokerChain))
 	injector.RootScope().opts.onAfterInvocation(serviceScope, name, err)
 	if err != nil {
 		return nil, err
@@ -109,7 +109,7 @@ func invokeByName[T any](i Injector, name string) (T, error) {
 	}
 
 	injector.RootScope().opts.onBeforeInvocation(serviceScope, name)
-	instance, err := service.getInstance(&virtualScope{invokerChain: invokerChain, self: serviceScope})
+	instance, err := service.getInstance(newVirtualScope(serviceScope, invokerChain))
 	injector.RootScope().opts.onAfterInvocation(serviceScope, name, err)
 
 	if err != nil {
@@ -173,10 +173,7 @@ func invokeByGenericType[T any](i Injector) (T, error) {
 
 	injector.RootScope().opts.onBeforeInvocation(serviceScope, serviceAliasName)
 	instance, err := serviceInstance.(serviceGetInstanceAny).getInstanceAny(
-		&virtualScope{
-			invokerChain: append(invokerChain, serviceRealName),
-			self:         serviceScope,
-		},
+		newVirtualScope(serviceScope, append(invokerChain, serviceRealName)),
 	)
 	injector.RootScope().opts.onAfterInvocation(serviceScope, serviceAliasName, err)
 
