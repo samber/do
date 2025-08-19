@@ -37,7 +37,7 @@ Top-level scope.
 
 A chain of service invocations instantiates multiple virtual scopes to track dependency cycles.
 
-Vitual Scope are not available under the public API. This is an internal stuff.
+Virtual scopes are internal and not exposed in the public API.
 
 ## Child scope
 

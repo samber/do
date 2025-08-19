@@ -9,7 +9,7 @@ sidebar_position: 4
 ## Without framework
 
 ```bash
-go get github.com/samber/do/http/std/v2"
+go get github.com/samber/do/http/std/v2
 ```
 
 ```go
@@ -26,7 +26,7 @@ http.ListenAndServe(":8080", mux)
 ## Gin
 
 ```bash
-go get github.com/samber/do/http/gin/v2"
+go get github.com/samber/do/http/gin/v2
 ```
 
 ```go
@@ -43,7 +43,7 @@ router.Run(":8080")
 ## Fiber
 
 ```bash
-go get github.com/samber/do/http/fiber/v2"
+go get github.com/samber/do/http/fiber/v2
 ```
 
 ```go
@@ -60,7 +60,7 @@ router.Listen(":8080")
 ## Echo
 
 ```bash
-go get github.com/samber/do/http/echo/v2"
+go get github.com/samber/do/http/echo/v2
 ```
 
 ```go
@@ -77,7 +77,7 @@ router.Start(":8080")
 ## Chi
 
 ```bash
-go get github.com/samber/do/http/chi/v2"
+go get github.com/samber/do/http/chi/v2
 ```
 
 ```go

@@ -25,7 +25,7 @@ Aliases must be Go interfaces. It can be declared explicitly on injection using 
 - `do.InvokeAs`
 - `do.MustInvokeAs`
 
-Named invocation is not available for now. Please open an issue to discuss about your needs.
+Named invocation is not available for now. Feel free to open an issue to discuss your needs.
 
 Implicit aliasing is recommended for production.
 
