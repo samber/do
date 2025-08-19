@@ -86,7 +86,6 @@ func (s *serviceAlias[Initial, Alias]) getInstance(i Injector) (Alias, error) {
 	default:
 		// should never happen, since invoke() checks the type
 		return empty[Alias](), serviceTypeMismatch(inferServiceName[Alias](), inferServiceName[Initial]())
-		// return empty[Alias](), fmt.Errorf("DI: could not cast `%s` as `%s`", s.targetName, s.name)
 	}
 }
 

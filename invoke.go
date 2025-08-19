@@ -10,7 +10,17 @@ import (
 	typetostring "github.com/samber/go-type-to-string"
 )
 
-// invokeAnyByName looks for a service by its tag.
+// invokeAnyByName retrieves and instantiates a service by name, returning it as interface{}.
+// This function handles circular dependency detection, service resolution, and invocation hooks.
+//
+// Parameters:
+//   - i: The injector to search for the service
+//   - name: The name of the service to invoke
+//
+// Returns the service instance as interface{} and any error that occurred during invocation.
+//
+// This function is used internally by the DI container for service resolution and
+// supports virtual scopes for dependency tracking and circular dependency detection.
 func invokeAnyByName(i Injector, name string) (any, error) {
 	var invokerChain []string
 
@@ -55,7 +65,18 @@ func invokeAnyByName(i Injector, name string) (any, error) {
 	return instance, nil
 }
 
-// invokeByName looks for a service by its name.
+// invokeByName retrieves and instantiates a service by name with type safety.
+// This function handles circular dependency detection, service resolution, type checking,
+// and invocation hooks.
+//
+// Parameters:
+//   - i: The injector to search for the service
+//   - name: The name of the service to invoke
+//
+// Returns the service instance with the correct type and any error that occurred during invocation.
+//
+// This function is used internally by the DI container for type-safe service resolution.
+// It ensures that the returned service matches the expected type T.
 func invokeByName[T any](i Injector, name string) (T, error) {
 	var invokerChain []string
 
@@ -101,9 +122,14 @@ func invokeByName[T any](i Injector, name string) (T, error) {
 	return instance, nil
 }
 
-// invokeByGenericType look for a service by its type.
-// When many services match, the first service matching
-// the provided type or interface will be invoked.
+// invokeByGenericType looks for a service by its type and invokes the first matching service.
+// When multiple services match the provided type or interface, the first service found
+// will be invoked. This function is useful for interface-based dependency injection.
+//
+// Parameters:
+//   - i: The injector to search for the service
+//
+// Returns the service instance with the correct type and any error that occurred during invocation.
 func invokeByGenericType[T any](i Injector) (T, error) {
 	injector := getInjectorOrDefault(i)
 	serviceAliasName := inferServiceName[T]()
@@ -170,7 +196,16 @@ func invokeByGenericType[T any](i Injector) (T, error) {
 	return instance.(T), nil
 }
 
-// invokeByTag looks for a service by its tag.
+// invokeByTag injects services into struct fields based on struct tags.
+// This function supports automatic dependency injection into struct fields
+// using the `do` tag or a custom tag key specified in the injector options.
+//
+// Parameters:
+//   - i: The injector to search for services
+//   - structName: The name of the struct for error reporting
+//   - structValue: A reflect.Value pointing to the struct to inject into
+//
+// Returns an error if injection fails for any reason.
 func invokeByTags(i Injector, structName string, structValue reflect.Value) error {
 	injector := getInjectorOrDefault(i)
 
@@ -225,7 +260,9 @@ func invokeByTags(i Injector, structName string, structValue reflect.Value) erro
 	return nil
 }
 
-// serviceNotFound returns an error indicating that the specified service was not found.
+// serviceNotFound returns a detailed error indicating that the specified service was not found.
+// This function provides helpful error messages that include available services and
+// the invocation chain for debugging purposes.
 func serviceNotFound(injector Injector, err error, chain []string) error {
 	name := chain[len(chain)-1]
 	services := injector.ListProvidedServices()
@@ -246,24 +283,36 @@ func serviceNotFound(injector Injector, err error, chain []string) error {
 	return fmt.Errorf("%w `%s`, available services: %s", err, name, strings.Join(sortedServiceNames, ", "))
 }
 
-// serviceTypeMismatch returns an error indicating that the specified service was found, but its type does not match the expected type.
+// serviceTypeMismatch returns an error indicating that the specified service was found,
+// but its type does not match the expected type. This typically occurs when a service
+// is registered with one type but invoked with a different type.
 func serviceTypeMismatch(invoking string, registered string) error {
 	return fmt.Errorf("DI: service found, but type mismatch: invoking `%s` but registered `%s`", invoking, registered)
 }
 
-// getServiceNames formats a list of EdgeService names.
+// getServiceNames formats a list of EdgeService names for error reporting.
+// This function converts EdgeService objects to formatted string names
+// that can be displayed in error messages.
 func getServiceNames(services []EdgeService) []string {
 	return mAp(services, func(edge EdgeService, _ int) string {
 		return fmt.Sprintf("`%s`", edge.Service)
 	})
 }
 
-// sortServiceNames sorts a list of service names.
+// sortServiceNames sorts a list of service names alphabetically.
+// This function ensures consistent ordering of service names in error messages
+// and other output, making them easier to read and compare.
 func sortServiceNames(names []string) []string {
 	sort.Strings(names)
 	return names
 }
 
+// humanReadableInvokerChain formats an invocation chain into a human-readable string.
+// This function converts a slice of service names into a formatted string
+// that shows the dependency chain for debugging purposes.
+//
+// This is useful for debugging circular dependencies and understanding
+// the service resolution path that led to an error.
 func humanReadableInvokerChain(invokerChain []string) string {
 	invokerChain = mAp(invokerChain, func(item string, _ int) string {
 		return fmt.Sprintf("`%s`", item)

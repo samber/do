@@ -10,6 +10,16 @@ var _ Injector = (*virtualScope)(nil)
 // virtualScope is a simple wrapper to Injector (Scope or RootScope or virtualScope) that
 // contains the invoker name.
 // It is used to track the dependency graph.
+//
+// The virtualScope acts as a proxy that wraps an existing injector and tracks the chain
+// of service invocations. This is essential for:
+//   - Detecting circular dependencies during service resolution
+//   - Building the dependency graph (DAG) for proper shutdown ordering
+//   - Providing debugging information about service invocation chains
+//
+// Fields:
+//   - self: The underlying injector being wrapped
+//   - invokerChain: The chain of service names that have been invoked, used for circular dependency detection
 type virtualScope struct {
 	self         Injector
 	invokerChain []string
@@ -53,7 +63,24 @@ func (s *virtualScope) serviceShutdown(ctx context.Context, name string) error {
 func (s *virtualScope) onServiceInvoke(name string) { s.self.onServiceInvoke(name) }
 
 // detectCircularDependency checks for circular dependencies in the virtualScope.
-// It returns ErrCircularDependency if the provided service name creates a circular dependency in the invoker chain.
+// This method analyzes the current invoker chain to detect if adding the specified service
+// would create a circular dependency. A circular dependency occurs when service A depends
+// on service B, which depends on service A (directly or indirectly).
+//
+// Parameters:
+//   - name: The name of the service being invoked
+//
+// Returns ErrCircularDependency if a circular dependency is detected, or nil if the
+// dependency is valid.
+//
+// Example of circular dependency:
+//
+//	ServiceA depends on ServiceB
+//	ServiceB depends on ServiceC
+//	ServiceC depends on ServiceA  // This creates a circular dependency
+//
+// The method checks if the service name already exists in the invoker chain,
+// which would indicate a circular dependency.
 func (s *virtualScope) detectCircularDependency(name string) error {
 	if contains(s.invokerChain, name) {
 		return fmt.Errorf("%w: %s", ErrCircularDependency, humanReadableInvokerChain(append(s.invokerChain, name)))
@@ -62,11 +89,32 @@ func (s *virtualScope) detectCircularDependency(name string) error {
 }
 
 // addDependency adds a dependency to the DAG in the virtualScope.
+// This method records the dependency relationship between the current service (the last
+// invoker in the chain) and the service being invoked. This information is used to
+// build the dependency graph for proper shutdown ordering.
+//
+// Parameters:
+//   - injector: The injector containing the services
+//   - name: The name of the service being invoked (dependency)
+//   - serviceScope: The scope containing the service being invoked
+//
+// The dependency is recorded as: current service -> invoked service
+// This ensures that during shutdown, dependencies are shut down before the services
+// that depend on them.
 func (s *virtualScope) addDependency(injector Injector, name string, serviceScope *Scope) {
 	injector.RootScope().dag.addDependency(injector.ID(), injector.Name(), s.getLastInvokerName(), serviceScope.ID(), serviceScope.Name(), name)
 }
 
 // getLastInvokerName retrieves the last invoker name from the invoker chain in the virtualScope.
+// This method returns the name of the service that is currently being resolved and is
+// about to invoke another service. This is used for building dependency relationships
+// in the DAG.
+//
+// Returns the name of the last service in the invoker chain, or an empty string if
+// the chain is empty.
+//
+// The invoker chain represents the path of service invocations, where each service
+// in the chain depends on the next service in the chain.
 func (s *virtualScope) getLastInvokerName() string {
 	if len(s.invokerChain) > 0 {
 		return s.invokerChain[len(s.invokerChain)-1]

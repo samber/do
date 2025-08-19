@@ -1,4 +1,4 @@
-package http
+package dohttp
 
 import (
 	"bytes"

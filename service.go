@@ -9,17 +9,35 @@ import (
 	typetostring "github.com/samber/go-type-to-string"
 )
 
+// MaxInvokationFrames defines the maximum number of stack frames to capture
+// when tracking service invocations for debugging and observability purposes.
 var MaxInvokationFrames uint32 = 100
 
+// ServiceType represents the different types of services that can be registered
+// in the dependency injection container. Each type has different lifecycle
+// and instantiation behavior.
 type ServiceType string
 
 const (
-	ServiceTypeLazy      ServiceType = "lazy"
-	ServiceTypeEager     ServiceType = "eager"
+	// ServiceTypeLazy represents a service that is instantiated only when first requested.
+	// The service instance is cached and reused for subsequent requests.
+	ServiceTypeLazy ServiceType = "lazy"
+
+	// ServiceTypeEager represents a service that is instantiated immediately when registered.
+	// The service is always available and ready to use.
+	ServiceTypeEager ServiceType = "eager"
+
+	// ServiceTypeTransient represents a service that is recreated each time it is requested.
+	// No singleton caching is performed, ensuring a fresh instance every time. It is basically a factory.
 	ServiceTypeTransient ServiceType = "transient"
-	ServiceTypeAlias     ServiceType = "alias"
+
+	// ServiceTypeAlias represents a service that is an alias to another service.
+	// It provides a different interface or name for accessing an existing service.
+	ServiceTypeAlias ServiceType = "alias"
 )
 
+// serviceTypeToIcon maps each service type to a visual icon for debugging
+// and observability purposes in logs and UI displays.
 var serviceTypeToIcon = map[ServiceType]string{
 	ServiceTypeLazy:      "😴",
 	ServiceTypeEager:     "🔁",
@@ -27,6 +45,9 @@ var serviceTypeToIcon = map[ServiceType]string{
 	ServiceTypeAlias:     "🔗",
 }
 
+// Service[T] is the main interface that all services in the DI container must implement.
+// It provides methods for service lifecycle management, health checking, and shutdown.
+// The generic type T represents the type of the service instance.
 type Service[T any] interface {
 	getName() string
 	getTypeName() string
@@ -42,14 +63,16 @@ type Service[T any] interface {
 	source() (stacktrace.Frame, []stacktrace.Frame)
 }
 
-// Like Service[T] but without the generic type.
+// ServiceAny is a non-generic version of Service[T] that provides access to
+// service functionality without requiring type information. This is useful
+// for internal operations where the specific type is not known.
 type ServiceAny interface {
 	getName() string
 	getTypeName() string
 	getServiceType() ServiceType
 	getReflectType() reflect.Type
 	getInstanceAny(Injector) (any, error)
-	// getInstance(Injector) (T, error)
+	// getInstance(Injector) (T, error) - Not available in non-generic interface
 	isHealthchecker() bool
 	healthcheck(context.Context) error
 	isShutdowner() bool
@@ -57,6 +80,10 @@ type ServiceAny interface {
 	clone() any
 	source() (stacktrace.Frame, []stacktrace.Frame)
 }
+
+// Interface definitions for specific service capabilities.
+// These interfaces allow for type-safe access to specific service methods
+// without requiring the full Service[T] interface.
 
 type serviceGetName interface{ getName() string }
 type serviceGetTypeName interface{ getTypeName() string }
@@ -76,6 +103,8 @@ type serviceBuildTime interface {
 	getBuildTime() (time.Duration, bool)
 }
 
+// Interface compliance checks to ensure Service[T] implements all required interfaces.
+// These compile-time checks help catch interface implementation errors early.
 var _ serviceGetName = (Service[int])(nil)
 var _ serviceGetTypeName = (Service[int])(nil)
 var _ serviceGetServiceType = (Service[int])(nil)
@@ -88,10 +117,16 @@ var _ serviceShutdown = (Service[int])(nil)
 var _ serviceClone = (Service[int])(nil)
 var _ serviceSource = (Service[int])(nil)
 
+// inferServiceName uses type inference to determine the service name
+// based on the generic type parameter T. This is used internally
+// to automatically generate service names from types.
 func inferServiceName[T any]() string {
 	return typetostring.GetType[T]()
 }
 
+// inferServiceProviderStacktrace extracts stacktrace information from a service
+// for debugging and observability purposes. Transient services don't have
+// provider stacktraces since they are recreated on each request.
 func inferServiceProviderStacktrace(service ServiceAny) (stacktrace.Frame, bool) {
 	if service.getServiceType() == ServiceTypeTransient {
 		return stacktrace.Frame{}, false

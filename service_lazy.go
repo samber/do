@@ -32,7 +32,7 @@ type serviceLazy[T any] struct {
 }
 
 func newServiceLazy[T any](name string, provider Provider[T]) *serviceLazy[T] {
-	providerFrame, _ := stacktrace.NewFrameFromPtr(reflect.ValueOf(provider).Pointer())
+	providerFrame, _ := stacktrace.NewFrameFromPC(reflect.ValueOf(provider).Pointer())
 
 	return &serviceLazy[T]{
 		mu:       sync.RWMutex{},

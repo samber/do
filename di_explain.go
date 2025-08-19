@@ -44,6 +44,9 @@ Dependents:
 // @TODO: add service type icon (lazy, eager, transient)
 const explainServiceDependencyTemplate = `* {{.Service}} from scope {{.ScopeName}}{{.Recursive}}`
 
+// ExplainServiceOutput contains detailed information about a service for debugging and analysis.
+// This struct provides comprehensive information about a service's location, type, dependencies,
+// and lifecycle state.
 type ExplainServiceOutput struct {
 	ScopeID          string                           `json:"scope_id"`
 	ScopeName        string                           `json:"scope_name"`
@@ -55,6 +58,11 @@ type ExplainServiceOutput struct {
 	Dependents       []ExplainServiceDependencyOutput `json:"dependents"`
 }
 
+// String returns a formatted string representation of the service explanation.
+// This method provides a human-readable description of the service including
+// its scope, type, build time, and dependency relationships.
+//
+// Returns a formatted string describing the service.
 func (sd *ExplainServiceOutput) String() string {
 	invoked := ""
 	if sd.Invoked != nil {
@@ -91,6 +99,15 @@ func (sd *ExplainServiceOutput) String() string {
 	)
 }
 
+// ExplainServiceDependencyOutput contains information about a service dependency relationship.
+// This struct represents either a dependency (service this depends on) or a dependent
+// (service that depends on this) in the dependency graph.
+//
+// Fields:
+//   - ScopeID: The unique identifier of the scope containing the related service
+//   - ScopeName: The human-readable name of the scope containing the related service
+//   - Service: The name of the related service
+//   - Recursive: Nested dependency relationships (for transitive dependencies)
 type ExplainServiceDependencyOutput struct {
 	ScopeID   string                           `json:"scope_id"`
 	ScopeName string                           `json:"scope_name"`
@@ -98,6 +115,11 @@ type ExplainServiceDependencyOutput struct {
 	Recursive []ExplainServiceDependencyOutput `json:"recursive"`
 }
 
+// String returns a formatted string representation of the dependency relationship.
+// This method provides a human-readable description of the dependency, including
+// nested recursive dependencies with proper indentation.
+//
+// Returns a formatted string describing the dependency relationship.
 func (sdd *ExplainServiceDependencyOutput) String() string {
 	lines := flatten(
 		mAp(sdd.Recursive, func(item ExplainServiceDependencyOutput, _ int) []string {
@@ -127,16 +149,57 @@ func (sdd *ExplainServiceDependencyOutput) String() string {
 }
 
 // ExplainService returns a human readable description of the service.
-// It returns false if the service is not found.
-// Please call Invoke[T] before ExplainService[T] to ensure that the service is registered.
+// This function provides detailed information about a service including its scope,
+// type, dependencies, and lifecycle state. The service must be registered before
+// calling this function.
+//
+// Parameters:
+//   - i: The injector to search for the service
+//
+// Returns a service explanation and a boolean indicating if the service was found.
+// The boolean is false if the service is not found.
+//
+// Note: Please call Invoke[T] before ExplainService[T] to ensure that the service is registered.
+//
+// Example:
+//
+//	// First invoke the service to ensure it's registered
+//	db := do.MustInvoke[*Database](injector)
+//
+//	// Then explain it
+//	explanation, found := do.ExplainService[*Database](injector)
+//	if found {
+//	    fmt.Println(explanation.String())
+//	}
 func ExplainService[T any](i Injector) (description ExplainServiceOutput, ok bool) {
 	name := inferServiceName[T]()
 	return ExplainNamedService(i, name)
 }
 
-// ExplainNamedService returns a human readable description of the service.
-// It returns false if the service is not found.
-// Please call Invoke[T] before ExplainNamedService[T] to ensure that the service is registered.
+// ExplainNamedService returns a human readable description of the service by name.
+// This function provides detailed information about a service including its scope,
+// type, dependencies, and lifecycle state. The service must be registered before
+// calling this function.
+//
+// Parameters:
+//   - scope: The injector to search for the service
+//   - name: The name of the service to explain
+//
+// Returns a service explanation and a boolean indicating if the service was found.
+// The boolean is false if the service is not found.
+//
+// Note: Please call Invoke[T] before ExplainNamedService[T] to ensure that the service is registered.
+//
+// Example:
+//
+//	// First invoke the service to ensure it's registered
+//	db := do.MustInvokeNamed[*Database](injector, "main-db")
+//
+//	// Then explain it
+//	explanation, found := do.ExplainNamedService(injector, "main-db")
+//	if found {
+//	    fmt.Println(explanation.String())
+//	}
 func ExplainNamedService(scope Injector, name string) (description ExplainServiceOutput, ok bool) {
 	_i := getInjectorOrDefault(scope)
 
@@ -212,12 +275,20 @@ DAG:
 const explainInjectorScopeTemplate = `{{.ScopeName}} (ID: {{.ScopeID}}){{.Services}}{{.Children}}`
 const explainInjectorServiceTemplate = ` * {{.ServiceType}}{{.ServiceName}}{{.ServiceFeatures}}`
 
+// ExplainInjectorOutput contains detailed information about an injector and its scope hierarchy.
+// This struct provides a comprehensive view of the injector's scope tree, including
+// all services and their relationships.
 type ExplainInjectorOutput struct {
 	ScopeID   string                       `json:"scope_id"`
 	ScopeName string                       `json:"scope_name"`
 	DAG       []ExplainInjectorScopeOutput `json:"dag"`
 }
 
+// String returns a formatted string representation of the injector explanation.
+// This method provides a human-readable description of the injector including
+// its scope hierarchy and all services in a tree-like format.
+//
+// Returns a formatted string describing the injector and its scope hierarchy.
 func (id *ExplainInjectorOutput) String() string {
 	dag := mergeScopes(&id.DAG)
 	if strings.HasPrefix(dag, " |\n |\n") {
@@ -267,6 +338,8 @@ func mergeScopes(scopes *[]ExplainInjectorScopeOutput) string {
 	)
 }
 
+// ExplainInjectorScopeOutput contains information about a single scope in the injector hierarchy.
+// This struct represents a scope and its services, along with its position in the scope tree.
 type ExplainInjectorScopeOutput struct {
 	ScopeID   string                         `json:"scope_id"`
 	ScopeName string                         `json:"scope_name"`
@@ -278,6 +351,11 @@ type ExplainInjectorScopeOutput struct {
 	IsChildren bool `json:"is_children"`
 }
 
+// String returns a formatted string representation of the scope.
+// This method provides a human-readable description of the scope including
+// its services and child scopes.
+//
+// Returns a formatted string describing the scope.
 func (ids *ExplainInjectorScopeOutput) String() string {
 	services := strings.Join(
 		mAp(ids.Services, func(item ExplainInjectorServiceOutput, _ int) string {
@@ -305,6 +383,8 @@ func (ids *ExplainInjectorScopeOutput) String() string {
 	)
 }
 
+// ExplainInjectorServiceOutput contains information about a service in the scope explanation.
+// This struct provides details about a service's type, capabilities, and lifecycle state.
 type ExplainInjectorServiceOutput struct {
 	ServiceName      string        `json:"service_name"`
 	ServiceType      ServiceType   `json:"service_type"`
@@ -314,6 +394,11 @@ type ExplainInjectorServiceOutput struct {
 	IsShutdowner     bool          `json:"is_shutdowner"`
 }
 
+// String returns a formatted string representation of the service.
+// This method provides a human-readable description of the service including
+// its type icon and capabilities indicators.
+//
+// Returns a formatted string describing the service.
 func (idss *ExplainInjectorServiceOutput) String() string {
 	prefix := ""
 	suffix := ""
@@ -348,6 +433,31 @@ func (idss *ExplainInjectorServiceOutput) String() string {
 }
 
 // ExplainInjector returns a human readable description of the injector, with services and scope tree.
+// This function provides a comprehensive view of the injector's structure, including
+// all scopes, services, and their relationships in a hierarchical format.
+//
+// Parameters:
+//   - scope: The injector to explain
+//
+// Returns a detailed explanation of the injector's structure and contents.
+//
+// Example:
+//
+//	explanation := do.ExplainInjector(injector)
+//	fmt.Println(explanation.String())
+//
+// Output example:
+//
+//	Scope ID: root
+//	Scope name: Root Scope
+//
+//	DAG:
+//	 |\_ Root Scope (ID: root)
+//	 |   * 😴 Database
+//	 |   * 🔁 Config
+//	 |   |\_ API Scope (ID: api)
+//	 |   |   * 🏭 Logger
+//	 |   |   * 🔗 DatabaseInterface
 func ExplainInjector(scope Injector) ExplainInjectorOutput {
 	_i := getInjectorOrDefault(scope)
 

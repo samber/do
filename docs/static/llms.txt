@@ -1,0 +1,527 @@
+# do - Dependency Injection for Go
+
+This is the official documentation for the "do" library, a modern, typesafe dependency injection framework for Go applications.
+
+## About the Library
+
+do is a lightweight, fast, and typesafe dependency injection library for Go. It provides a simple and intuitive API for managing dependencies in Go applications with support for scopes, lifecycle management, health checks, and graceful shutdown.
+
+**Key Features:**
+- Type-safe dependency injection using Go generics
+- Hierarchical scope management
+- Lazy, eager, and transient service registration
+- Health check and shutdown lifecycle management
+- Circular dependency detection
+- Comprehensive observability and debugging tools
+- Zero reflection - compile-time type safety
+- High performance with minimal overhead
+- Thread-safe concurrent access
+- Built-in testing utilities
+
+## Why Choose do?
+
+### Performance Benefits
+- **Zero Reflection**: Unlike many DI containers that use reflection, do leverages Go generics for compile-time type safety
+- **Minimal Overhead**: Optimized for high-performance applications with minimal runtime cost
+- **Memory Efficient**: Smart caching and lifecycle management reduce memory footprint
+- **Fast Startup**: Lazy loading and efficient dependency resolution
+
+### Developer Experience
+- **Type Safety**: Compile-time guarantees prevent runtime dependency errors
+- **Intuitive API**: Simple, fluent interface that feels natural to Go developers
+- **Rich Tooling**: Built-in debugging, health checks, and observability features
+- **Comprehensive Testing**: Easy mocking and testing with container cloning
+
+### Production Ready
+- **Graceful Shutdown**: Proper cleanup and resource management
+- **Health Monitoring**: Built-in health check system for microservices
+- **Error Handling**: Robust error handling with detailed diagnostics
+- **Observability**: Debug web UI and comprehensive logging
+
+## Documentation Structure
+
+### Getting Started
+- **Getting Started Guide** (`/docs/getting-started`) - Quick start guide for new users
+- **About** (`/docs/about`) - Overview of the library and its design principles
+- **Glossary** (`/docs/glossary`) - Definitions of key terms and concepts
+
+### Core Concepts
+
+#### Service Registration
+- **Lazy Loading** (`/docs/service-registration/lazy-loading`) - Services created on first request
+- **Eager Loading** (`/docs/service-registration/eager-loading`) - Services created immediately
+- **Transient Loading** (`/docs/service-registration/transient-loading`) - New instance on each request
+- **Package Loading** (`/docs/service-registration/package-loading`) - Loading services from packages
+
+#### Service Invocation
+- **Service Invocation** (`/docs/service-invocation/service-invocation`) - How to retrieve and use services
+- **Accept Interfaces, Return Structs** (`/docs/service-invocation/accept-interfaces-return-structs`) - Best practices for service design
+
+#### Container Management
+- **Scope** (`/docs/container/scope`) - Understanding scope hierarchy and isolation
+- **Options** (`/docs/container/options`) - Configuration options for the DI container
+- **Clone** (`/docs/container/clone`) - Creating copies of containers for testing
+
+#### Service Lifecycle
+- **Health Checker** (`/docs/service-lifecycle/healthchecker`) - Implementing health checks for services
+- **Shutdowner** (`/docs/service-lifecycle/shutdowner`) - Graceful shutdown of services
+
+### Advanced Topics
+
+#### Troubleshooting
+- **Service Dependencies** (`/docs/troubleshooting/service-dependencies`) - Common dependency issues
+- **Service Registration** (`/docs/troubleshooting/service-registration`) - Registration problems and solutions
+- **Scope Tree** (`/docs/troubleshooting/scope-tree`) - Understanding scope relationships
+- **Web UI** (`/docs/troubleshooting/web-ui`) - Using the debugging web interface
+
+#### Migration
+- **Upgrading from v1.x to v2** (`/docs/upgrading/from-v1-x-to-v2`) - Migration guide for existing users
+
+## API Reference
+
+### Core Functions
+- `do.New()` - Create a new DI container
+- `do.Provide()` - Register a service provider
+- `do.ProvideValue()` - Register a value directly
+- `do.ProvideTransient()` - Register a transient service
+- `do.Invoke()` - Retrieve and instantiate a service
+- `do.MustInvoke()` - Retrieve a service (panics on error)
+- `do.As()` - Create service aliases
+
+### Scope Management
+- `injector.Scope()` - Create child scopes
+- `scope.HealthCheck()` - Check service health
+- `scope.Shutdown()` - Graceful shutdown
+
+## Quick Start Example
+
+```go
+package main
+
+import (
+    "fmt"
+    "github.com/samber/do/v2"
+)
+
+// Service interfaces
+type UserService interface {
+    GetUser(id string) string
+}
+
+type EmailService interface {
+    SendEmail(to, subject, body string) error
+}
+
+// Service implementations
+type userService struct {
+    emailService EmailService
+}
+
+func (s *userService) GetUser(id string) string {
+    return fmt.Sprintf("User %s", id)
+}
+
+type emailService struct{}
+
+func (s *emailService) SendEmail(to, subject, body string) error {
+    fmt.Printf("Sending email to %s: %s - %s\n", to, subject, body)
+    return nil
+}
+
+func main() {
+    // Create a new injector
+    injector := do.New()
+
+    // Register services
+    do.Provide(injector, func(i do.Injector) (UserService, error) {
+        emailService := do.MustInvoke[EmailService](i)
+        return &userService{emailService: emailService}, nil
+    })
+
+    do.Provide(injector, func(i do.Injector) (EmailService, error) {
+        return &emailService{}, nil
+    })
+
+    // Use services
+    userService := do.MustInvoke[UserService](injector)
+    fmt.Println(userService.GetUser("123"))
+}
+```
+
+## Advanced Usage Patterns
+
+### Scope Hierarchy
+
+```go
+// Create root scope
+root := do.New()
+
+// Create child scopes
+userScope := do.Scope(root, "user")
+sessionScope := do.Scope(userScope, "session")
+
+// Services in different scopes
+do.Provide(root, func(i do.Injector) (Database, error) {
+    return &database{}, nil
+})
+
+do.Provide(userScope, func(i do.Injector) (UserRepository, error) {
+    db := do.MustInvoke[Database](i)
+    return &userRepository{db: db}, nil
+})
+```
+
+### Health Checks
+
+```go
+type database struct {
+    connected bool
+}
+
+func (d *database) HealthCheck() error {
+    if !d.connected {
+        return errors.New("database not connected")
+    }
+    return nil
+}
+
+// Register with health check
+do.Provide(injector, func(i do.Injector) (Database, error) {
+    db := &database{connected: true}
+    return db, nil
+})
+
+// Check health
+if err := do.HealthCheck[Database](injector); err != nil {
+    log.Printf("Database health check failed: %v", err)
+}
+```
+
+### Graceful Shutdown
+
+```go
+type server struct {
+    listener net.Listener
+}
+
+func (s *server) Shutdown(ctx context.Context) error {
+    return s.listener.Close()
+}
+
+// Register with shutdown capability
+do.Provide(injector, func(i do.Injector) (Server, error) {
+    listener, err := net.Listen("tcp", ":8080")
+    if err != nil {
+        return nil, err
+    }
+    return &server{listener: listener}, nil
+})
+
+// Graceful shutdown
+ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+defer cancel()
+
+if err := do.Shutdown[Server](injector, ctx); err != nil {
+    log.Printf("Server shutdown failed: %v", err)
+}
+```
+
+## Performance Considerations
+
+### Memory Management
+- **Lazy Loading**: Services are created only when needed, reducing initial memory usage
+- **Singleton Pattern**: Services are cached after first creation
+- **Scope Isolation**: Child scopes can be garbage collected independently
+- **Transient Services**: Use for stateless services that don't need caching
+
+### Startup Performance
+- **Eager Loading**: Use for critical services that must be available immediately
+- **Parallel Initialization**: Services can be initialized concurrently
+- **Dependency Optimization**: Minimize dependency depth for faster resolution
+
+### Runtime Performance
+- **Type Safety**: No reflection overhead at runtime
+- **Direct Function Calls**: Service resolution uses direct function calls
+- **Minimal Allocations**: Optimized to reduce garbage collection pressure
+
+## Testing with do
+
+### Container Cloning
+
+```go
+func TestUserService(t *testing.T) {
+    // Create test container
+    testInjector := do.Clone(injector)
+    
+    // Override with mock
+    do.ProvideValue(testInjector, &mockEmailService{})
+    
+    // Test with mocked dependencies
+    userService := do.MustInvoke[UserService](testInjector)
+    result := userService.GetUser("test")
+    
+    assert.Equal(t, "User test", result)
+}
+```
+
+### Mock Services
+
+```go
+type mockEmailService struct {
+    sentEmails []string
+}
+
+func (m *mockEmailService) SendEmail(to, subject, body string) error {
+    m.sentEmails = append(m.sentEmails, fmt.Sprintf("%s:%s:%s", to, subject, body))
+    return nil
+}
+
+func (m *mockEmailService) GetSentEmails() []string {
+    return m.sentEmails
+}
+```
+
+## HTTP Framework Integration
+
+do provides seamless integration with popular Go HTTP frameworks:
+
+### Chi Integration
+```go
+import "github.com/samber/do/v2/http/chi"
+
+func main() {
+    injector := do.New()
+    // ... register services
+    
+    r := chi.NewRouter()
+    chi.UseInjector(r, injector)
+    
+    r.Get("/users/{id}", func(w http.ResponseWriter, r *http.Request) {
+        userService := do.MustInvoke[UserService](injector)
+        // ... handle request
+    })
+}
+```
+
+### Echo Integration
+```go
+import "github.com/samber/do/v2/http/echo"
+
+func main() {
+    injector := do.New()
+    // ... register services
+    
+    e := echo.New()
+    echo.UseInjector(e, injector)
+    
+    e.GET("/users/:id", func(c echo.Context) error {
+        userService := do.MustInvoke[UserService](injector)
+        // ... handle request
+        return nil
+    })
+}
+```
+
+## Best Practices
+
+### Service Design
+1. **Accept Interfaces, Return Structs**: Design services to accept interfaces and return concrete types
+2. **Single Responsibility**: Each service should have a single, well-defined responsibility
+3. **Dependency Inversion**: Depend on abstractions, not concrete implementations
+4. **Interface Segregation**: Keep interfaces small and focused
+
+### Error Handling
+1. **Provider Errors**: Always handle errors in service providers
+2. **Graceful Degradation**: Design services to handle dependency failures
+3. **Health Checks**: Implement health checks for critical services
+4. **Logging**: Use structured logging for debugging and monitoring
+
+### Performance Optimization
+1. **Lazy Loading**: Use lazy loading for expensive services
+2. **Scope Management**: Organize services in appropriate scopes
+3. **Dependency Minimization**: Keep dependency graphs shallow
+4. **Resource Cleanup**: Implement proper shutdown handlers
+
+### Testing Strategy
+1. **Unit Testing**: Test services in isolation with mocked dependencies
+2. **Integration Testing**: Test service interactions with real dependencies
+3. **Container Cloning**: Use container cloning for test isolation
+4. **Mock Services**: Create mock implementations for external dependencies
+
+## Common Patterns
+
+### Configuration Management
+```go
+type Config struct {
+    DatabaseURL string
+    Port        int
+    Environment string
+}
+
+do.Provide(injector, func(i do.Injector) (*Config, error) {
+    return &Config{
+        DatabaseURL: os.Getenv("DATABASE_URL"),
+        Port:        8080,
+        Environment: os.Getenv("ENV"),
+    }, nil
+})
+```
+
+### Factory Pattern
+```go
+type ServiceFactory interface {
+    CreateService(config *Config) (Service, error)
+}
+
+do.Provide(injector, func(i do.Injector) (ServiceFactory, error) {
+    return &serviceFactory{}, nil
+})
+
+do.Provide(injector, func(i do.Injector) (Service, error) {
+    config := do.MustInvoke[*Config](i)
+    factory := do.MustInvoke[ServiceFactory](i)
+    return factory.CreateService(config)
+})
+```
+
+### Repository Pattern
+```go
+type UserRepository interface {
+    FindByID(id string) (*User, error)
+    Save(user *User) error
+}
+
+type userRepository struct {
+    db Database
+}
+
+func (r *userRepository) FindByID(id string) (*User, error) {
+    // Implementation
+}
+
+do.Provide(injector, func(i do.Injector) (UserRepository, error) {
+    db := do.MustInvoke[Database](i)
+    return &userRepository{db: db}, nil
+})
+```
+
+## Troubleshooting Guide
+
+### Common Issues
+
+#### Circular Dependencies
+```go
+// Problem: Service A depends on Service B, which depends on Service A
+// Solution: Use interfaces or restructure dependencies
+
+type ServiceA interface {
+    DoSomething() string
+}
+
+type ServiceB interface {
+    DoSomethingElse() string
+}
+
+// Use interfaces to break circular dependencies
+```
+
+#### Missing Dependencies
+```go
+// Problem: Service not registered
+// Solution: Ensure all dependencies are registered
+
+// Check registration order
+do.Provide(injector, func(i do.Injector) (Database, error) {
+    return &database{}, nil
+})
+
+do.Provide(injector, func(i do.Injector) (UserService, error) {
+    db := do.MustInvoke[Database](i) // This will work now
+    return &userService{db: db}, nil
+})
+```
+
+#### Scope Issues
+```go
+// Problem: Service not found in scope
+// Solution: Register service in correct scope
+
+// Register in parent scope
+do.Provide(rootScope, func(i do.Injector) (Database, error) {
+    return &database{}, nil
+})
+
+// Use in child scope
+userService := do.MustInvoke[UserService](childScope) // Will find Database in parent
+```
+
+## Migration from Other DI Libraries
+
+### From wire
+```go
+// wire
+func InitializeAPI(db *Database) *API {
+    return &API{db: db}
+}
+
+// do
+do.Provide(injector, func(i do.Injector) (*API, error) {
+    db := do.MustInvoke[*Database](i)
+    return &API{db: db}, nil
+})
+```
+
+### From dig
+```go
+// dig
+container := dig.New()
+container.Provide(NewDatabase)
+container.Provide(NewAPI)
+
+// do
+injector := do.New()
+do.Provide(injector, func(i do.Injector) (*Database, error) {
+    return NewDatabase(), nil
+})
+do.Provide(injector, func(i do.Injector) (*API, error) {
+    db := do.MustInvoke[*Database](i)
+    return NewAPI(db), nil
+})
+```
+
+## Community and Support
+
+- **GitHub Repository**: https://github.com/samber/do
+- **Go Documentation**: https://pkg.go.dev/github.com/samber/do/v2
+- **Examples**: Available in the `/examples` directory of the repository
+- **Issues**: Report bugs and request features on GitHub
+- **Discussions**: Join community discussions on GitHub
+- **Contributing**: Guidelines for contributing to the project
+
+## Technical Details
+
+- **Go Version**: Requires Go 1.18+ (for generics support)
+- **License**: MIT
+- **Dependencies**: Minimal external dependencies
+- **Performance**: Optimized for high-performance applications
+- **Thread Safety**: Full thread safety for concurrent access
+- **Memory Usage**: Efficient memory management with smart caching
+- **Startup Time**: Fast initialization with lazy loading support
+- **Runtime Overhead**: Minimal overhead with zero reflection
+
+## Version Compatibility
+
+### v2.x Features
+- Full Go generics support
+- Enhanced type safety
+- Improved performance
+- Better error handling
+- Comprehensive testing utilities
+
+### Migration Path
+- v1.x to v2.x migration guide available
+- Backward compatibility considerations
+- Breaking changes documented
+- Migration tools and examples
+
+This comprehensive documentation is designed to help developers understand and effectively use the do library for dependency injection in their Go applications. The library emphasizes simplicity, type safety, and performance while providing powerful features for complex application architectures. Whether you're building microservices, web applications, or command-line tools, do provides the tools you need for clean, maintainable, and testable code.

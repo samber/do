@@ -6,6 +6,15 @@ import (
 	"sync"
 )
 
+// newScope creates a new Scope instance with the provided parameters.
+// This is an internal function used by the scope creation methods.
+//
+// Parameters:
+//   - name: The human-readable name of the scope
+//   - root: The root scope that this scope belongs to
+//   - parent: The immediate parent scope, or nil for the root scope
+//
+// Returns a fully initialized Scope with all internal fields set to their default values.
 func newScope(name string, root *RootScope, parent *Scope) *Scope {
 	return &Scope{
 		id:          must1(newUUID()),
@@ -22,36 +31,58 @@ func newScope(name string, root *RootScope, parent *Scope) *Scope {
 	}
 }
 
+// Ensure Scope implements the Injector interface at compile time
 var _ Injector = (*Scope)(nil)
 
-// Scope is a DI container. It must be created with injector.Scope("name") method.
+// Scope represents a dependency injection container that can contain services
+// and child scopes. Scopes form a hierarchical tree structure where child scopes
+// can access services from their parent scopes, but not vice versa.
+//
+// Key features:
+//   - Hierarchical service resolution (child scopes can access parent services)
+//   - Isolated service registration (services in child scopes don't affect parents)
+//   - Thread-safe operations
+//   - Service lifecycle management (health checks, shutdown)
+//   - Observability and debugging support
 type Scope struct {
-	id          string            // immutable
-	name        string            // immutable
-	rootScope   *RootScope        // immutable
-	parentScope *Scope            // immutable
-	childScopes map[string]*Scope // append only
+	id          string            // Unique identifier for the scope (immutable)
+	name        string            // Human-readable name for the scope (immutable)
+	rootScope   *RootScope        // Reference to the root scope (immutable)
+	parentScope *Scope            // Reference to the immediate parent scope (immutable)
+	childScopes map[string]*Scope // Map of child scopes (append only)
 
-	mu       sync.RWMutex
-	services map[string]any
+	mu       sync.RWMutex   // Mutex for thread-safe operations
+	services map[string]any // Map of registered services
 
 	// Storing the invocation order is not needed anymore, but we keep it
 	// for improved observability in unit tests.
-	orderedInvocation      map[string]int // map is faster than slice
-	orderedInvocationIndex int
+	orderedInvocation      map[string]int // Map tracking service invocation order (faster than slice)
+	orderedInvocationIndex int            // Counter for tracking invocation order
 }
 
 // ID returns the unique identifier of the scope.
+// This ID is generated using UUID and is immutable throughout the scope's lifetime.
 func (s *Scope) ID() string {
 	return s.id
 }
 
-// Name returns the name of the scope.
+// Name returns the human-readable name of the scope.
+// This name is provided when creating the scope and is immutable.
 func (s *Scope) Name() string {
 	return s.name
 }
 
-// Scope creates a new child scope.
+// Scope creates a new child scope with the given name.
+// Child scopes inherit access to services from their parent scopes,
+// but services registered in child scopes are not accessible to parents.
+//
+// Parameters:
+//   - name: The name for the new child scope (must be unique within the parent)
+//   - packages: Optional package functions to execute in the new scope
+//
+// Returns the newly created child scope.
+//
+// Panics if a scope with the same name already exists in the parent.
 func (s *Scope) Scope(name string, packages ...func(Injector)) *Scope {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -63,6 +94,7 @@ func (s *Scope) Scope(name string, packages ...func(Injector)) *Scope {
 	child := newScope(name, s.rootScope, s)
 	s.childScopes[name] = child
 
+	// Execute any package functions in the new scope
 	for _, pkg := range packages {
 		pkg(child)
 	}
@@ -70,12 +102,18 @@ func (s *Scope) Scope(name string, packages ...func(Injector)) *Scope {
 	return child
 }
 
-// RootScope returns the root scope.
+// RootScope returns the root scope of the scope hierarchy.
+// All scopes in a hierarchy share the same root scope, regardless of their depth.
 func (s *Scope) RootScope() *RootScope {
 	return s.rootScope
 }
 
-// Ancestors returns the list of parent scopes recursively.
+// Ancestors returns the list of all parent scopes in order from immediate parent to root.
+// This is useful for understanding the scope hierarchy and for operations that need
+// to traverse up the scope tree.
+//
+// Returns an empty slice for the root scope, and a slice of parent scopes
+// for child scopes, ordered from immediate parent to root.
 func (s *Scope) Ancestors() []*Scope {
 	if s.parentScope == nil {
 		return []*Scope{}
@@ -85,6 +123,9 @@ func (s *Scope) Ancestors() []*Scope {
 }
 
 // Children returns the list of immediate child scopes.
+// This method only returns direct children, not grandchildren or deeper descendants.
+//
+// Returns a slice of child scopes. The order is not guaranteed to be stable.
 func (s *Scope) Children() []*Scope {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
@@ -97,7 +138,13 @@ func (s *Scope) Children() []*Scope {
 	return scopes
 }
 
-// ChildByID returns the child scope recursively by its ID.
+// ChildByID searches for a child scope by its unique ID across the entire scope hierarchy.
+// This method performs a recursive search through all descendant scopes.
+//
+// Parameters:
+//   - id: The unique ID of the scope to find
+//
+// Returns the found scope and true if found, or nil and false if not found.
 func (s *Scope) ChildByID(id string) (*Scope, bool) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
@@ -115,7 +162,13 @@ func (s *Scope) ChildByID(id string) (*Scope, bool) {
 	return nil, false
 }
 
-// ChildByName returns the child scope recursively by its name.
+// ChildByName searches for a child scope by its name across the entire scope hierarchy.
+// This method performs a recursive search through all descendant scopes.
+//
+// Parameters:
+//   - name: The name of the scope to find
+//
+// Returns the found scope and true if found, or nil and false if not found.
 func (s *Scope) ChildByName(name string) (*Scope, bool) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
@@ -133,46 +186,77 @@ func (s *Scope) ChildByName(name string) (*Scope, bool) {
 	return nil, false
 }
 
-// ListProvidedServices returns the list of services provided by the scope.
+// ListProvidedServices returns all services available in the current scope and all its ancestor scopes.
+// This provides a complete view of the service hierarchy, showing all services
+// that can be accessed from the current scope.
+//
+// Returns a slice of EdgeService objects representing all available services,
+// including those inherited from parent scopes.
 func (s *Scope) ListProvidedServices() []EdgeService {
+	services := []EdgeService{}
+
+	// Add services from current scope
 	s.mu.RLock()
-	edges := mAp(keys(s.services), func(name string, _ int) EdgeService {
-		return newEdgeService(s.id, s.name, name)
-	})
+	for name := range s.services {
+		services = append(services, newEdgeService(s.id, s.name, name))
+	}
 	s.mu.RUnlock()
 
+	// Add services from ancestor scopes
 	for _, ancestor := range s.Ancestors() {
-		edges = append(edges, ancestor.ListProvidedServices()...)
+		services = append(services, ancestor.ListProvidedServices()...)
 	}
 
-	s.logf("exported list of services: %v", edges)
+	services = orderedUniq(services)
 
-	return orderedUniq(edges)
+	s.logf("exported list of services: %v", services)
+
+	return services
 }
 
-// ListInvokedServices returns the list of services invoked by the scope.
+// ListInvokedServices returns only the services that have been actually invoked
+// (instantiated) in the current scope and its ancestors.
+// This is useful for understanding which services are actually being used
+// and for debugging dependency issues.
+//
+// Returns a slice of EdgeService objects representing only the invoked services.
 func (s *Scope) ListInvokedServices() []EdgeService {
+	services := []EdgeService{}
+
+	// Add invoked services from current scope
 	s.mu.RLock()
-	edges := mAp(keys(s.orderedInvocation), func(name string, _ int) EdgeService {
-		return newEdgeService(s.id, s.name, name)
-	})
+	for name := range s.orderedInvocation {
+		services = append(services, newEdgeService(s.id, s.name, name))
+	}
 	s.mu.RUnlock()
 
+	// Add invoked services from ancestor scopes
 	for _, ancestor := range s.Ancestors() {
-		edges = append(edges, ancestor.ListInvokedServices()...)
+		services = append(services, ancestor.ListInvokedServices()...)
 	}
 
-	s.logf("exported list of invoked services: %v", edges)
+	services = orderedUniq(services)
 
-	return orderedUniq(edges)
+	s.logf("exported list of invoked services: %v", services)
+
+	return services
 }
 
-// HealthCheck returns the healthcheck results of the scope, in a map of service name to error.
+// HealthCheck performs health checks on all services in the current scope and its ancestors
+// that implement the Healthchecker interface.
+//
+// Returns a map of service names to error values. A nil error indicates a successful health check.
 func (s *Scope) HealthCheck() map[string]error {
 	return s.HealthCheckWithContext(context.Background())
 }
 
-// HealthCheckWithContext returns the healthcheck results of the scope, in a map of service name to error.
+// HealthCheckWithContext performs health checks on all services in the current scope and its ancestors
+// that implement the Healthchecker interface, with context support for cancellation and timeouts.
+//
+// Parameters:
+//   - ctx: Context for cancellation and timeout control
+//
+// Returns a map of service names to error values. A nil error indicates a successful health check.
 func (s *Scope) HealthCheckWithContext(ctx context.Context) map[string]error {
 	s.logf("requested healthcheck")
 
@@ -216,12 +300,21 @@ func (s *Scope) asyncHealthCheckWithContext(ctx context.Context) map[string]<-ch
 	return asyncResults
 }
 
-// Shutdown shutdowns the scope and all its children.
+// Shutdown gracefully shuts down the scope and all its children.
+// This method calls ShutdownWithContext with a background context.
+//
+// Returns a ShutdownErrors object containing any errors that occurred during shutdown.
 func (s *Scope) Shutdown() *ShutdownErrors {
 	return s.ShutdownWithContext(context.Background())
 }
 
-// ShutdownWithContext shutdowns the scope and all its children.
+// ShutdownWithContext gracefully shuts down the scope and all its children with context support.
+// This method performs shutdown operations in parallel for better performance.
+//
+// Parameters:
+//   - ctx: Context for cancellation and timeout control
+//
+// Returns a ShutdownErrors object containing any errors that occurred during shutdown.
 func (s *Scope) ShutdownWithContext(ctx context.Context) *ShutdownErrors {
 	s.logf("requested shutdown")
 	err1 := s.shutdownChildrenInParallel(ctx)
@@ -237,6 +330,13 @@ func (s *Scope) ShutdownWithContext(ctx context.Context) *ShutdownErrors {
 }
 
 // shutdownChildrenInParallel runs a parallel shutdown of children scopes.
+// This method shuts down all child scopes concurrently and then removes them
+// from the scope hierarchy.
+//
+// Parameters:
+//   - ctx: Context for cancellation and timeout control
+//
+// Returns a ShutdownErrors object containing any errors from child scope shutdowns.
 func (s *Scope) shutdownChildrenInParallel(ctx context.Context) *ShutdownErrors {
 	s.mu.RLock()
 	children := s.childScopes
@@ -263,9 +363,16 @@ func (s *Scope) shutdownChildrenInParallel(ctx context.Context) *ShutdownErrors 
 }
 
 // shutdownServicesInParallel runs a parallel shutdown of scope services.
+// This method implements a dependency-aware shutdown algorithm that shuts down
+// services in the correct order to avoid dependency issues.
 //
 // We look for services having no dependents. Then we shutdown them.
 // And repeat, until every scope services have been shutdown.
+//
+// Parameters:
+//   - ctx: Context for cancellation and timeout control
+//
+// Returns a ShutdownErrors object containing any errors from service shutdowns.
 func (s *Scope) shutdownServicesInParallel(ctx context.Context) *ShutdownErrors {
 	err := newShutdownErrors()
 
@@ -297,6 +404,7 @@ func (s *Scope) shutdownServicesInParallel(ctx context.Context) *ShutdownErrors 
 			err = mergeShutdownErrors(err, e)
 		} else {
 			// In this branch, we expect that there is a circular dependency. We shutdown all services, without taking care of order.
+			// This is a fallback mechanism to ensure all services are eventually shut down.
 			e := s.shutdownServicesWithoutDependenciesInParallel(ctx, services)
 			err = mergeShutdownErrors(err, e)
 		}
@@ -305,6 +413,15 @@ func (s *Scope) shutdownServicesInParallel(ctx context.Context) *ShutdownErrors 
 	return err
 }
 
+// shutdownServicesWithoutDependenciesInParallel shuts down multiple services concurrently
+// without considering dependency order. This method is used when services have no dependents
+// or when handling circular dependencies.
+//
+// Parameters:
+//   - ctx: Context for cancellation and timeout control
+//   - serviceNames: List of service names to shut down
+//
+// Returns a ShutdownErrors object containing any errors from the shutdown operations.
 func (s *Scope) shutdownServicesWithoutDependenciesInParallel(ctx context.Context, serviceNames []string) *ShutdownErrors {
 	if len(serviceNames) == 0 {
 		return nil
@@ -333,6 +450,15 @@ func (s *Scope) shutdownServicesWithoutDependenciesInParallel(ctx context.Contex
 	return err
 }
 
+// clone creates a deep copy of the scope with all its services and child scopes.
+// This method is used for scope isolation and testing scenarios where you need
+// a complete copy of the scope hierarchy.
+//
+// Parameters:
+//   - root: The root scope for the cloned scope hierarchy
+//   - parent: The parent scope for the cloned scope
+//
+// Returns a new Scope instance that is a deep copy of the original.
 func (s *Scope) clone(root *RootScope, parent *Scope) *Scope {
 	clone := newScope(s.name, root, parent)
 
@@ -364,6 +490,13 @@ func (s *Scope) clone(root *RootScope, parent *Scope) *Scope {
  *        Service lifecycle       *
  **********************************/
 
+// serviceExist checks if a service with the given name exists in the current scope.
+// This method only checks the current scope, not parent scopes.
+//
+// Parameters:
+//   - name: The name of the service to check
+//
+// Returns true if the service exists in the current scope, false otherwise.
 func (s *Scope) serviceExist(name string) bool {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
@@ -372,6 +505,13 @@ func (s *Scope) serviceExist(name string) bool {
 	return ok
 }
 
+// serviceExistRec checks if a service with the given name exists in the current scope
+// or any of its ancestor scopes. This method performs a recursive search up the scope hierarchy.
+//
+// Parameters:
+//   - name: The name of the service to check
+//
+// Returns true if the service exists in the current scope or any ancestor scope, false otherwise.
 func (s *Scope) serviceExistRec(name string) bool {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
@@ -388,6 +528,13 @@ func (s *Scope) serviceExistRec(name string) bool {
 	return s.parentScope.serviceExistRec(name)
 }
 
+// serviceGet retrieves a service from the current scope by name.
+// This method only searches in the current scope, not parent scopes.
+//
+// Parameters:
+//   - name: The name of the service to retrieve
+//
+// Returns the service instance and true if found, or nil and false if not found.
 func (s *Scope) serviceGet(name string) (any, bool) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
@@ -396,6 +543,15 @@ func (s *Scope) serviceGet(name string) (any, bool) {
 	return svc, ok
 }
 
+// serviceGetRec retrieves a service by name from the current scope or any of its ancestor scopes.
+// This method performs a recursive search up the scope hierarchy and returns the scope
+// where the service was found.
+//
+// Parameters:
+//   - name: The name of the service to retrieve
+//
+// Returns the service instance, the scope where it was found, and true if found,
+// or nil, nil, and false if not found.
 func (s *Scope) serviceGetRec(name string) (any, *Scope, bool) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
@@ -412,9 +568,13 @@ func (s *Scope) serviceGetRec(name string) (any, *Scope, bool) {
 	return s.parentScope.serviceGetRec(name)
 }
 
-// serviceSet is not protected against double registration.
-// Above layers should check if the service is already registered.
-// It permits service override.
+// serviceSet registers a service in the current scope with the given name.
+// This method is not protected against double registration - the calling layer
+// should check if the service is already registered. It permits service override.
+//
+// Parameters:
+//   - name: The name to register the service under
+//   - service: The service instance to register
 func (s *Scope) serviceSet(name string, service any) {
 	s.RootScope().opts.onBeforeRegistration(s, name)
 
@@ -425,6 +585,12 @@ func (s *Scope) serviceSet(name string, service any) {
 	s.RootScope().opts.onAfterRegistration(s, name)
 }
 
+// serviceForEach iterates over all services in the current scope and calls the provided callback
+// for each service. The iteration stops if the callback returns false.
+//
+// Parameters:
+//   - cb: Callback function that receives the service name, scope, and service instance.
+//     Return true to continue iteration, false to stop.
 func (s *Scope) serviceForEach(cb func(name string, scope *Scope, service any) bool) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -437,6 +603,12 @@ func (s *Scope) serviceForEach(cb func(name string, scope *Scope, service any) b
 	}
 }
 
+// serviceForEachRec iterates over all services in the current scope and all ancestor scopes,
+// calling the provided callback for each service. The iteration stops if the callback returns false.
+//
+// Parameters:
+//   - cb: Callback function that receives the service name, scope, and service instance.
+//     Return true to continue iteration, false to stop.
 func (s *Scope) serviceForEachRec(cb func(name string, scope *Scope, service any) bool) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -453,6 +625,16 @@ func (s *Scope) serviceForEachRec(cb func(name string, scope *Scope, service any
 	}
 }
 
+// serviceHealthCheck performs a health check on a specific service in the current scope.
+// This method checks if the service implements the Healthchecker interface and calls
+// its health check method if available.
+//
+// Parameters:
+//   - ctx: Context for cancellation and timeout control
+//   - name: The name of the service to health check
+//
+// Returns an error if the health check fails, or nil if the service is healthy
+// or doesn't implement the Healthchecker interface.
 func (s *Scope) serviceHealthCheck(ctx context.Context, name string) error {
 	s.mu.RLock()
 
@@ -479,6 +661,16 @@ func (s *Scope) serviceHealthCheck(ctx context.Context, name string) error {
 	return nil
 }
 
+// serviceShutdown gracefully shuts down a specific service in the current scope.
+// This method checks if the service implements the Shutdowner interface and calls
+// its shutdown method. The service is then removed from the scope.
+//
+// Parameters:
+//   - ctx: Context for cancellation and timeout control
+//   - name: The name of the service to shut down
+//
+// Returns an error if the shutdown fails, or nil if the shutdown was successful.
+// Panics if the service doesn't implement the Shutdowner interface.
 func (s *Scope) serviceShutdown(ctx context.Context, name string) error {
 	s.mu.RLock()
 	serviceAny, ok := s.services[name]
@@ -514,6 +706,11 @@ func (s *Scope) serviceShutdown(ctx context.Context, name string) error {
  *             Hooks              *
  **********************************/
 
+// onServiceInvoke is called whenever a service is invoked in this scope.
+// This method tracks the order of service invocations for observability and debugging purposes.
+//
+// Parameters:
+//   - name: The name of the service that was invoked
 func (s *Scope) onServiceInvoke(name string) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -524,6 +721,12 @@ func (s *Scope) onServiceInvoke(name string) {
 	}
 }
 
+// logf logs a formatted message with the scope name prefix.
+// This method is used internally for consistent logging across the scope.
+//
+// Parameters:
+//   - format: The format string for the log message
+//   - args: Arguments to format the message with
 func (s *Scope) logf(format string, args ...any) {
 	format = fmt.Sprintf("DI <scope=%s>: %s", s.name, format)
 	args = append([]any{s.name}, args...)
