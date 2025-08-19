@@ -17,7 +17,7 @@ func provider(i any) (int, error) {
 }
 
 func example2() (Frame, bool) {
-	return NewFrameFromPtr(reflect.ValueOf(provider).Pointer())
+	return NewFrameFromPC(reflect.ValueOf(provider).Pointer())
 }
 
 func TestStacktrace(t *testing.T) {

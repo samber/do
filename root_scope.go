@@ -7,17 +7,52 @@ import (
 	"syscall"
 )
 
+// DefaultRootScopeName is the default name for the root scope.
 const DefaultRootScopeName = "[root]"
 
+// DefaultRootScope is a global instance of the root scope that can be used
+// for simple dependency injection scenarios without creating a custom scope.
 var DefaultRootScope *RootScope = New()
+
+// noOpLogf is a no-operation logging function used as a default when no logger is provided.
 var noOpLogf = func(format string, args ...any) {}
 
-// New creates a new injector.
+// New creates a new dependency injection container with default options.
+// This is the primary entry point for creating a new DI container.
+//
+// Parameters:
+//   - packages: Optional package functions to execute during initialization
+//
+// Returns a new RootScope instance ready for service registration.
+//
+// Example:
+//
+//	injector := do.New()
+//	do.Provide(injector, func(i do.Injector) (*MyService, error) {
+//	    return &MyService{}, nil
+//	})
 func New(packages ...func(Injector)) *RootScope {
 	return NewWithOpts(&InjectorOpts{}, packages...)
 }
 
-// NewWithOpts creates a new injector with options.
+// NewWithOpts creates a new dependency injection container with custom options.
+// This allows you to configure logging, hooks, health check settings, and other options.
+//
+// Parameters:
+//   - opts: Configuration options for the injector
+//   - packages: Optional package functions to execute during initialization
+//
+// Returns a new RootScope instance with the specified configuration.
+//
+// Example:
+//
+//	opts := &do.InjectorOpts{
+//	    Logf: func(format string, args ...any) {
+//	        log.Printf(format, args...)
+//	    },
+//	    HealthCheckParallelism: 10,
+//	}
+//	injector := do.NewWithOpts(opts)
 func NewWithOpts(opts *InjectorOpts, packages ...func(Injector)) *RootScope {
 	if opts.Logf == nil {
 		opts.Logf = noOpLogf
@@ -64,32 +99,71 @@ func NewWithOpts(opts *InjectorOpts, packages ...func(Injector)) *RootScope {
 	return root
 }
 
+// Ensure RootScope implements the Injector interface at compile time
 var _ Injector = (*RootScope)(nil)
 
-// RootScope is the first level of scope tree.
+// RootScope is the top-level scope in the dependency injection container hierarchy.
+// It serves as the entry point for all DI operations and manages the overall container lifecycle.
+//
+// Key responsibilities:
+//   - Service registration and resolution
+//   - Child scope management
+//   - Health check coordination
+//   - Shutdown orchestration
+//   - Dependency graph management
 type RootScope struct {
-	self            *Scope
-	opts            *InjectorOpts
-	dag             *DAG
-	healthCheckPool *jobPool[error]
+	self            *Scope          // The root scope instance
+	opts            *InjectorOpts   // Configuration options
+	dag             *DAG            // Dependency graph for service relationships
+	healthCheckPool *jobPool[error] // Pool for parallel health check operations
 }
 
-// pass through
-func (s *RootScope) ID() string                                    { return s.self.ID() }
-func (s *RootScope) Name() string                                  { return s.self.Name() }
+// Pass-through methods that delegate to the underlying scope
+// These methods provide the same interface as Scope but operate on the root level
+
+// ID returns the unique identifier of the root scope.
+func (s *RootScope) ID() string { return s.self.ID() }
+
+// Name returns the name of the root scope.
+func (s *RootScope) Name() string { return s.self.Name() }
+
+// Scope creates a new child scope under the root scope.
 func (s *RootScope) Scope(name string, p ...func(Injector)) *Scope { return s.self.Scope(name, p...) }
-func (s *RootScope) RootScope() *RootScope                         { return s.self.RootScope() }
-func (s *RootScope) Ancestors() []*Scope                           { return []*Scope{} }
-func (s *RootScope) Children() []*Scope                            { return s.self.Children() }
-func (s *RootScope) ChildByID(id string) (*Scope, bool)            { return s.self.ChildByID(id) }
-func (s *RootScope) ChildByName(name string) (*Scope, bool)        { return s.self.ChildByName(name) }
-func (s *RootScope) ListProvidedServices() []EdgeService           { return s.self.ListProvidedServices() }
-func (s *RootScope) ListInvokedServices() []EdgeService            { return s.self.ListInvokedServices() }
-func (s *RootScope) HealthCheck() map[string]error                 { return s.self.HealthCheck() }
+
+// RootScope returns the root scope itself (this instance).
+func (s *RootScope) RootScope() *RootScope { return s.self.RootScope() }
+
+// Ancestors returns an empty slice since the root scope has no ancestors.
+func (s *RootScope) Ancestors() []*Scope { return []*Scope{} }
+
+// Children returns the list of immediate child scopes.
+func (s *RootScope) Children() []*Scope { return s.self.Children() }
+
+// ChildByID searches for a child scope by its unique ID across the entire scope hierarchy.
+func (s *RootScope) ChildByID(id string) (*Scope, bool) { return s.self.ChildByID(id) }
+
+// ChildByName searches for a child scope by its name across the entire scope hierarchy.
+func (s *RootScope) ChildByName(name string) (*Scope, bool) { return s.self.ChildByName(name) }
+
+// ListProvidedServices returns all services available in the root scope and all its descendant scopes.
+func (s *RootScope) ListProvidedServices() []EdgeService { return s.self.ListProvidedServices() }
+
+// ListInvokedServices returns all services that have been invoked in the root scope and all its descendant scopes.
+func (s *RootScope) ListInvokedServices() []EdgeService { return s.self.ListInvokedServices() }
+
+// HealthCheck performs health checks on all services in the root scope and all its descendant scopes.
+func (s *RootScope) HealthCheck() map[string]error { return s.self.HealthCheck() }
+
+// HealthCheckWithContext performs health checks with context support for cancellation and timeouts.
 func (s *RootScope) HealthCheckWithContext(ctx context.Context) map[string]error {
 	return s.self.HealthCheckWithContext(ctx)
 }
+
+// Shutdown gracefully shuts down the root scope and all its descendant scopes.
 func (s *RootScope) Shutdown() *ShutdownErrors { return s.ShutdownWithContext(context.Background()) }
+
+// ShutdownWithContext gracefully shuts down the root scope and all its descendant scopes with context support.
+// This method ensures proper cleanup of the health check pool and all registered services.
 func (s *RootScope) ShutdownWithContext(ctx context.Context) *ShutdownErrors {
 	defer func() {
 		if s.healthCheckPool != nil {

@@ -1,9 +1,36 @@
-package http
+package dohttp
 
 import (
 	"github.com/samber/do/v2"
 )
 
+// ServiceHTML generates an HTML page that displays detailed information about a specific service.
+// This function creates a comprehensive service inspection page showing the service's scope,
+// type, build time, invocation location, dependencies, and dependents.
+//
+// Parameters:
+//   - basePath: The base URL path for the web interface
+//   - injector: The injector containing the service
+//   - scopeID: The ID of the scope containing the service
+//   - serviceName: The name of the service to inspect
+//
+// Returns the HTML content as a string and any error that occurred during generation.
+//
+// The generated page includes:
+//   - Service metadata (scope, type, build time, invocation location)
+//   - List of dependencies with clickable links
+//   - List of dependents with clickable links
+//   - Navigation to other views
+//
+// If the scope or service is not found, it falls back to the service list page.
+//
+// Example:
+//
+//	html, err := http.ServiceHTML("/debug/di", injector, "root", "database")
+//	if err != nil {
+//	    log.Fatal(err)
+//	}
+//	fmt.Fprint(w, html)
 func ServiceHTML(basePath string, injector do.Injector, scopeID string, serviceName string) (string, error) {
 	scope, ok := getScopeByID(injector, scopeID)
 	if !ok {
@@ -76,6 +103,18 @@ func ServiceHTML(basePath string, injector do.Injector, scopeID string, serviceN
 	)
 }
 
+// serviceToHTML converts a list of service dependencies to HTML representation.
+// This function generates clickable links for each service in the dependency list,
+// allowing users to navigate to detailed views of related services.
+//
+// Parameters:
+//   - basePath: The base URL path for the web interface
+//   - services: List of service dependency outputs to convert
+//
+// Returns the HTML string representation of the service list.
+//
+// Each service is rendered as a clickable link that navigates to the service
+// detail page, with recursive dependencies shown as nested lists.
 func serviceToHTML(basePath string, services []do.ExplainServiceDependencyOutput) string {
 	output, _ := fromTemplate(
 		`
@@ -106,6 +145,29 @@ func serviceToHTML(basePath string, services []do.ExplainServiceDependencyOutput
 	return output
 }
 
+// ServiceListHTML generates an HTML page that displays a list of all services across all scopes.
+// This function creates a comprehensive service listing page showing all services
+// organized by their respective scopes.
+//
+// Parameters:
+//   - basePath: The base URL path for the web interface
+//   - injector: The injector containing the services to list
+//
+// Returns the HTML content as a string and any error that occurred during generation.
+//
+// The generated page includes:
+//   - List of all scopes in the injector hierarchy
+//   - Services within each scope with clickable links
+//   - Navigation to other views
+//   - Service type indicators and capabilities
+//
+// Example:
+//
+//	html, err := http.ServiceListHTML("/debug/di", injector)
+//	if err != nil {
+//	    log.Fatal(err)
+//	}
+//	fmt.Fprint(w, html)
 func ServiceListHTML(basePath string, injector do.Injector) (string, error) {
 	scopes := getAllScopes(injector)
 
