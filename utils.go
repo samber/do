@@ -196,8 +196,8 @@ func newJobPool[R any](parallelism uint) *jobPool[R] {
 		parallelism: parallelism,
 		jobs:        make(chan func(), 1000), // 🤮 @TODO: change that
 
-		startOnce: &sync.Once{},
-		stopOnce:  &sync.Once{},
+		startOnce: sync.Once{},
+		stopOnce:  sync.Once{},
 	}
 }
 
@@ -205,11 +205,11 @@ type jobPool[R any] struct {
 	parallelism uint
 	jobs        chan func()
 
-	startOnce *sync.Once
-	stopOnce  *sync.Once
+	startOnce sync.Once
+	stopOnce  sync.Once
 }
 
-func (p jobPool[R]) rpc(f func() R) <-chan R {
+func (p *jobPool[R]) rpc(f func() R) <-chan R {
 	c := make(chan R, 1) // a single message will be sent before closing
 
 	p.jobs <- func() {
@@ -219,7 +219,7 @@ func (p jobPool[R]) rpc(f func() R) <-chan R {
 	return c
 }
 
-func (p jobPool[R]) start() {
+func (p *jobPool[R]) start() {
 	p.startOnce.Do(func() {
 		for i := 0; i < int(p.parallelism); i++ {
 			go func() {
@@ -231,7 +231,7 @@ func (p jobPool[R]) start() {
 	})
 }
 
-func (p jobPool[R]) stop() {
+func (p *jobPool[R]) stop() {
 	p.stopOnce.Do(func() {
 		close(p.jobs)
 	})
@@ -252,7 +252,7 @@ func raceWithTimeout(ctx context.Context, fn func(context.Context) error) error 
 	case e := <-err:
 		return e
 	case <-ctx.Done():
-		return fmt.Errorf("%s: %w", ErrHealthCheckTimeout.Error(), ctx.Err())
+		return fmt.Errorf("%w: %v", ErrHealthCheckTimeout, ctx.Err())
 	}
 }
 
