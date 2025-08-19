@@ -340,14 +340,18 @@ func (s *Scope) ShutdownWithContext(ctx context.Context) *ShutdownErrors {
 //
 // Returns a ShutdownErrors object containing any errors from child scope shutdowns.
 func (s *Scope) shutdownChildrenInParallel(ctx context.Context) *ShutdownErrors {
+	// Snapshot children under lock
 	s.mu.RLock()
-	children := s.childScopes
+	children := make([]*Scope, 0, len(s.childScopes))
+	for _, c := range s.childScopes {
+		children = append(children, c)
+	}
 	s.mu.RUnlock()
 
 	errors := make([]*ShutdownErrors, len(children))
 
 	var wg sync.WaitGroup
-	for index, scope := range values(children) {
+	for index, scope := range children {
 		wg.Add(1)
 
 		go func(s *Scope, i int) {
@@ -385,6 +389,9 @@ func (s *Scope) shutdownServicesInParallel(ctx context.Context) *ShutdownErrors 
 	}
 
 	for len(listServices()) > 0 {
+		if ctx.Err() != nil {
+			break
+		}
 		services := listServices()
 		servicesToShutdown := []string{}
 

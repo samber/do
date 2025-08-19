@@ -206,9 +206,18 @@ func (s *RootScope) queueServiceHealthcheck(ctx context.Context, scope *Scope, s
 		go func() {
 			defer cancel()
 
-			ctx.Done()
-			err <- scope.serviceHealthCheck(ctx, serviceName)
-			close(err)
+			select {
+			case e := <-func() chan error {
+				c := make(chan error, 1)
+				go func() { c <- scope.serviceHealthCheck(ctx, serviceName) }()
+				return c
+			}():
+				err <- e
+				close(err)
+			case <-ctx.Done():
+				err <- ctx.Err()
+				close(err)
+			}
 		}()
 
 		return err
@@ -257,7 +266,7 @@ func (s *RootScope) AddAfterShutdownHook(hook func(*Scope, string, error)) {
 
 // Clone clones injector with provided services but not with invoked instances.
 func (s *RootScope) Clone() *RootScope {
-	return s.CloneWithOpts(s.opts)
+	return s.CloneWithOpts(s.opts.copy())
 }
 
 // CloneWithOpts clones injector with provided services but not with invoked instances, with options.
@@ -270,16 +279,16 @@ func (s *RootScope) CloneWithOpts(opts *InjectorOpts) *RootScope {
 	return clone
 }
 
-// ShutdownOnSignals listens for signals defined in signals parameter in order to graceful stop service.
-// It will block until receiving any of these signal.
-// If no signal is provided in signals parameter, syscall.SIGTERM and os.Interrupt will be added as default signal.
+// ShutdownOnSignals listens for the provided signals in order to gracefully stop services.
+// It will block until receiving any of these signals.
+// If no signal is provided, syscall.SIGTERM and os.Interrupt will be handled by default.
 func (s *RootScope) ShutdownOnSignals(signals ...os.Signal) (os.Signal, *ShutdownErrors) {
 	return s.ShutdownOnSignalsWithContext(context.Background(), signals...)
 }
 
-// ShutdownOnSignalsWithContext listens for signals defined in signals parameter in order to graceful stop service.
-// It will block until receiving any of these signal.
-// If no signal is provided in signals parameter, syscall.SIGTERM and os.Interrupt will be added as default signal.
+// ShutdownOnSignalsWithContext listens for the provided signals in order to gracefully stop services.
+// It will block until receiving any of these signals.
+// If no signal is provided, syscall.SIGTERM and os.Interrupt will be handled by default.
 func (s *RootScope) ShutdownOnSignalsWithContext(ctx context.Context, signals ...os.Signal) (os.Signal, *ShutdownErrors) {
 	// Make sure there is at least syscall.SIGTERM and os.Interrupt as a signal
 	if len(signals) < 1 {
@@ -289,7 +298,16 @@ func (s *RootScope) ShutdownOnSignalsWithContext(ctx context.Context, signals ..
 	ch := make(chan os.Signal, 5)
 	signal.Notify(ch, signals...)
 
-	sig := <-ch
+	var sig os.Signal
+	select {
+	case sig = <-ch:
+		// got a signal
+	case <-ctx.Done():
+		signal.Stop(ch)
+		close(ch)
+		return nil, s.ShutdownWithContext(ctx)
+	}
+
 	signal.Stop(ch)
 	close(ch)
 
