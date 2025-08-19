@@ -177,13 +177,13 @@ func TestServiceLazy_getReflectType(t *testing.T) {
 	is.Equal("int", service1.getReflectType().String())
 
 	service2 := newServiceLazy("foobar2", provider2)
-	is.Equal("do.lazyTest", service2.getReflectType().String())
+	is.Equal(pkgName+".lazyTest", service2.getReflectType().String())
 
 	service3 := newServiceLazy("foobar3", provider3)
-	is.Equal("do.Healthchecker", service3.getReflectType().String())
+	is.Equal(pkgName+".Healthchecker", service3.getReflectType().String())
 
 	service4 := newServiceLazy("foobar1", provider4)
-	is.Equal("*do.lazyTest", service4.getReflectType().String())
+	is.Equal("*"+pkgName+".lazyTest", service4.getReflectType().String())
 }
 
 func TestServiceLazy_getInstanceAny(t *testing.T) {

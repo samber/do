@@ -57,10 +57,10 @@ func TestServiceAlias_getReflectType(t *testing.T) {
 	is.Equal("int", service1.getReflectType().String())
 
 	service2 := newServiceAlias[*lazyTestHeathcheckerOK, Healthchecker]("foobar2", nil, "foobar3")
-	is.Equal("do.Healthchecker", service2.getReflectType().String())
+	is.Equal(pkgName+".Healthchecker", service2.getReflectType().String())
 
 	service3 := newServiceAlias[iTestHeathchecker, Healthchecker]("foobar3", nil, "foobar4")
-	is.Equal("do.Healthchecker", service3.getReflectType().String())
+	is.Equal(pkgName+".Healthchecker", service3.getReflectType().String())
 }
 
 func TestServiceAlias_getInstanceAny(t *testing.T) {

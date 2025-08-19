@@ -104,16 +104,16 @@ func TestServiceEager_getReflectType(t *testing.T) {
 	is.Equal("int", service1.getReflectType().String())
 
 	service2 := newServiceEager("foobar2", test)
-	is.Equal("do.eagerTest", service2.getReflectType().String())
+	is.Equal(pkgName+".eagerTest", service2.getReflectType().String())
 
 	service3 := newServiceEager("foobar3", (Healthchecker)(nil))
-	is.Equal("do.Healthchecker", service3.getReflectType().String())
+	is.Equal(pkgName+".Healthchecker", service3.getReflectType().String())
 
 	service4 := newServiceEager[Healthchecker]("foobar4", nil)
-	is.Equal("do.Healthchecker", service4.getReflectType().String())
+	is.Equal(pkgName+".Healthchecker", service4.getReflectType().String())
 
 	service5 := newServiceEager("foobar1", &test)
-	is.Equal("*do.eagerTest", service5.getReflectType().String())
+	is.Equal("*"+pkgName+".eagerTest", service5.getReflectType().String())
 }
 
 func TestServiceEager_getInstanceAny(t *testing.T) {
