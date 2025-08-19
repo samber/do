@@ -1,0 +1,17 @@
+go 1.18
+
+use (
+	.
+
+	./http/std
+	./http/gin
+	./http/echo
+	./http/fiber
+	./http/chi
+
+	./examples/http/std
+	./examples/http/gin
+	./examples/http/echo
+	./examples/http/fiber
+	./examples/http/chi
+)
