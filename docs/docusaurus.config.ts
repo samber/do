@@ -4,7 +4,7 @@ import type * as Preset from '@docusaurus/preset-classic';
 
 const config: Config = {
   title: 'do',
-  tagline: 'Typesafe dependency injection for Go',
+  tagline: 'Type-safe dependency injection for Go',
   favicon: 'img/favicon.ico',
 
   // Set the production url of your site here
@@ -35,15 +35,7 @@ const config: Config = {
       attributes:{
         type: "application/javascript",
       },
-      innerHTML: `
-(function (s,c,r,ee,b) {
-  s['ScreebObject']=r;s[r]=s[r]||function(){var d=arguments;return new Promise(function(a,b){(s[r].q=s[r].q||[]).push({v:1,args:d,ok:a,ko:b})})};
-  b=c.createElement('script');b.type='text/javascript';
-  b.id=r;b.src=ee;b.async=1;c.getElementsByTagName("head")[0].appendChild(b);
-}(window,document,'$screeb','https://t2.screeb.app/tag.js'));
-
-$screeb('init', 'da88b088-6c02-40d2-b576-e218b90192a4');
-`,
+      innerHTML: ``,
     },
   ],
 
