@@ -45,7 +45,7 @@ func (r *RequestPerSecond) Inc() {
 i := do.New()
 
 // inject the struct
-Provide(i, func(i do.Injector) (*RequestPerSecond, error) {
+do.Provide(i, func(i do.Injector) (*RequestPerSecond, error) {
     return &RequestPerSecond{}, nil
 })
 
@@ -67,6 +67,10 @@ Invoking an implicit alias with a very simple interface signature might lead to 
 Eg: `fmt.Stringer` might match dozens of services in a container.
 
 :::
+
+### InvokeStruct and implicit aliasing
+
+When using `do.InvokeStruct`, if a field is tagged with an empty tag (eg: `` `do:""` ``) and the inferred name does not match a registered service, the injector will fall back to the first registered service that is assignable to the field type, equivalent to `do.InvokeAs[T]` resolution. Prefer explicit names when multiple assignable services exist.
 
 ## Explicit injection
 
@@ -96,7 +100,7 @@ func (r *RequestPerSecond) Inc() {
 i := do.New()
 
 // inject the struct
-Provide(i, func(i do.Injector) (*RequestPerSecond, error) {
+do.Provide(i, func(i do.Injector) (*RequestPerSecond, error) {
     return &RequestPerSecond{}, nil
 })
 

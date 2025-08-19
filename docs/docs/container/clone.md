@@ -29,7 +29,9 @@ Provide[*Car](i, NewCar)
 Provide[Engine](i, NewEngine)
 
 // clone
-injector = injector.Clone()
+injector = injector.CloneWithOpts(&do.InjectorOpts{
+    StructTagKey: "di",
+})
 
 // replace Engine by *MockEngine
 do.Override[Engine](injector, func (i do.Injector) (Engine, error) {

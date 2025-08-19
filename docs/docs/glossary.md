@@ -19,7 +19,7 @@ A design principle where the flow of control is inverted compared to traditional
 
 In Dependency Injection (DI), an injector is a component that creates instances of classes and manages their dependencies. It's also known as the DI container or IoC (Inversion of Control) container.
 
-`do.Injector` is either a `*do.RootScope`, a `*do.Scope` or a `*do.VirtualScope`.
+`do.Injector` is implemented by `*do.RootScope` and `*do.Scope`. `*do.virtualScope` are internal implementation details.
 
 ## DI Container
 
@@ -35,9 +35,7 @@ Top-level scope.
 
 ## Virtual scope
 
-A chain of service invocations instantiates multiple virtual scopes to track dependency cycles.
-
-Virtual scopes are internal and not exposed in the public API.
+A chain of service invocations instantiates internal virtual scopes to track dependency cycles and build the dependency graph. These are not exposed in the public API.
 
 ## Child scope
 

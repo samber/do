@@ -16,9 +16,9 @@ Services from a scope can invoke services available locally or in ancestor scope
 
 A chain of service invocations instantiates multiple virtual scopes to track dependency cycles.
 
-Scopes are almost invisible to developers: services use the Injector API without awareness of whether the underlying implementation is a root scope, scope, or virtual scope.
+Scopes are almost invisible to developers: services use the Injector API without awareness of whether the underlying implementation is a root scope, a regular scope, or an internal virtual scope used for dependency tracking.
 
-The `do.Injector` interface is implemented by `*do.RootScope`, `*do.Scope`, or `*do.VirtualScope`.
+The `do.Injector` interface is implemented by `*do.RootScope` and `*do.Scope`. `*do.virtualScope` are internal implementation details.
 
 ## New scope
 

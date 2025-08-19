@@ -63,8 +63,8 @@ func (*MyService) HealthCheck(context.Context) error {
 
 i := do.New()
 
-Provide(i, ...)
-Invoke(i, ...)
+do.Provide(i, ...)
+do.Invoke(i, ...)
 
 ctx := context.WithTimeout(10 * time.Second)
 i.HealthCheckWithContext(ctx)
@@ -105,8 +105,8 @@ i := do.NewWithOpts(&do.InjectorOpts{
     HealthCheckTimeout:       100 * time.Millisecond,
 })
 
-Provide(i, NewMyPostgreSQLConnection)
-_ = MustInvoke(i, *MyPostgreSQLConnection)
+do.Provide(i, NewMyPostgreSQLConnection)
+_ = do.MustInvoke[*MyPostgreSQLConnection](i)
 
 status := i.HealthCheckWithContext(ctx)
 // {

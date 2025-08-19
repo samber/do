@@ -9,8 +9,8 @@ sidebar_position: 3
 ### Spec
 
 ```go
-do.ListProvidedServices[T any](do.Injector) []do.EdgeService
-do.ListInvokedServices[T any](do.Injector) []do.EdgeService
+injector.ListProvidedServices() []do.EdgeService
+injector.ListInvokedServices() []do.EdgeService
 
 type EdgeService struct {
 	ScopeID   string
@@ -34,7 +34,7 @@ do.Provide(i, func(i do.Injector) (*MyService, error) {
     return &MyService{}, nil
 })
 
-println(do.Name[*MyService](i))
+println(do.NameOf[*MyService]())
 ```
 
 Output:
