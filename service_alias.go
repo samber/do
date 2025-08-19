@@ -145,12 +145,12 @@ func (s *serviceAlias[Initial, Alias]) shutdown(ctx context.Context) error {
 	return service.shutdown(ctx)
 }
 
-func (s *serviceAlias[Initial, Alias]) clone() any {
+func (s *serviceAlias[Initial, Alias]) clone(newScope Injector) any {
 	return &serviceAlias[Initial, Alias]{
-		mu:       sync.RWMutex{},
-		name:     s.name,
-		typeName: s.typeName,
-		// scope:      s.scope,		<-- @TODO: we should inject here the cloned scope
+		mu:         sync.RWMutex{},
+		name:       s.name,
+		typeName:   s.typeName,
+		scope:      newScope,
 		targetName: s.targetName,
 
 		providerFrame:           s.providerFrame,

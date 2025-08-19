@@ -182,7 +182,7 @@ func (s *serviceLazy[T]) shutdown(ctx context.Context) error {
 	return nil
 }
 
-func (s *serviceLazy[T]) clone() any {
+func (s *serviceLazy[T]) clone(newScope Injector) any {
 	// reset `build` flag and instance
 	return &serviceLazy[T]{
 		mu:       sync.RWMutex{},

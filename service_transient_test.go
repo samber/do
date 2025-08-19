@@ -406,7 +406,7 @@ func TestServiceTransient_clone(t *testing.T) {
 	is.Equal("foobar", service1.getName())
 
 	// clone
-	service2, ok := service1.clone().(*serviceTransient[transientTest])
+	service2, ok := service1.clone(nil).(*serviceTransient[transientTest])
 	is.True(ok)
 	is.Equal("foobar", service2.getName())
 

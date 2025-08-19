@@ -245,7 +245,7 @@ func TestServiceEager_clone(t *testing.T) {
 	is.Equal("foobar", service1.getName())
 
 	// clone
-	service2, ok := service1.clone().(*serviceEager[eagerTest])
+	service2, ok := service1.clone(nil).(*serviceEager[eagerTest])
 	is.True(ok)
 	is.Equal("foobar", service2.getName())
 
