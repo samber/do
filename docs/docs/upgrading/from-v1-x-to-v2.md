@@ -8,13 +8,13 @@ sidebar_position: 1
 
 This documentation will help you upgrade your application from `samber/do` v1 to `samber/do` v2.
 
-`samber/do` v2 is a new major version, including breaking changes requiring you to adjust your applications accordingly. We will guide to during this process and also mention a few optional recommendations.
+`samber/do` v2 is a new major version, including breaking changes that require you to adjust your applications accordingly. We will guide you through this process and also mention a few optional recommendations.
 
 This release is a large rewrite, but the breaking changes are relatively easy to handle. Some updates can be done with a simple `sed` command.
 
 Check the release notes [here](https://github.com/samber/do/releases).
 
-No breaking change will be done until v3.
+No breaking changes will be made until v3.
 
 ## 1- Upgrading package
 
@@ -68,7 +68,7 @@ Eg: `*mypkg.MyService` -> `*github.com/samber/example.MyService`.
 
 In case you invoke a service by its name (highly discouraged), you should make some changes.
 
-To scan a project at the speed light, just run:
+To scan a project at the speed of light, run:
 
 ```bash
 grep -nrE 'InvokeNamed|OverrideNamed|HealthCheckNamed|ShutdownNamed' .

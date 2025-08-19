@@ -27,7 +27,7 @@ A DI Container is another term for the Injector in Dependency Injection. It's re
 
 ## Scope
 
-Kind of module. It contains many declaration singleton and service providers. It has access to the services from ancestors' scopes.
+A kind of module. It contains many declared singletons and service providers. It has access to services from ancestor scopes.
 
 ## Root scope
 
@@ -35,7 +35,9 @@ Top-level scope.
 
 ## Virtual scope
 
-A chain of Service invocation will instantiate many VirtualScope, to track dependency cycles.
+A chain of service invocations instantiates multiple virtual scopes to track dependency cycles.
+
+Vitual Scope are not available under the public API. This is an internal stuff.
 
 ## Child scope
 

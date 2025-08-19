@@ -8,7 +8,7 @@ sidebar_position: 2
 
 You have probably already heard the Go proverb "Accept interfaces, return structs". The basic idea is to let the consumer define the interfaces it uses while the producer returns concrete types.
 
-This library offers a great API for assembling a large number of modules with loose coupling and a nice separation of concern.
+This library offers a great API for assembling a large number of modules with loose coupling and a clear separation of concerns.
 
 Aliases must be Go interfaces. It can be declared explicitly on injection using `do.As()`, or invoked implicitly using `do.InvokeAs()`.
 
@@ -27,7 +27,7 @@ Aliases must be Go interfaces. It can be declared explicitly on injection using 
 
 Named invocation is not available for now. Please open an issue to discuss about your needs.
 
-Implicit alias is the way to go for production.
+Implicit aliasing is recommended for production.
 
 ```go
 type Metric interface {
@@ -113,6 +113,6 @@ metric.Inc()    // <- r.counter will be incremented
 
 :::danger
 
-Explicit aliasing is pure shit and should be used very carefully. You've been warned. 😁
+Explicit aliasing can lead to brittle designs and should be used very carefully. You've been warned. 😁
 
 :::

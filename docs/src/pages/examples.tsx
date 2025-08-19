@@ -11,12 +11,12 @@ function Examples() {
   const context = useDocusaurusContext();
 
   return (
-    <Layout title="Examples" description="Some project implementing samber/do">
+    <Layout title="Examples" description="Projects implementing samber/do">
       <header className="hero">
         <div className="container text--center">
           <h1>Examples and templates</h1>
           <div className="hero--subtitle">
-            Here are a few demo project implementing `samber/do`.
+            Here are a few demo projects implementing `samber/do`.
           </div>
           <img className={styles.headerImg} src="/img/go-templates.png" />
         </div>

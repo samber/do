@@ -26,7 +26,7 @@ import "github.com/samber/do/v2"
 do.Provide(nil, ...)
 do.Invoke(nil, ...)
 
-// equal to:
+// equivalent to:
 
 do.Provide(do.DefaultRootScope, ...)
 do.Invoke(do.DefaultRootScope, ...)
@@ -40,7 +40,7 @@ The services can be assembled into a package, and then, imported all at once int
 // pkg/stores/package.go
 
 var Package = do.Package(
-    do.Lazy(NewPostgresqlConnectionService),
+    do.Lazy(NewPostgreSQLConnectionService),
     do.Lazy(NewUserRepository),
     do.Lazy(NewArticleRepository),
     do.EagerNamed("repository.logger", slog.New(slog.NewTextHandler(os.Stdout, nil))),
@@ -60,15 +60,15 @@ injector := do.New(stores.Package)
 ```go
 import "github.com/samber/do/v2"
 
-injector := do.NewWithOps(&do.InjectorOpts{
-    HookBeforeRegistration []func(scope *do.Scope, serviceName string),
-    HookAfterRegistration  []func(scope *do.Scope, serviceName string),
-    HookBeforInvocation    []func(scope *do.Scope, serviceName string),
-    HookAfterInvocation    []func(scope *do.Scope, serviceName string, err error),
-    HookBeforeShutdown     []func(scope *do.Scope, serviceName string),
-    HookAfterShutdown      []func(scope *do.Scope, serviceName string, err error),
+injector := do.NewWithOpts(&do.InjectorOpts{
+    HookBeforeRegistration: []func(scope *do.Scope, serviceName string){},
+    HookAfterRegistration:  []func(scope *do.Scope, serviceName string){},
+    HookBeforeInvocation:   []func(scope *do.Scope, serviceName string){},
+    HookAfterInvocation:    []func(scope *do.Scope, serviceName string, err error){},
+    HookBeforeShutdown:     []func(scope *do.Scope, serviceName string){},
+    HookAfterShutdown:      []func(scope *do.Scope, serviceName string, err error){},
 
-    Logf func(format string, args ...any) {
+    Logf: func(format string, args ...any) {
         // ...
     },
 
