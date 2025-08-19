@@ -146,7 +146,7 @@ func TestServiceAlias_isHealthchecker(t *testing.T) {
 	})
 	is.Nil(As[*lazyTest, any](i1))
 	service1, _ := i1.serviceGet("interface {}")
-	is.False(service1.(Service[any]).isHealthchecker())
+	is.False(service1.(serviceWrapper[any]).isHealthchecker())
 
 	// healthcheck ok
 	i2 := New()
@@ -155,9 +155,9 @@ func TestServiceAlias_isHealthchecker(t *testing.T) {
 	})
 	is.Nil(As[*lazyTestHeathcheckerOK, Healthchecker](i2))
 	service2, _ := i2.serviceGet("github.com/samber/do/v2.Healthchecker")
-	is.False(service2.(serviceIsHealthchecker).isHealthchecker())
-	_, _ = service2.(serviceGetInstanceAny).getInstanceAny(nil)
-	is.True(service2.(serviceIsHealthchecker).isHealthchecker())
+	is.False(service2.(serviceWrapperIsHealthchecker).isHealthchecker())
+	_, _ = service2.(serviceWrapperGetInstanceAny).getInstanceAny(nil)
+	is.True(service2.(serviceWrapperIsHealthchecker).isHealthchecker())
 
 	// healthcheck ko
 	i3 := New()
@@ -166,9 +166,9 @@ func TestServiceAlias_isHealthchecker(t *testing.T) {
 	})
 	is.Nil(As[*lazyTestHeathcheckerKO, Healthchecker](i3))
 	service3, _ := i3.serviceGet("github.com/samber/do/v2.Healthchecker")
-	is.False(service3.(serviceIsHealthchecker).isHealthchecker())
-	_, _ = service3.(serviceGetInstanceAny).getInstanceAny(nil)
-	is.True(service3.(serviceIsHealthchecker).isHealthchecker())
+	is.False(service3.(serviceWrapperIsHealthchecker).isHealthchecker())
+	_, _ = service3.(serviceWrapperGetInstanceAny).getInstanceAny(nil)
+	is.True(service3.(serviceWrapperIsHealthchecker).isHealthchecker())
 
 	// service not found (wrong type)
 	i4 := New()
@@ -199,7 +199,7 @@ func TestServiceAlias_healthcheck(t *testing.T) {
 	})
 	is.Nil(As[*lazyTest, any](i1))
 	service1, _ := i1.serviceGet("interface {}")
-	is.Nil(service1.(Service[any]).healthcheck(ctx))
+	is.Nil(service1.(serviceWrapper[any]).healthcheck(ctx))
 
 	// healthcheck ok
 	i2 := New()
@@ -208,9 +208,9 @@ func TestServiceAlias_healthcheck(t *testing.T) {
 	})
 	is.Nil(As[*lazyTestHeathcheckerOK, Healthchecker](i2))
 	service2, _ := i2.serviceGet("github.com/samber/do/v2.Healthchecker")
-	is.Nil(service2.(Service[Healthchecker]).healthcheck(ctx))
-	_, _ = service2.(Service[Healthchecker]).getInstance(nil)
-	is.Nil(service2.(Service[Healthchecker]).healthcheck(ctx))
+	is.Nil(service2.(serviceWrapper[Healthchecker]).healthcheck(ctx))
+	_, _ = service2.(serviceWrapper[Healthchecker]).getInstance(nil)
+	is.Nil(service2.(serviceWrapper[Healthchecker]).healthcheck(ctx))
 
 	// healthcheck ko
 	i3 := New()
@@ -219,9 +219,9 @@ func TestServiceAlias_healthcheck(t *testing.T) {
 	})
 	is.Nil(As[*lazyTestHeathcheckerKO, Healthchecker](i3))
 	service3, _ := i3.serviceGet("github.com/samber/do/v2.Healthchecker")
-	is.Nil(service3.(Service[Healthchecker]).healthcheck(ctx))
-	_, _ = service3.(Service[Healthchecker]).getInstance(nil)
-	is.Equal(assert.AnError, service3.(Service[Healthchecker]).healthcheck(ctx))
+	is.Nil(service3.(serviceWrapper[Healthchecker]).healthcheck(ctx))
+	_, _ = service3.(serviceWrapper[Healthchecker]).getInstance(nil)
+	is.Equal(assert.AnError, service3.(serviceWrapper[Healthchecker]).healthcheck(ctx))
 
 	// service not found (wrong type)
 	i4 := New()
@@ -250,7 +250,7 @@ func TestServiceAlias_isShutdowner(t *testing.T) {
 	})
 	is.Nil(As[*lazyTest, any](i1))
 	service1, _ := i1.serviceGet("interface {}")
-	is.False(service1.(Service[any]).isShutdowner())
+	is.False(service1.(serviceWrapper[any]).isShutdowner())
 
 	// shutdown ok
 	i2 := New()
@@ -259,9 +259,9 @@ func TestServiceAlias_isShutdowner(t *testing.T) {
 	})
 	is.Nil(As[*lazyTestShutdownerOK, ShutdownerWithContextAndError](i2))
 	service2, _ := i2.serviceGet("github.com/samber/do/v2.ShutdownerWithContextAndError")
-	is.False(service2.(Service[ShutdownerWithContextAndError]).isShutdowner())
-	_, _ = service2.(Service[ShutdownerWithContextAndError]).getInstance(nil)
-	is.True(service2.(Service[ShutdownerWithContextAndError]).isShutdowner())
+	is.False(service2.(serviceWrapper[ShutdownerWithContextAndError]).isShutdowner())
+	_, _ = service2.(serviceWrapper[ShutdownerWithContextAndError]).getInstance(nil)
+	is.True(service2.(serviceWrapper[ShutdownerWithContextAndError]).isShutdowner())
 
 	// shutdown ko
 	i3 := New()
@@ -270,9 +270,9 @@ func TestServiceAlias_isShutdowner(t *testing.T) {
 	})
 	is.Nil(As[*lazyTestShutdownerKO, ShutdownerWithError](i3))
 	service3, _ := i3.serviceGet("github.com/samber/do/v2.ShutdownerWithError")
-	is.False(service3.(Service[ShutdownerWithError]).isShutdowner())
-	_, _ = service3.(Service[ShutdownerWithError]).getInstance(nil)
-	is.True(service3.(Service[ShutdownerWithError]).isShutdowner())
+	is.False(service3.(serviceWrapper[ShutdownerWithError]).isShutdowner())
+	_, _ = service3.(serviceWrapper[ShutdownerWithError]).getInstance(nil)
+	is.True(service3.(serviceWrapper[ShutdownerWithError]).isShutdowner())
 
 	// service not found (wrong type)
 	i4 := New()
@@ -302,7 +302,7 @@ func TestServiceAlias_shutdown(t *testing.T) {
 	})
 	is.Nil(As[*lazyTest, any](i1))
 	service1, _ := i1.serviceGet("interface {}")
-	is.Nil(service1.(Service[any]).shutdown(ctx))
+	is.Nil(service1.(serviceWrapper[any]).shutdown(ctx))
 
 	// shutdown ok
 	i2 := New()
@@ -311,9 +311,9 @@ func TestServiceAlias_shutdown(t *testing.T) {
 	})
 	is.Nil(As[*lazyTestShutdownerOK, ShutdownerWithContextAndError](i2))
 	service2, _ := i2.serviceGet("github.com/samber/do/v2.ShutdownerWithContextAndError")
-	is.Nil(service2.(Service[ShutdownerWithContextAndError]).shutdown(ctx))
-	_, _ = service2.(Service[ShutdownerWithContextAndError]).getInstance(nil)
-	is.Nil(service2.(Service[ShutdownerWithContextAndError]).shutdown(ctx))
+	is.Nil(service2.(serviceWrapper[ShutdownerWithContextAndError]).shutdown(ctx))
+	_, _ = service2.(serviceWrapper[ShutdownerWithContextAndError]).getInstance(nil)
+	is.Nil(service2.(serviceWrapper[ShutdownerWithContextAndError]).shutdown(ctx))
 
 	// shutdown ko
 	i3 := New()
@@ -322,9 +322,9 @@ func TestServiceAlias_shutdown(t *testing.T) {
 	})
 	is.Nil(As[*lazyTestShutdownerKO, ShutdownerWithError](i3))
 	service3, _ := i3.serviceGet("github.com/samber/do/v2.ShutdownerWithError")
-	is.Nil(service3.(Service[ShutdownerWithError]).shutdown(ctx))
-	_, _ = service3.(Service[ShutdownerWithError]).getInstance(nil)
-	is.Equal(assert.AnError, service3.(Service[ShutdownerWithError]).shutdown(ctx))
+	is.Nil(service3.(serviceWrapper[ShutdownerWithError]).shutdown(ctx))
+	_, _ = service3.(serviceWrapper[ShutdownerWithError]).getInstance(nil)
+	is.Equal(assert.AnError, service3.(serviceWrapper[ShutdownerWithError]).shutdown(ctx))
 
 	// service not found (wrong type)
 	i4 := New()

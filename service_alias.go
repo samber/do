@@ -9,10 +9,10 @@ import (
 	"github.com/samber/do/v2/stacktrace"
 )
 
-var _ Service[int] = (*serviceAlias[int, int])(nil)
-var _ serviceHealthcheck = (*serviceAlias[int, int])(nil)
-var _ serviceShutdown = (*serviceAlias[int, int])(nil)
-var _ serviceClone = (*serviceAlias[int, int])(nil)
+var _ serviceWrapper[int] = (*serviceAlias[int, int])(nil)
+var _ serviceWrapperHealthcheck = (*serviceAlias[int, int])(nil)
+var _ serviceWrapperShutdown = (*serviceAlias[int, int])(nil)
+var _ serviceWrapperClone = (*serviceAlias[int, int])(nil)
 
 type serviceAlias[Initial any, Alias any] struct {
 	mu         sync.RWMutex
@@ -95,7 +95,7 @@ func (s *serviceAlias[Initial, Alias]) isHealthchecker() bool {
 		return false
 	}
 
-	service, ok := serviceAny.(Service[Initial])
+	service, ok := serviceAny.(serviceWrapper[Initial])
 	if !ok {
 		return false
 	}
@@ -109,7 +109,7 @@ func (s *serviceAlias[Initial, Alias]) healthcheck(ctx context.Context) error {
 		return nil
 	}
 
-	service, ok := serviceAny.(Service[Initial])
+	service, ok := serviceAny.(serviceWrapper[Initial])
 	if !ok {
 		return nil
 	}
@@ -123,7 +123,7 @@ func (s *serviceAlias[Initial, Alias]) isShutdowner() bool {
 		return false
 	}
 
-	service, ok := serviceAny.(Service[Initial])
+	service, ok := serviceAny.(serviceWrapper[Initial])
 	if !ok {
 		return false
 	}
@@ -137,7 +137,7 @@ func (s *serviceAlias[Initial, Alias]) shutdown(ctx context.Context) error {
 		return nil
 	}
 
-	service, ok := serviceAny.(Service[Initial])
+	service, ok := serviceAny.(serviceWrapper[Initial])
 	if !ok {
 		return nil
 	}

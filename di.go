@@ -34,7 +34,7 @@ func Provide[T any](i Injector, provider Provider[T]) {
 //
 // The service will be lazily instantiated when first requested.
 func ProvideNamed[T any](i Injector, name string, provider Provider[T]) {
-	provide(i, name, provider, func(s string, a Provider[T]) Service[T] {
+	provide(i, name, provider, func(s string, a Provider[T]) serviceWrapper[T] {
 		return newServiceLazy(s, a)
 	})
 }
@@ -56,7 +56,7 @@ func ProvideValue[T any](i Injector, value T) {
 //
 // The value is immediately available and will not be recreated on each request.
 func ProvideNamedValue[T any](i Injector, name string, value T) {
-	provide(i, name, value, func(s string, a T) Service[T] {
+	provide(i, name, value, func(s string, a T) serviceWrapper[T] {
 		return newServiceEager(s, a)
 	})
 }
@@ -80,7 +80,7 @@ func ProvideTransient[T any](i Injector, provider Provider[T]) {
 //
 // The service will be recreated each time it is requested, providing a fresh instance.
 func ProvideNamedTransient[T any](i Injector, name string, provider Provider[T]) {
-	provide(i, name, provider, func(s string, a Provider[T]) Service[T] {
+	provide(i, name, provider, func(s string, a Provider[T]) serviceWrapper[T] {
 		return newServiceTransient(s, a)
 	})
 }
@@ -91,7 +91,7 @@ func ProvideNamedTransient[T any](i Injector, name string, provider Provider[T])
 // - No duplicate service names are registered
 // - The service is properly created and stored
 // - Logging is performed for successful registration
-func provide[T any, A any](i Injector, name string, valueOrProvider A, serviceCtor func(string, A) Service[T]) {
+func provide[T any, A any](i Injector, name string, valueOrProvider A, serviceCtor func(string, A) serviceWrapper[T]) {
 	_i := getInjectorOrDefault(i)
 	if _i.serviceExist(name) {
 		panic(fmt.Errorf("DI: service `%s` has already been declared", name))
@@ -120,7 +120,7 @@ func Override[T any](i Injector, provider Provider[T]) {
 // This function allows you to replace a specific named service that has
 // already been registered. Use with caution to avoid resource leaks.
 func OverrideNamed[T any](i Injector, name string, provider Provider[T]) {
-	override(i, name, provider, func(s string, a Provider[T]) Service[T] {
+	override(i, name, provider, func(s string, a Provider[T]) serviceWrapper[T] {
 		return newServiceLazy(s, a)
 	})
 }
@@ -141,7 +141,7 @@ func OverrideValue[T any](i Injector, value T) {
 // This function allows you to replace a specific named value service.
 // Use with caution to avoid resource leaks.
 func OverrideNamedValue[T any](i Injector, name string, value T) {
-	override(i, name, value, func(s string, a T) Service[T] {
+	override(i, name, value, func(s string, a T) serviceWrapper[T] {
 		return newServiceEager(s, a)
 	})
 }
@@ -164,7 +164,7 @@ func OverrideTransient[T any](i Injector, provider Provider[T]) {
 // Since transient services are recreated on each request, this is generally safer
 // than overriding lazy or eager services.
 func OverrideNamedTransient[T any](i Injector, name string, provider Provider[T]) {
-	override(i, name, provider, func(s string, a Provider[T]) Service[T] {
+	override(i, name, provider, func(s string, a Provider[T]) serviceWrapper[T] {
 		return newServiceTransient(s, a)
 	})
 }
@@ -172,7 +172,7 @@ func OverrideNamedTransient[T any](i Injector, name string, provider Provider[T]
 // override is an internal helper function that handles the common logic
 // for overriding services in the DI container. Unlike provide, it allows
 // replacing existing services without throwing an error.
-func override[T any, A any](i Injector, name string, valueOrProvider A, serviceCtor func(string, A) Service[T]) {
+func override[T any, A any](i Injector, name string, valueOrProvider A, serviceCtor func(string, A) serviceWrapper[T]) {
 	_i := getInjectorOrDefault(i)
 
 	// Note: We don't check if the service exists here, allowing override

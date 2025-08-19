@@ -9,10 +9,10 @@ import (
 	"github.com/samber/do/v2/stacktrace"
 )
 
-var _ Service[int] = (*serviceEager[int])(nil)
-var _ serviceHealthcheck = (*serviceEager[int])(nil)
-var _ serviceShutdown = (*serviceEager[int])(nil)
-var _ serviceClone = (*serviceEager[int])(nil)
+var _ serviceWrapper[int] = (*serviceEager[int])(nil)
+var _ serviceWrapperHealthcheck = (*serviceEager[int])(nil)
+var _ serviceWrapperShutdown = (*serviceEager[int])(nil)
+var _ serviceWrapperClone = (*serviceEager[int])(nil)
 
 type serviceEager[T any] struct {
 	name     string
