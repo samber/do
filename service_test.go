@@ -1,6 +1,7 @@
 package do
 
 import (
+	"reflect"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -25,20 +26,38 @@ func TestInferServiceInfo(t *testing.T) {
 	// @TODO
 }
 
-func TestServiceCanCastTo(t *testing.T) {
+func TestServiceCanCastToGeneric(t *testing.T) {
 	t.Parallel()
 	is := assert.New(t)
 
 	svc1 := newServiceLazy("foobar", func(i Injector) (*lazyTestHeathcheckerOK, error) {
 		return &lazyTestHeathcheckerOK{foobar: "foobar"}, nil
 	})
-	is.True(serviceCanCastTo[*lazyTestHeathcheckerOK](svc1))
-	is.True(serviceCanCastTo[Healthchecker](svc1))
-	is.False(serviceCanCastTo[Shutdowner](svc1))
-	is.False(serviceCanCastTo[*lazyTestHeathcheckerKO](svc1))
+	is.True(serviceCanCastToGeneric[*lazyTestHeathcheckerOK](svc1))
+	is.True(serviceCanCastToGeneric[Healthchecker](svc1))
+	is.False(serviceCanCastToGeneric[Shutdowner](svc1))
+	is.False(serviceCanCastToGeneric[*lazyTestHeathcheckerKO](svc1))
 
 	svc2 := newServiceLazy("foobar", func(i Injector) (iTestHeathchecker, error) {
 		return &lazyTestHeathcheckerOK{}, nil
 	})
-	is.True(serviceCanCastTo[Healthchecker](svc2))
+	is.True(serviceCanCastToGeneric[Healthchecker](svc2))
+}
+
+func TestServiceCanCastToType(t *testing.T) {
+	t.Parallel()
+	is := assert.New(t)
+
+	svc1 := newServiceLazy("foobar", func(i Injector) (*lazyTestHeathcheckerOK, error) {
+		return &lazyTestHeathcheckerOK{foobar: "foobar"}, nil
+	})
+	is.True(serviceCanCastToType(svc1, reflect.TypeOf((**lazyTestHeathcheckerOK)(nil)).Elem()))
+	is.True(serviceCanCastToType(svc1, reflect.TypeOf((*Healthchecker)(nil)).Elem()))
+	is.False(serviceCanCastToType(svc1, reflect.TypeOf((*Shutdowner)(nil)).Elem()))
+	is.False(serviceCanCastToType(svc1, reflect.TypeOf((**lazyTestHeathcheckerKO)(nil)).Elem()))
+
+	svc2 := newServiceLazy("foobar", func(i Injector) (iTestHeathchecker, error) {
+		return &lazyTestHeathcheckerOK{}, nil
+	})
+	is.True(serviceCanCastToType(svc2, reflect.TypeOf((*Healthchecker)(nil)).Elem()))
 }

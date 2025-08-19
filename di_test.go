@@ -620,7 +620,7 @@ func TestInvokeStruct(t *testing.T) {
 		EagerTest *int `do:"*github.com/samber/do/v2.eagerTest"`
 	}
 	test7, err := InvokeStruct[namedDependencyButTypeMismatch](i)
-	is.Equal("DI: *github.com/samber/do/v2.eagerTest is not assignable to field `github.com/samber/do/v2.namedDependencyButTypeMismatch.EagerTest`", err.Error())
+	is.Equal("DI: `*github.com/samber/do/v2.eagerTest` is not assignable to field `github.com/samber/do/v2.namedDependencyButTypeMismatch.EagerTest`", err.Error())
 	is.Empty(test7)
 
 	// use a custom tag
