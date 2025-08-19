@@ -139,13 +139,13 @@ func TestServiceTransient_getReflectType(t *testing.T) {
 	is.Equal("int", service1.getReflectType().String())
 
 	service2 := newServiceTransient("foobar2", provider2)
-	is.Equal("do.lazyTest", service2.getReflectType().String())
+	is.Equal(pkgName+".lazyTest", service2.getReflectType().String())
 
 	service3 := newServiceTransient("foobar3", provider3)
-	is.Equal("do.Healthchecker", service3.getReflectType().String())
+	is.Equal(pkgName+".Healthchecker", service3.getReflectType().String())
 
 	service4 := newServiceTransient("foobar1", provider4)
-	is.Equal("*do.lazyTest", service4.getReflectType().String())
+	is.Equal("*"+pkgName+".lazyTest", service4.getReflectType().String())
 }
 
 func TestServiceTransient_getInstanceAny(t *testing.T) {
