@@ -85,14 +85,16 @@ func (s *Scope) Name() string {
 // Panics if a scope with the same name already exists in the parent.
 func (s *Scope) Scope(name string, packages ...func(Injector)) *Scope {
 	s.mu.Lock()
-	defer s.mu.Unlock()
 
 	if _, ok := s.childScopes[name]; ok {
+		s.mu.Unlock()
 		panic(fmt.Errorf("DI: scope `%s` has already been declared", name))
 	}
 
 	child := newScope(name, s.rootScope, s)
 	s.childScopes[name] = child
+
+	s.mu.Unlock()
 
 	// Execute any package functions in the new scope
 	for _, pkg := range packages {
@@ -467,7 +469,7 @@ func (s *Scope) clone(root *RootScope, parent *Scope) *Scope {
 		s.rootScope.opts.onBeforeRegistration(clone, name)
 
 		if service, ok := serviceAny.(serviceClone); ok {
-			clone.services[name] = service.clone()
+			clone.services[name] = service.clone(clone)
 		} else {
 			clone.services[name] = service
 		}
@@ -590,10 +592,11 @@ func (s *Scope) serviceSet(name string, service any) {
 //   - cb: Callback function that receives the service name, scope, and service instance.
 //     Return true to continue iteration, false to stop.
 func (s *Scope) serviceForEach(cb func(name string, scope *Scope, service any) bool) {
-	s.mu.Lock()
-	defer s.mu.Unlock()
+	s.mu.RLock()
+	services := s.services
+	s.mu.RUnlock()
 
-	for name, service := range s.services {
+	for name, service := range services {
 		keepGoing := cb(name, s, service)
 		if !keepGoing {
 			break
@@ -608,10 +611,11 @@ func (s *Scope) serviceForEach(cb func(name string, scope *Scope, service any) b
 //   - cb: Callback function that receives the service name, scope, and service instance.
 //     Return true to continue iteration, false to stop.
 func (s *Scope) serviceForEachRec(cb func(name string, scope *Scope, service any) bool) {
-	s.mu.Lock()
-	defer s.mu.Unlock()
+	s.mu.RLock()
+	services := s.services
+	s.mu.RUnlock()
 
-	for name, service := range s.services {
+	for name, service := range services {
 		keepGoing := cb(name, s, service)
 		if !keepGoing {
 			return
