@@ -149,9 +149,13 @@ func (s *Scope) Children() []*Scope {
 // Returns the found scope and true if found, or nil and false if not found.
 func (s *Scope) ChildByID(id string) (*Scope, bool) {
 	s.mu.RLock()
-	defer s.mu.RUnlock()
+	children := make([]*Scope, 0, len(s.childScopes))
+	for _, c := range s.childScopes {
+		children = append(children, c)
+	}
+	s.mu.RUnlock()
 
-	for _, scope := range s.childScopes {
+	for _, scope := range children {
 		if scope.id == id {
 			return scope, true
 		}
@@ -173,9 +177,13 @@ func (s *Scope) ChildByID(id string) (*Scope, bool) {
 // Returns the found scope and true if found, or nil and false if not found.
 func (s *Scope) ChildByName(name string) (*Scope, bool) {
 	s.mu.RLock()
-	defer s.mu.RUnlock()
+	children := make([]*Scope, 0, len(s.childScopes))
+	for _, c := range s.childScopes {
+		children = append(children, c)
+	}
+	s.mu.RUnlock()
 
-	for _, scope := range s.childScopes {
+	for _, scope := range children {
 		if scope.name == name {
 			return scope, true
 		}
@@ -284,7 +292,7 @@ func (s *Scope) asyncHealthCheckWithContext(ctx context.Context) map[string]<-ch
 	asyncResults := map[string]<-chan error{}
 
 	s.mu.RLock()
-	for _, name := range keys(s.services) {
+	for name := range s.services {
 		asyncResults[name] = s.rootScope.queueServiceHealthcheck(ctx, s, name)
 	}
 	s.mu.RUnlock()

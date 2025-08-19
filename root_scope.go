@@ -2,6 +2,7 @@ package do
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"os/signal"
 	"syscall"
@@ -215,7 +216,7 @@ func (s *RootScope) queueServiceHealthcheck(ctx context.Context, scope *Scope, s
 				err <- e
 				close(err)
 			case <-ctx.Done():
-				err <- ctx.Err()
+				err <- fmt.Errorf("%w: %v", ErrHealthCheckTimeout, ctx.Err())
 				close(err)
 			}
 		}()

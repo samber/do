@@ -114,7 +114,7 @@ func (d *DAG) removeService(scopeID, scopeName, serviceName string) {
 	d.mu.Lock()
 	defer d.mu.Unlock()
 
-	dependencies, dependents := d.explainServiceImplem(edge)
+	dependencies, dependents := d.explainServiceUnsafe(edge)
 
 	for _, dependency := range dependencies {
 		delete(d.dependents[dependency], edge)
@@ -149,10 +149,10 @@ func (d *DAG) explainService(scopeID, scopeName, serviceName string) (dependenci
 	d.mu.RLock()
 	defer d.mu.RUnlock()
 
-	return d.explainServiceImplem(edge)
+	return d.explainServiceUnsafe(edge)
 }
 
-// explainServiceImplem is the internal implementation of explainService.
+// explainServiceUnsafe is the internal implementation of explainService.
 // This function performs the actual work of retrieving dependency information
 // without acquiring locks (assumes the caller has already acquired appropriate locks).
 //
@@ -162,7 +162,7 @@ func (d *DAG) explainService(scopeID, scopeName, serviceName string) (dependenci
 // Returns two slices:
 //   - dependencies: Services that the specified service depends on
 //   - dependents: Services that depend on the specified service
-func (d *DAG) explainServiceImplem(edge EdgeService) (dependencies, dependents []EdgeService) {
+func (d *DAG) explainServiceUnsafe(edge EdgeService) (dependencies, dependents []EdgeService) {
 	dependencies, dependents = []EdgeService{}, []EdgeService{}
 
 	if kv, ok := d.dependencies[edge]; ok {
