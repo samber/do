@@ -87,13 +87,12 @@ func mergeShutdownErrors(ins ...*ShutdownErrors) *ShutdownErrors {
 	out := newShutdownErrors()
 
 	for _, in := range ins {
-		if in != nil {
-			se := &ShutdownErrors{}
-			if ok := errors.As(in, &se); ok {
-				for k, v := range *se {
-					(*out)[k] = v
-				}
-			}
+		if in == nil {
+			continue
+		}
+
+		for k, v := range *in {
+			(*out)[k] = v
 		}
 	}
 

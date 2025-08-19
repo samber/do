@@ -55,6 +55,10 @@ func New(packages ...func(Injector)) *RootScope {
 //	}
 //	injector := do.NewWithOpts(opts)
 func NewWithOpts(opts *InjectorOpts, packages ...func(Injector)) *RootScope {
+	if opts == nil {
+		opts = &InjectorOpts{}
+	}
+
 	if opts.Logf == nil {
 		opts.Logf = noOpLogf
 	}
