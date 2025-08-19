@@ -11,12 +11,12 @@ function Community() {
   const context = useDocusaurusContext();
 
   return (
-    <Layout title="Community" description="Where to ask questions and find your soul mate">
+    <Layout title="Community" description="Where to ask questions and find your soulmate">
       <header className="hero">
         <div className="container text--center">
           <h1>Community</h1>
           <div className="hero--subtitle">
-            These are places where you can ask questions and find your soul mate (no promises).
+            These are places where you can ask questions and find your soulmate (no promises).
           </div>
           <img className={styles.headerImg} src="/img/go-community.png" />
         </div>
@@ -72,10 +72,10 @@ function Community() {
                   <i className={classnames(styles.icon, styles.email)}></i>
                 </div>
                 <div className="card__body">
-                  <p>For sensitive or security related queries pop us an email</p>
+                  <p>For sensitive or security-related queries, send us an email</p>
                 </div>
                 <div className="card__footer">
-                  <Link to="mailto:samuel@screeb.app" className="button button--outline button--primary button--block">samuel&#64;screeb.app</Link>
+                  <Link to="mailto:contact@samuel-berthe.fr" className="button button--outline button--primary button--block">contact&#64;samuel-berthe.fr</Link>
                 </div>
               </div>
             </div>
