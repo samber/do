@@ -116,7 +116,7 @@ func (s *serviceEager[T]) shutdown(ctx context.Context) error {
 	return nil
 }
 
-func (s *serviceEager[T]) clone() any {
+func (s *serviceEager[T]) clone(newScope Injector) any {
 	return &serviceEager[T]{
 		name:     s.name,
 		typeName: s.typeName,

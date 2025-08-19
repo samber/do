@@ -73,7 +73,7 @@ func (s *serviceTransient[T]) shutdown(ctx context.Context) error {
 	return nil
 }
 
-func (s *serviceTransient[T]) clone() any {
+func (s *serviceTransient[T]) clone(newScope Injector) any {
 	return &serviceTransient[T]{
 		name:     s.name,
 		typeName: s.typeName,

@@ -59,7 +59,7 @@ type Service[T any] interface {
 	healthcheck(context.Context) error
 	isShutdowner() bool
 	shutdown(context.Context) error
-	clone() any
+	clone(Injector) any
 	source() (stacktrace.Frame, []stacktrace.Frame)
 }
 
@@ -77,7 +77,7 @@ type ServiceAny interface {
 	healthcheck(context.Context) error
 	isShutdowner() bool
 	shutdown(context.Context) error
-	clone() any
+	clone(Injector) any
 	source() (stacktrace.Frame, []stacktrace.Frame)
 }
 
@@ -95,7 +95,7 @@ type serviceIsHealthchecker interface{ isHealthchecker() bool }
 type serviceHealthcheck interface{ healthcheck(context.Context) error }
 type serviceIsShutdowner interface{ isShutdowner() bool }
 type serviceShutdown interface{ shutdown(context.Context) error }
-type serviceClone interface{ clone() any }
+type serviceClone interface{ clone(Injector) any }
 type serviceSource interface {
 	source() (stacktrace.Frame, []stacktrace.Frame)
 }
