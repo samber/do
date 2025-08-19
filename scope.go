@@ -382,8 +382,6 @@ func (s *Scope) shutdownServicesInParallel(ctx context.Context) *ShutdownErrors 
 		return keys(s.services)
 	}
 
-	// var wg sync.WaitGroup
-
 	for len(listServices()) > 0 {
 		services := listServices()
 		servicesToShutdown := []string{}
@@ -729,6 +727,5 @@ func (s *Scope) onServiceInvoke(name string) {
 //   - args: Arguments to format the message with
 func (s *Scope) logf(format string, args ...any) {
 	format = fmt.Sprintf("DI <scope=%s>: %s", s.name, format)
-	args = append([]any{s.name}, args...)
 	s.RootScope().opts.Logf(format, args...)
 }
