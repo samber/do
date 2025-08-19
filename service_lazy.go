@@ -109,8 +109,8 @@ func (s *serviceLazy[T]) build(i Injector) (err error) {
 }
 
 func (s *serviceLazy[T]) isHealthchecker() bool {
-	s.mu.Lock()
-	defer s.mu.Unlock()
+	s.mu.RLock()
+	defer s.mu.RUnlock()
 
 	if !s.built {
 		return false
@@ -139,8 +139,8 @@ func (s *serviceLazy[T]) healthcheck(ctx context.Context) error {
 }
 
 func (s *serviceLazy[T]) isShutdowner() bool {
-	s.mu.Lock()
-	defer s.mu.Unlock()
+	s.mu.RLock()
+	defer s.mu.RUnlock()
 
 	if !s.built {
 		return false

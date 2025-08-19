@@ -592,12 +592,22 @@ func (s *Scope) serviceSet(name string, service any) {
 //   - cb: Callback function that receives the service name, scope, and service instance.
 //     Return true to continue iteration, false to stop.
 func (s *Scope) serviceForEach(cb func(name string, scope *Scope, service any) bool) {
+	// Take a snapshot under read lock to avoid iterating a map while it may be mutated
 	s.mu.RLock()
-	services := s.services
+	snapshot := make([]struct {
+		name string
+		svc  any
+	}, 0, len(s.services))
+	for name, service := range s.services {
+		snapshot = append(snapshot, struct {
+			name string
+			svc  any
+		}{name: name, svc: service})
+	}
 	s.mu.RUnlock()
 
-	for name, service := range services {
-		keepGoing := cb(name, s, service)
+	for _, item := range snapshot {
+		keepGoing := cb(item.name, s, item.svc)
 		if !keepGoing {
 			break
 		}
@@ -611,19 +621,30 @@ func (s *Scope) serviceForEach(cb func(name string, scope *Scope, service any) b
 //   - cb: Callback function that receives the service name, scope, and service instance.
 //     Return true to continue iteration, false to stop.
 func (s *Scope) serviceForEachRec(cb func(name string, scope *Scope, service any) bool) {
+	// Snapshot current services and parent under read lock to avoid deadlocks and map races
 	s.mu.RLock()
-	services := s.services
+	snapshot := make([]struct {
+		name string
+		svc  any
+	}, 0, len(s.services))
+	for name, service := range s.services {
+		snapshot = append(snapshot, struct {
+			name string
+			svc  any
+		}{name: name, svc: service})
+	}
+	parent := s.parentScope // immutable, but we copy its reference for safety
 	s.mu.RUnlock()
 
-	for name, service := range services {
-		keepGoing := cb(name, s, service)
+	for _, item := range snapshot {
+		keepGoing := cb(item.name, s, item.svc)
 		if !keepGoing {
 			return
 		}
 	}
 
-	if s.parentScope != nil {
-		s.parentScope.serviceForEachRec(cb)
+	if parent != nil {
+		parent.serviceForEachRec(cb)
 	}
 }
 

@@ -63,6 +63,22 @@ type InjectorOpts struct {
 	StructTagKey string
 }
 
+func (o *InjectorOpts) copy() *InjectorOpts {
+	return &InjectorOpts{
+		HookBeforeRegistration:   o.HookBeforeRegistration,
+		HookAfterRegistration:    o.HookAfterRegistration,
+		HookBeforeInvocation:     o.HookBeforeInvocation,
+		HookAfterInvocation:      o.HookAfterInvocation,
+		HookBeforeShutdown:       o.HookBeforeShutdown,
+		HookAfterShutdown:        o.HookAfterShutdown,
+		Logf:                     o.Logf,
+		HealthCheckParallelism:   o.HealthCheckParallelism,
+		HealthCheckGlobalTimeout: o.HealthCheckGlobalTimeout,
+		HealthCheckTimeout:       o.HealthCheckTimeout,
+		StructTagKey:             o.StructTagKey,
+	}
+}
+
 func (o *InjectorOpts) onBeforeRegistration(scope *Scope, serviceName string) {
 	for _, fn := range o.HookBeforeRegistration {
 		fn(scope, serviceName)
