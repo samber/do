@@ -181,7 +181,7 @@ func TestRootScope_Clone(t *testing.T) {
 	defer i.Shutdown()     // nolint: errcheck
 	defer clone.Shutdown() // nolint: errcheck
 
-	is.Equal(i.opts, clone.opts)
+	is.NotEqual(i.opts, clone.opts) // copy
 
 	is.Empty(i.opts.HookBeforeRegistration)
 	is.Empty(i.opts.HookAfterRegistration)

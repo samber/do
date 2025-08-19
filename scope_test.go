@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"sync"
+	"sync/atomic"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -778,4 +779,38 @@ func TestScope_onServiceShutdown(t *testing.T) {
 
 func TestScope_logs(t *testing.T) {
 	// @TODO
+}
+
+type shutdownRecorder struct{ called *int32 }
+
+func (s *shutdownRecorder) Shutdown() error {
+	atomic.AddInt32(s.called, 1)
+	return nil
+}
+
+// Test the shutdown of services that have no dependencies and no dependents.
+func TestScope_Shutdown_NoDependencies(t *testing.T) {
+	is := assert.New(t)
+
+	i := New()
+
+	var a, b, c int32
+	ProvideNamedValue(i, "svc-a", &shutdownRecorder{called: &a})
+	ProvideNamedValue(i, "svc-b", &shutdownRecorder{called: &b})
+	ProvideNamedValue(i, "svc-c", &shutdownRecorder{called: &c})
+
+	// No dependencies between services; shutdown should call all three
+	is.Nil(i.Shutdown())
+
+	is.EqualValues(int32(1), atomic.LoadInt32(&a))
+	is.EqualValues(int32(1), atomic.LoadInt32(&b))
+	is.EqualValues(int32(1), atomic.LoadInt32(&c))
+
+	// Services should be removed after shutdown
+	_, errA := InvokeNamed[*shutdownRecorder](i, "svc-a")
+	_, errB := InvokeNamed[*shutdownRecorder](i, "svc-b")
+	_, errC := InvokeNamed[*shutdownRecorder](i, "svc-c")
+	is.NotNil(errA)
+	is.NotNil(errB)
+	is.NotNil(errC)
 }
