@@ -7,6 +7,20 @@ import (
 
 var _ Injector = (*virtualScope)(nil)
 
+func newVirtualScope(predecessor Injector, invokerChain []string) *virtualScope {
+	if predecessor == nil {
+		panic("DI: predecessor cannot be nil")
+	}
+	if len(invokerChain) == 0 {
+		panic("DI: invokerChain cannot be empty")
+	}
+
+	return &virtualScope{
+		self:         predecessor,
+		invokerChain: invokerChain,
+	}
+}
+
 // virtualScope is a simple wrapper to Injector (Scope or RootScope or virtualScope) that
 // contains the invoker name.
 // It is used to track the dependency graph.
@@ -102,7 +116,13 @@ func (s *virtualScope) detectCircularDependency(name string) error {
 // This ensures that during shutdown, dependencies are shut down before the services
 // that depend on them.
 func (s *virtualScope) addDependency(injector Injector, name string, serviceScope *Scope) {
-	injector.RootScope().dag.addDependency(injector.ID(), injector.Name(), s.getLastInvokerName(), serviceScope.ID(), serviceScope.Name(), name)
+	last, ok := s.getLastInvokerName()
+	if !ok {
+		// This should never happen, but we'll handle it gracefully
+		return
+	}
+
+	injector.RootScope().dag.addDependency(injector.ID(), injector.Name(), last, serviceScope.ID(), serviceScope.Name(), name)
 }
 
 // getLastInvokerName retrieves the last invoker name from the invoker chain in the virtualScope.
@@ -115,9 +135,11 @@ func (s *virtualScope) addDependency(injector Injector, name string, serviceScop
 //
 // The invoker chain represents the path of service invocations, where each service
 // in the chain depends on the next service in the chain.
-func (s *virtualScope) getLastInvokerName() string {
+func (s *virtualScope) getLastInvokerName() (output string, ok bool) {
 	if len(s.invokerChain) > 0 {
-		return s.invokerChain[len(s.invokerChain)-1]
+		return s.invokerChain[len(s.invokerChain)-1], true
 	}
-	return ""
+
+	// This should never happen, but we'll handle it gracefully
+	return "", false
 }

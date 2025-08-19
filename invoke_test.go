@@ -49,9 +49,9 @@ func TestInvokeAnyByName(t *testing.T) {
 	is.ElementsMatch([]EdgeService{}, dependents)
 
 	// test circular dependency
-	vs := virtualScope{invokerChain: []string{"foo", "bar"}, self: i}
+	vs := newVirtualScope(i, []string{"foo", "bar"})
 
-	svc, err = invokeAnyByName(&vs, "foo")
+	svc, err = invokeAnyByName(vs, "foo")
 	is.Error(err)
 
 	is.Empty(svc)
@@ -106,9 +106,9 @@ func TestInvokeByName(t *testing.T) {
 	is.ElementsMatch([]EdgeService{}, dependents)
 
 	// test circular dependency
-	vs := virtualScope{invokerChain: []string{"foo", "bar"}, self: i}
+	vs := newVirtualScope(i, []string{"foo", "bar"})
 
-	svc, err = invokeByName[string](&vs, "foo")
+	svc, err = invokeByName[string](vs, "foo")
 	is.Error(err)
 
 	is.Empty(svc)
@@ -163,8 +163,8 @@ func TestInvokeByGenericType(t *testing.T) {
 	is.ElementsMatch([]EdgeService{}, dependents)
 
 	// test circular dependency
-	vs := virtualScope{invokerChain: []string{"*github.com/samber/do/v2.eagerTest", "bar"}, self: i}
-	svc1, err = invokeByGenericType[*eagerTest](&vs)
+	vs := newVirtualScope(i, []string{"*github.com/samber/do/v2.eagerTest", "bar"})
+	svc1, err = invokeByGenericType[*eagerTest](vs)
 	is.Error(err)
 
 	is.Empty(svc1)
