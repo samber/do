@@ -45,10 +45,10 @@ var serviceTypeToIcon = map[ServiceType]string{
 	ServiceTypeAlias:     "🔗",
 }
 
-// Service[T] is the main interface that all services in the DI container must implement.
-// It provides methods for service lifecycle management, health checking, and shutdown.
-// The generic type T represents the type of the service instance.
-type Service[T any] interface {
+// serviceWrapper[T] is the main interface that all services in the DI container must implement.
+// It provides methods for serviceWrapper lifecycle management, health checking, and shutdown.
+// The generic type T represents the type of the serviceWrapper instance.
+type serviceWrapper[T any] interface {
 	getName() string
 	getTypeName() string
 	getServiceType() ServiceType
@@ -63,10 +63,10 @@ type Service[T any] interface {
 	source() (stacktrace.Frame, []stacktrace.Frame)
 }
 
-// ServiceAny is a non-generic version of Service[T] that provides access to
+// serviceWrapperAny is a non-generic version of serviceWrapper[T] that provides access to
 // service functionality without requiring type information. This is useful
 // for internal operations where the specific type is not known.
-type ServiceAny interface {
+type serviceWrapperAny interface {
 	getName() string
 	getTypeName() string
 	getServiceType() ServiceType
@@ -83,39 +83,39 @@ type ServiceAny interface {
 
 // Interface definitions for specific service capabilities.
 // These interfaces allow for type-safe access to specific service methods
-// without requiring the full Service[T] interface.
+// without requiring the full serviceWrapper[T] interface.
 
-type serviceGetName interface{ getName() string }
-type serviceGetTypeName interface{ getTypeName() string }
-type serviceGetServiceType interface{ getServiceType() ServiceType }
-type serviceGetReflectType interface{ getReflectType() reflect.Type }
-type serviceGetInstanceAny interface{ getInstanceAny(Injector) (any, error) }
-type serviceGetInstance[T any] interface{ getInstance(Injector) (T, error) } //nolint:unused
-type serviceIsHealthchecker interface{ isHealthchecker() bool }
-type serviceHealthcheck interface{ healthcheck(context.Context) error }
-type serviceIsShutdowner interface{ isShutdowner() bool }
-type serviceShutdown interface{ shutdown(context.Context) error }
-type serviceClone interface{ clone(Injector) any }
-type serviceSource interface {
+type serviceWrapperGetName interface{ getName() string }
+type serviceWrapperGetTypeName interface{ getTypeName() string }
+type serviceWrapperGetServiceType interface{ getServiceType() ServiceType }
+type serviceWrapperGetReflectType interface{ getReflectType() reflect.Type }
+type serviceWrapperGetInstanceAny interface{ getInstanceAny(Injector) (any, error) }
+type serviceWrapperGetInstance[T any] interface{ getInstance(Injector) (T, error) } //nolint:unused
+type serviceWrapperIsHealthchecker interface{ isHealthchecker() bool }
+type serviceWrapperHealthcheck interface{ healthcheck(context.Context) error }
+type serviceWrapperIsShutdowner interface{ isShutdowner() bool }
+type serviceWrapperShutdown interface{ shutdown(context.Context) error }
+type serviceWrapperClone interface{ clone(Injector) any }
+type serviceWrapperSource interface {
 	source() (stacktrace.Frame, []stacktrace.Frame)
 }
-type serviceBuildTime interface {
+type serviceWrapperBuildTime interface {
 	getBuildTime() (time.Duration, bool)
 }
 
-// Interface compliance checks to ensure Service[T] implements all required interfaces.
+// Interface compliance checks to ensure serviceWrapper[T] implements all required interfaces.
 // These compile-time checks help catch interface implementation errors early.
-var _ serviceGetName = (Service[int])(nil)
-var _ serviceGetTypeName = (Service[int])(nil)
-var _ serviceGetServiceType = (Service[int])(nil)
-var _ serviceGetReflectType = (Service[int])(nil)
-var _ serviceGetInstanceAny = (Service[int])(nil)
-var _ serviceIsHealthchecker = (Service[int])(nil)
-var _ serviceHealthcheck = (Service[int])(nil)
-var _ serviceIsShutdowner = (Service[int])(nil)
-var _ serviceShutdown = (Service[int])(nil)
-var _ serviceClone = (Service[int])(nil)
-var _ serviceSource = (Service[int])(nil)
+var _ serviceWrapperGetName = (serviceWrapper[int])(nil)
+var _ serviceWrapperGetTypeName = (serviceWrapper[int])(nil)
+var _ serviceWrapperGetServiceType = (serviceWrapper[int])(nil)
+var _ serviceWrapperGetReflectType = (serviceWrapper[int])(nil)
+var _ serviceWrapperGetInstanceAny = (serviceWrapper[int])(nil)
+var _ serviceWrapperIsHealthchecker = (serviceWrapper[int])(nil)
+var _ serviceWrapperHealthcheck = (serviceWrapper[int])(nil)
+var _ serviceWrapperIsShutdowner = (serviceWrapper[int])(nil)
+var _ serviceWrapperShutdown = (serviceWrapper[int])(nil)
+var _ serviceWrapperClone = (serviceWrapper[int])(nil)
+var _ serviceWrapperSource = (serviceWrapper[int])(nil)
 
 // inferServiceName uses type inference to determine the service name
 // based on the generic type parameter T. This is used internally
@@ -127,7 +127,7 @@ func inferServiceName[T any]() string {
 // inferServiceProviderStacktrace extracts stacktrace information from a service
 // for debugging and observability purposes. Transient services don't have
 // provider stacktraces since they are recreated on each request.
-func inferServiceProviderStacktrace(service ServiceAny) (stacktrace.Frame, bool) {
+func inferServiceProviderStacktrace(service serviceWrapperAny) (stacktrace.Frame, bool) {
 	if service.getServiceType() == ServiceTypeTransient {
 		return stacktrace.Frame{}, false
 	} else {
@@ -147,16 +147,16 @@ type serviceInfo struct {
 func inferServiceInfo(injector Injector, name string) (serviceInfo, bool) {
 	if serviceAny, ok := injector.serviceGet(name); ok {
 		var buildTime time.Duration
-		if lazy, ok := serviceAny.(serviceBuildTime); ok {
+		if lazy, ok := serviceAny.(serviceWrapperBuildTime); ok {
 			buildTime, _ = lazy.getBuildTime()
 		}
 
 		return serviceInfo{
 			name:             name,
-			serviceType:      serviceAny.(serviceGetServiceType).getServiceType(),
+			serviceType:      serviceAny.(serviceWrapperGetServiceType).getServiceType(),
 			serviceBuildTime: buildTime,
-			healthchecker:    serviceAny.(serviceIsHealthchecker).isHealthchecker(),
-			shutdowner:       serviceAny.(serviceIsShutdowner).isShutdowner(),
+			healthchecker:    serviceAny.(serviceWrapperIsHealthchecker).isHealthchecker(),
+			shutdowner:       serviceAny.(serviceWrapperIsShutdowner).isShutdowner(),
 		}, true
 	}
 
@@ -164,7 +164,7 @@ func inferServiceInfo(injector Injector, name string) (serviceInfo, bool) {
 }
 
 func serviceCanCastToGeneric[T any](service any) bool {
-	if svc, ok := service.(serviceGetReflectType); ok {
+	if svc, ok := service.(serviceWrapperGetReflectType); ok {
 		// we need type reflection here, because we don't want to invoke the service when not needed
 		return typeCanCastToGeneric[T](svc.getReflectType())
 	}
@@ -173,7 +173,7 @@ func serviceCanCastToGeneric[T any](service any) bool {
 }
 
 func serviceCanCastToType(service any, toType reflect.Type) bool {
-	if svc, ok := service.(serviceGetReflectType); ok {
+	if svc, ok := service.(serviceWrapperGetReflectType); ok {
 		// we need type reflection here, because we don't want to invoke the service when not needed
 		return typeCanCastToType(svc.getReflectType(), toType)
 	}

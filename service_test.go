@@ -26,7 +26,7 @@ func TestInferServiceInfo(t *testing.T) {
 	// @TODO
 }
 
-func TestServiceCanCastToGeneric(t *testing.T) {
+func TestDoServiceCanCastToGeneric(t *testing.T) {
 	t.Parallel()
 	is := assert.New(t)
 
@@ -44,7 +44,7 @@ func TestServiceCanCastToGeneric(t *testing.T) {
 	is.True(serviceCanCastToGeneric[Healthchecker](svc2))
 }
 
-func TestServiceCanCastToType(t *testing.T) {
+func TestDoServiceCanCastToType(t *testing.T) {
 	t.Parallel()
 	is := assert.New(t)
 

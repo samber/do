@@ -208,7 +208,7 @@ func ExplainNamedService(scope Injector, name string) (description ExplainServic
 		return ExplainServiceOutput{}, false
 	}
 
-	service, ok := serviceAny.(ServiceAny)
+	service, ok := serviceAny.(serviceWrapperAny)
 	if !ok {
 		return ExplainServiceOutput{}, false
 	}
@@ -220,7 +220,7 @@ func ExplainNamedService(scope Injector, name string) (description ExplainServic
 	}
 
 	var buildTime time.Duration
-	if lazy, ok := serviceAny.(serviceBuildTime); ok {
+	if lazy, ok := serviceAny.(serviceWrapperBuildTime); ok {
 		buildTime, _ = lazy.getBuildTime()
 	}
 

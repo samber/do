@@ -47,7 +47,7 @@ func invokeAnyByName(i Injector, name string) (any, error) {
 		vScope.addDependency(injector, name, serviceScope)
 	}
 
-	service, ok := serviceAny.(ServiceAny)
+	service, ok := serviceAny.(serviceWrapperAny)
 	if !ok {
 		return nil, serviceNotFound(injector, ErrServiceNotFound, invokerChain)
 	}
@@ -103,9 +103,9 @@ func invokeByName[T any](i Injector, name string) (T, error) {
 		vScope.addDependency(injector, name, serviceScope)
 	}
 
-	service, ok := serviceAny.(Service[T])
+	service, ok := serviceAny.(serviceWrapper[T])
 	if !ok {
-		return empty[T](), serviceTypeMismatch(inferServiceName[T](), serviceAny.(ServiceAny).getTypeName())
+		return empty[T](), serviceTypeMismatch(inferServiceName[T](), serviceAny.(serviceWrapperAny).getTypeName())
 	}
 
 	injector.RootScope().opts.onBeforeInvocation(serviceScope, name)
@@ -154,7 +154,7 @@ func invokeByGenericType[T any](i Injector) (T, error) {
 		if serviceCanCastToGeneric[T](s) {
 			serviceInstance = s
 			serviceScope = scope
-			serviceRealName = s.(serviceGetName).getName()
+			serviceRealName = s.(serviceWrapperGetName).getName()
 			ok = true
 
 			// Stop or not stop, that's the question -> https://github.com/samber/do/issues/114
@@ -175,7 +175,7 @@ func invokeByGenericType[T any](i Injector) (T, error) {
 	}
 
 	injector.RootScope().opts.onBeforeInvocation(serviceScope, serviceAliasName)
-	instance, err := serviceInstance.(serviceGetInstanceAny).getInstanceAny(
+	instance, err := serviceInstance.(serviceWrapperGetInstanceAny).getInstanceAny(
 		newVirtualScope(serviceScope, append(invokerChain, serviceRealName)),
 	)
 	injector.RootScope().opts.onAfterInvocation(serviceScope, serviceAliasName, err)
@@ -264,7 +264,7 @@ func invokeByTags(i Injector, structName string, structValue reflect.Value, impl
 			var found bool
 			injector.serviceForEachRec(func(name string, _ *Scope, s any) bool {
 				if serviceCanCastToType(s, toType) {
-					resolvedName = s.(serviceGetName).getName()
+					resolvedName = s.(serviceWrapperGetName).getName()
 					found = true
 
 					// Stop or not stop, that's the question -> https://github.com/samber/do/issues/114

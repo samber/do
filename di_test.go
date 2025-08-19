@@ -15,7 +15,7 @@ func TestNameOf(t *testing.T) {
 	is.Equal("github.com/samber/do/v2.eagerTest", NameOf[eagerTest]())
 	is.Equal("*github.com/samber/do/v2.eagerTest", NameOf[*eagerTest]())
 	is.Equal("*map[int]bool", NameOf[*map[int]bool]())
-	is.Equal("github.com/samber/do/v2.Service[int]", NameOf[Service[int]]())
+	is.Equal("github.com/samber/do/v2.serviceWrapper[int]", NameOf[serviceWrapper[int]]())
 }
 
 func TestProvide(t *testing.T) {
@@ -45,7 +45,7 @@ func TestProvide(t *testing.T) {
 	s1, ok1 := i.self.services["*github.com/samber/do/v2.test"]
 	is.True(ok1)
 	if ok1 {
-		s, ok := s1.(Service[*test])
+		s, ok := s1.(serviceWrapper[*test])
 		is.True(ok)
 		if ok {
 			is.Equal("*github.com/samber/do/v2.test", s.getName())
@@ -55,7 +55,7 @@ func TestProvide(t *testing.T) {
 	s2, ok2 := i.self.services["github.com/samber/do/v2.test"]
 	is.True(ok2)
 	if ok2 {
-		s, ok := s2.(Service[test])
+		s, ok := s2.(serviceWrapper[test])
 		is.True(ok)
 		if ok {
 			is.Equal("github.com/samber/do/v2.test", s.getName())
@@ -95,7 +95,7 @@ func TestProvideNamed(t *testing.T) {
 	s1, ok1 := i.self.services["*foobar"]
 	is.True(ok1)
 	if ok1 {
-		s, ok := s1.(Service[*test])
+		s, ok := s1.(serviceWrapper[*test])
 		is.True(ok)
 		if ok {
 			is.Equal("*foobar", s.getName())
@@ -105,7 +105,7 @@ func TestProvideNamed(t *testing.T) {
 	s2, ok2 := i.self.services["foobar"]
 	is.True(ok2)
 	if ok2 {
-		s, ok := s2.(Service[test])
+		s, ok := s2.(serviceWrapper[test])
 		is.True(ok)
 		if ok {
 			is.Equal("foobar", s.getName())
@@ -136,7 +136,7 @@ func TestProvideValue(t *testing.T) {
 	s1, ok1 := i.self.services["int"]
 	is.True(ok1)
 	if ok1 {
-		s, ok := s1.(Service[int])
+		s, ok := s1.(serviceWrapper[int])
 		is.True(ok)
 		if ok {
 			is.Equal("int", s.getName())
@@ -149,7 +149,7 @@ func TestProvideValue(t *testing.T) {
 	s2, ok2 := i.self.services["github.com/samber/do/v2.test"]
 	is.True(ok2)
 	if ok2 {
-		s, ok := s2.(Service[test])
+		s, ok := s2.(serviceWrapper[test])
 		is.True(ok)
 		if ok {
 			is.Equal("github.com/samber/do/v2.test", s.getName())
@@ -180,7 +180,7 @@ func TestProvideNamedValue(t *testing.T) {
 	s1, ok1 := i.self.services["foobar"]
 	is.True(ok1)
 	if ok1 {
-		s, ok := s1.(Service[int])
+		s, ok := s1.(serviceWrapper[int])
 		is.True(ok)
 		if ok {
 			is.Equal("foobar", s.getName())
@@ -193,7 +193,7 @@ func TestProvideNamedValue(t *testing.T) {
 	s2, ok2 := i.self.services["hello"]
 	is.True(ok2)
 	if ok2 {
-		s, ok := s2.(Service[test])
+		s, ok := s2.(serviceWrapper[test])
 		is.True(ok)
 		if ok {
 			is.Equal("hello", s.getName())
@@ -233,7 +233,7 @@ func TestProvideTransient(t *testing.T) {
 	s1, ok1 := i.self.services["*github.com/samber/do/v2.test"]
 	is.True(ok1)
 	if ok1 {
-		s, ok := s1.(Service[*test])
+		s, ok := s1.(serviceWrapper[*test])
 		is.True(ok)
 		if ok {
 			is.Equal("*github.com/samber/do/v2.test", s.getName())
@@ -243,7 +243,7 @@ func TestProvideTransient(t *testing.T) {
 	s2, ok2 := i.self.services["github.com/samber/do/v2.test"]
 	is.True(ok2)
 	if ok2 {
-		s, ok := s2.(Service[test])
+		s, ok := s2.(serviceWrapper[test])
 		is.True(ok)
 		if ok {
 			is.Equal("github.com/samber/do/v2.test", s.getName())
@@ -283,7 +283,7 @@ func TestProvideNamedTransient(t *testing.T) {
 	s1, ok1 := i.self.services["*foobar"]
 	is.True(ok1)
 	if ok1 {
-		s, ok := s1.(Service[*test])
+		s, ok := s1.(serviceWrapper[*test])
 		is.True(ok)
 		if ok {
 			is.Equal("*foobar", s.getName())
@@ -293,7 +293,7 @@ func TestProvideNamedTransient(t *testing.T) {
 	s2, ok2 := i.self.services["foobar"]
 	is.True(ok2)
 	if ok2 {
-		s, ok := s2.(Service[test])
+		s, ok := s2.(serviceWrapper[test])
 		is.True(ok)
 		if ok {
 			is.Equal("foobar", s.getName())

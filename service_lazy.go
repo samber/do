@@ -10,10 +10,10 @@ import (
 	"github.com/samber/do/v2/stacktrace"
 )
 
-var _ Service[int] = (*serviceLazy[int])(nil)
-var _ serviceHealthcheck = (*serviceLazy[int])(nil)
-var _ serviceShutdown = (*serviceLazy[int])(nil)
-var _ serviceClone = (*serviceLazy[int])(nil)
+var _ serviceWrapper[int] = (*serviceLazy[int])(nil)
+var _ serviceWrapperHealthcheck = (*serviceLazy[int])(nil)
+var _ serviceWrapperShutdown = (*serviceLazy[int])(nil)
+var _ serviceWrapperClone = (*serviceLazy[int])(nil)
 
 type serviceLazy[T any] struct {
 	mu       sync.RWMutex

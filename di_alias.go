@@ -83,7 +83,7 @@ func AsNamed[Initial any, Alias any](i Injector, initial string, alias string) e
 		return fmt.Errorf("DI: service `%s` has not been declared", initial)
 	}
 
-	provide(i, alias, nil, func(_ string, _ any) Service[Alias] {
+	provide(i, alias, nil, func(_ string, _ any) serviceWrapper[Alias] {
 		return newServiceAlias[Initial, Alias](alias, i, initial)
 	})
 

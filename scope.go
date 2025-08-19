@@ -483,7 +483,7 @@ func (s *Scope) clone(root *RootScope, parent *Scope) *Scope {
 	for name, serviceAny := range s.services {
 		s.rootScope.opts.onBeforeRegistration(clone, name)
 
-		if service, ok := serviceAny.(serviceClone); ok {
+		if service, ok := serviceAny.(serviceWrapperClone); ok {
 			clone.services[name] = service.clone(clone)
 		} else {
 			clone.services[name] = service
@@ -684,7 +684,7 @@ func (s *Scope) serviceHealthCheck(ctx context.Context, name string) error {
 
 	s.mu.RUnlock()
 
-	service, ok := serviceAny.(serviceHealthcheck)
+	service, ok := serviceAny.(serviceWrapperHealthcheck)
 	if ok {
 		s.logf("requested health check for service %s", name)
 
@@ -721,7 +721,7 @@ func (s *Scope) serviceShutdown(ctx context.Context, name string) error {
 
 	var err error
 
-	service, ok := serviceAny.(serviceShutdown)
+	service, ok := serviceAny.(serviceWrapperShutdown)
 	if ok {
 		s.logf("requested shutdown for service %s", name)
 

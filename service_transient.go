@@ -7,10 +7,10 @@ import (
 	"github.com/samber/do/v2/stacktrace"
 )
 
-var _ Service[int] = (*serviceTransient[int])(nil)
-var _ serviceHealthcheck = (*serviceTransient[int])(nil)
-var _ serviceShutdown = (*serviceTransient[int])(nil)
-var _ serviceClone = (*serviceTransient[int])(nil)
+var _ serviceWrapper[int] = (*serviceTransient[int])(nil)
+var _ serviceWrapperHealthcheck = (*serviceTransient[int])(nil)
+var _ serviceWrapperShutdown = (*serviceTransient[int])(nil)
+var _ serviceWrapperClone = (*serviceTransient[int])(nil)
 
 type serviceTransient[T any] struct {
 	name     string
