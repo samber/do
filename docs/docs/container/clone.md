@@ -6,9 +6,9 @@ sidebar_position: 3
 
 # Clone
 
-Clone has the same service registrations as its parent, but it doesn't share the invoked service state.
+A clone has the same service registrations as its parent, but it doesn't share the invoked service state.
 
-Cloning a container can be very useful for test purposes.
+Cloning a container is very useful for testing.
 
 ```go
 injector := do.New()

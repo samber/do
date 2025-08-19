@@ -6,7 +6,7 @@ sidebar_position: 2
 
 # Service dependencies
 
-## Dependencies tree
+## Dependency tree
 
 ### Spec
 

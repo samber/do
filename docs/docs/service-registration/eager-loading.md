@@ -50,7 +50,7 @@ For test purposes, it can be very useful to override a service given to the DI c
 
 :::warning
 
-We highly discourage using this helper in production. Please use service aliasing instead.
+We strongly discourage using this helper in production. Please use service aliasing instead.
 
 :::
 
