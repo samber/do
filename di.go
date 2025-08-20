@@ -11,6 +11,10 @@ import (
 //
 // The function uses type inference to determine the service name
 // based on the generic type parameter T.
+//
+// Example:
+//
+//	serviceName := do.NameOf[*Database]()
 func NameOf[T any]() string {
 	return inferServiceName[T]()
 }
@@ -33,6 +37,15 @@ func Provide[T any](i Injector, provider Provider[T]) {
 // with different names for disambiguation.
 //
 // The service will be lazily instantiated when first requested.
+//
+// Example:
+//
+//	do.ProvideNamed(injector, "main-db", func(i do.Injector) (*Database, error) {
+//	    return &Database{URL: "postgres://main.acme.dev:5432/db"}, nil
+//	})
+//	do.ProvideNamed(injector, "backup-db", func(i do.Injector) (*Database, error) {
+//	    return &Database{URL: "postgres://backup.acme.dev:5432/db"}, nil
+//	})
 func ProvideNamed[T any](i Injector, name string, provider Provider[T]) {
 	provide(i, name, provider, func(s string, a Provider[T]) serviceWrapper[T] {
 		return newServiceLazy(s, a)
@@ -55,6 +68,11 @@ func ProvideValue[T any](i Injector, value T) {
 // with different names for disambiguation.
 //
 // The value is immediately available and will not be recreated on each request.
+//
+// Example:
+//
+//	do.ProvideNamedValue(injector, "app-config", &Config{Port: 8080})
+//	do.ProvideNamedValue(injector, "db-config", &Config{Port: 5432})
 func ProvideNamedValue[T any](i Injector, name string, value T) {
 	provide(i, name, value, func(s string, a T) serviceWrapper[T] {
 		return newServiceEager(s, a)
@@ -66,9 +84,17 @@ func ProvideNamedValue[T any](i Injector, name string, value T) {
 //
 // Example:
 //
-//	do.ProvideTransient(injector, func(i do.Injector) (*MyService, error) {
-//	    return &MyService{...}, nil
+//	// Each invocation creates a new instance
+//	do.ProvideTransient(injector, func(i do.Injector) (string, error) {
+//	    return uuid.New().String(), nil
 //	})
+//
+//	// First invocation
+//	id1, _ := do.Invoke[string](injector)
+//	// Second invocation - different instance
+//	id2, _ := do.Invoke[string](injector)
+//
+//	fmt.Println(id1 != id2) // Output: true
 func ProvideTransient[T any](i Injector, provider Provider[T]) {
 	name := inferServiceName[T]()
 	ProvideNamedTransient(i, name, provider)
@@ -79,6 +105,20 @@ func ProvideTransient[T any](i Injector, provider Provider[T]) {
 // with different names for disambiguation.
 //
 // The service will be recreated each time it is requested, providing a fresh instance.
+//
+// Example:
+//
+//	// Each invocation creates a new instance
+//	do.ProvideNamedTransient(injector, "request-id", func(i do.Injector) (string, error) {
+//	    return uuid.New().String(), nil
+//	})
+//
+//	// First invocation
+//	id1, _ := do.InvokeNamed[string](injector, "request-id")
+//	// Second invocation - different instance
+//	id2, _ := do.InvokeNamed[string](injector, "request-id")
+//
+//	fmt.Println(id1 != id2) // Output: true
 func ProvideNamedTransient[T any](i Injector, name string, provider Provider[T]) {
 	provide(i, name, provider, func(s string, a Provider[T]) serviceWrapper[T] {
 		return newServiceTransient(s, a)
@@ -199,7 +239,17 @@ func Invoke[T any](i Injector) (T, error) {
 //
 // Example:
 //
-//	service, err := do.InvokeNamed[*MyService](injector, "my-service")
+//	// Register multiple databases
+//	do.ProvideNamed(injector, "main-db", func(i do.Injector) (*Database, error) {
+//	    return &Database{URL: "postgres://main.acme.dev:5432/db"}, nil
+//	})
+//	do.ProvideNamed(injector, "backup-db", func(i do.Injector) (*Database, error) {
+//	    return &Database{URL: "postgres://backup.acme.dev:5432/db"}, nil
+//	})
+//
+//	// Retrieve specific database
+//	mainDB, err := do.InvokeNamed[*Database](injector, "main-db")
+//	backupDB, err := do.InvokeNamed[*Database](injector, "backup-db")
 func InvokeNamed[T any](i Injector, name string) (T, error) {
 	if typeIsAssignable[T, any]() {
 		v, err := invokeAnyByName(i, name)
@@ -240,6 +290,28 @@ func MustInvokeNamed[T any](i Injector, name string) T {
 // The struct fields must be tagged with `do:""` or `do:"name"`, where `name` is the service name in the DI container.
 // If the service is not found in the DI container, an error is returned.
 // If the service is found but not assignable to the struct field, an error is returned.
+//
+// Example:
+//
+//	type App struct {
+//	    Database *Database `do:""`
+//	    Logger   *Logger   `do:"app-logger"`
+//	    Config   *Config   `do:""`
+//	}
+//
+//	// Register services
+//	do.Provide(injector, func(i do.Injector) (*Database, error) {
+//	    return &Database{}, nil
+//	})
+//	do.ProvideNamed(injector, "app-logger", func(i do.Injector) (*Logger, error) {
+//	    return &Logger{}, nil
+//	})
+//	do.Provide(injector, func(i do.Injector) (*Config, error) {
+//	    return &Config{}, nil
+//	})
+//
+//	// Invoke struct with injected services
+//	app, err := do.InvokeStruct[App](injector)
 func InvokeStruct[T any](i Injector) (T, error) {
 	structName := inferServiceName[T]()
 	output := deepEmpty[T]() // if the struct is hidden behind a pointer, we need to init the struct value deep enough
@@ -263,11 +335,32 @@ func InvokeStruct[T any](i Injector) (T, error) {
 	return output, nil
 }
 
-// InvokeStruct invokes services located in struct properties.
+// MustInvokeStruct invokes services located in struct properties and panics on error.
 // The struct fields must be tagged with `do:""` or `do:"name"`, where `name` is the service name in the DI container.
-// If the service is not found in the DI container, an error is returned.
-// If the service is found but not assignable to the struct field, an error is returned.
-// It panics on error.
+// If the service is not found in the DI container, it panics.
+// If the service is found but not assignable to the struct field, it panics.
+//
+// Example:
+//
+//	type App struct {
+//	    Database *Database `do:""`
+//	    Logger   *Logger   `do:"app-logger"`
+//	    Config   *Config   `do:""`
+//	}
+//
+//	// Register services
+//	do.Provide(injector, func(i do.Injector) (*Database, error) {
+//	    return &Database{}, nil
+//	})
+//	do.ProvideNamed(injector, "app-logger", func(i do.Injector) (*Logger, error) {
+//	    return &Logger{}, nil
+//	})
+//	do.Provide(injector, func(i do.Injector) (*Config, error) {
+//	    return &Config{}, nil
+//	})
+//
+//	// Invoke struct with injected services (panics on error)
+//	app := do.MustInvokeStruct[App](injector)
 func MustInvokeStruct[T any](i Injector) T {
 	return must1(InvokeStruct[T](i))
 }
