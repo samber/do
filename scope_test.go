@@ -14,6 +14,7 @@ import (
 )
 
 func TestNewScope(t *testing.T) {
+	t.Parallel()
 	testWithTimeout(t, 100*time.Millisecond)
 	is := assert.New(t)
 
@@ -32,6 +33,7 @@ func TestNewScope(t *testing.T) {
 }
 
 func TestScope_ID(t *testing.T) {
+	t.Parallel()
 	testWithTimeout(t, 100*time.Millisecond)
 	is := assert.New(t)
 
@@ -42,6 +44,7 @@ func TestScope_ID(t *testing.T) {
 }
 
 func TestScope_Name(t *testing.T) {
+	t.Parallel()
 	testWithTimeout(t, 100*time.Millisecond)
 	is := assert.New(t)
 
@@ -52,6 +55,7 @@ func TestScope_Name(t *testing.T) {
 }
 
 func TestScope_Scope(t *testing.T) {
+	t.Parallel()
 	testWithTimeout(t, 100*time.Millisecond)
 	is := assert.New(t)
 
@@ -107,6 +111,7 @@ func TestScope_Scope_race(t *testing.T) {
 }
 
 func TestScope_RootScope(t *testing.T) {
+	t.Parallel()
 	testWithTimeout(t, 100*time.Millisecond)
 	is := assert.New(t)
 
@@ -125,6 +130,7 @@ func TestScope_RootScope(t *testing.T) {
 }
 
 func TestScope_Ancestors(t *testing.T) {
+	t.Parallel()
 	testWithTimeout(t, 100*time.Millisecond)
 	is := assert.New(t)
 
@@ -143,6 +149,7 @@ func TestScope_Ancestors(t *testing.T) {
 }
 
 func TestScope_Children(t *testing.T) {
+	t.Parallel()
 	testWithTimeout(t, 100*time.Millisecond)
 	is := assert.New(t)
 
@@ -162,6 +169,7 @@ func TestScope_Children(t *testing.T) {
 }
 
 func TestScope_ChildByID(t *testing.T) {
+	t.Parallel()
 	testWithTimeout(t, 100*time.Millisecond)
 	is := assert.New(t)
 
@@ -243,6 +251,7 @@ func TestScope_ChildByID(t *testing.T) {
 }
 
 func TestScope_ChildByName(t *testing.T) {
+	t.Parallel()
 	is := assert.New(t)
 
 	rootScope := New()
@@ -318,6 +327,7 @@ func TestScope_ChildByName(t *testing.T) {
 }
 
 func TestScope_ListProvidedServices(t *testing.T) {
+	t.Parallel()
 	is := assert.New(t)
 
 	rootScope := New()
@@ -343,6 +353,7 @@ func TestScope_ListProvidedServices(t *testing.T) {
 }
 
 func TestScope_ListInvokedServices(t *testing.T) {
+	t.Parallel()
 	is := assert.New(t)
 
 	rootScope := New()
@@ -381,11 +392,13 @@ func TestScope_ListInvokedServices(t *testing.T) {
 }
 
 func TestScope_HealthCheck(t *testing.T) {
+	t.Parallel()
 	// @TODO
 }
 
 // @TODO: missing tests for context
 func TestScope_HealthCheckWithContext(t *testing.T) {
+	t.Parallel()
 	is := assert.New(t)
 
 	rootScope := New()
@@ -424,6 +437,7 @@ func TestScope_HealthCheckWithContext(t *testing.T) {
 }
 
 func TestScope_Shutdown(t *testing.T) {
+	t.Parallel()
 	is := assert.New(t)
 
 	i := New()
@@ -438,6 +452,7 @@ func TestScope_Shutdown(t *testing.T) {
 
 // @TODO: missing tests for context
 func TestScope_ShutdownWithContext(t *testing.T) {
+	t.Parallel()
 	is := assert.New(t)
 
 	ctx := context.Background()
@@ -498,6 +513,7 @@ func TestScope_ShutdownWithContext(t *testing.T) {
 }
 
 func TestScope_clone(t *testing.T) {
+	t.Parallel()
 	is := assert.New(t)
 
 	rootScope := New()
@@ -529,6 +545,7 @@ func TestScope_clone(t *testing.T) {
 }
 
 func TestScope_serviceHealthCheck(t *testing.T) {
+	t.Parallel()
 	is := assert.New(t)
 
 	rootScope := New()
@@ -559,6 +576,7 @@ func TestScope_serviceHealthCheck(t *testing.T) {
 }
 
 func TestScope_serviceGet(t *testing.T) {
+	t.Parallel()
 	is := assert.New(t)
 
 	rootScope := New()
@@ -606,6 +624,7 @@ func TestScope_serviceGet(t *testing.T) {
 }
 
 func TestScope_serviceGetRec(t *testing.T) {
+	t.Parallel()
 	is := assert.New(t)
 
 	rootScope := New()
@@ -655,6 +674,7 @@ func TestScope_serviceGetRec(t *testing.T) {
 }
 
 func TestScope_serviceSet(t *testing.T) {
+	t.Parallel()
 	is := assert.New(t)
 
 	rootScope := New()
@@ -676,6 +696,7 @@ func TestScope_serviceSet(t *testing.T) {
 }
 
 func TestScope_serviceForEach(t *testing.T) {
+	t.Parallel()
 	is := assert.New(t)
 
 	rootScope := New()
@@ -723,6 +744,7 @@ func TestScope_serviceForEach(t *testing.T) {
 }
 
 func TestScope_serviceForEachRec(t *testing.T) {
+	t.Parallel()
 	is := assert.New(t)
 
 	rootScope := New()
@@ -774,22 +796,27 @@ func TestScope_serviceForEachRec(t *testing.T) {
 }
 
 func TestScope_serviceShutdown(t *testing.T) {
+	t.Parallel()
 	// @TODO
 }
 
 func TestScope_onServiceRegistration(t *testing.T) {
+	t.Parallel()
 	// @TODO
 }
 
 func TestScope_onServiceInvoke(t *testing.T) {
+	t.Parallel()
 	// @TODO
 }
 
 func TestScope_onServiceShutdown(t *testing.T) {
+	t.Parallel()
 	// @TODO
 }
 
 func TestScope_logs(t *testing.T) {
+	t.Parallel()
 	// @TODO
 }
 
@@ -802,6 +829,7 @@ func (s *shutdownRecorder) Shutdown() error {
 
 // Test the shutdown of services that have no dependencies and no dependents.
 func TestScope_Shutdown_NoDependencies(t *testing.T) {
+	t.Parallel()
 	is := assert.New(t)
 
 	i := New()
@@ -946,6 +974,7 @@ func (s *scopeTestBlockingHealthchecker) getHealthcheckCount() int {
 
 // Test shutdown context expiration
 func TestScope_ShutdownWithContextExpiration_Timeout(t *testing.T) {
+	t.Parallel()
 	testWithTimeout(t, 450*time.Millisecond)
 	is := assert.New(t)
 	injector := New()
@@ -975,6 +1004,7 @@ func TestScope_ShutdownWithContextExpiration_Timeout(t *testing.T) {
 }
 
 func TestScope_ShutdownWithContextExpiration_Cancellation(t *testing.T) {
+	t.Parallel()
 	testWithTimeout(t, 450*time.Millisecond)
 	is := assert.New(t)
 	injector := New()
@@ -1011,6 +1041,7 @@ func TestScope_ShutdownWithContextExpiration_Cancellation(t *testing.T) {
 }
 
 func TestScope_ShutdownWithContextExpiration_MultipleServices(t *testing.T) {
+	t.Parallel()
 	testWithTimeout(t, 450*time.Millisecond)
 	is := assert.New(t)
 	injector := New()
@@ -1039,6 +1070,7 @@ func TestScope_ShutdownWithContextExpiration_MultipleServices(t *testing.T) {
 }
 
 func TestScope_ShutdownWithContextExpiration_ChildScopes(t *testing.T) {
+	t.Parallel()
 	is := assert.New(t)
 	injector := New()
 	childScope := injector.Scope("child")
@@ -1075,6 +1107,7 @@ func TestScope_ShutdownWithContextExpiration_ChildScopes(t *testing.T) {
 
 // Test healthcheck context expiration
 func TestScope_HealthCheckWithContextExpiration_Timeout(t *testing.T) {
+	t.Parallel()
 	is := assert.New(t)
 	injector := New()
 
@@ -1108,6 +1141,7 @@ func TestScope_HealthCheckWithContextExpiration_Timeout(t *testing.T) {
 }
 
 func TestScope_HealthCheckWithContextExpiration_Cancellation(t *testing.T) {
+	t.Parallel()
 	is := assert.New(t)
 	injector := New()
 
@@ -1148,6 +1182,7 @@ func TestScope_HealthCheckWithContextExpiration_Cancellation(t *testing.T) {
 }
 
 func TestScope_HealthCheckWithContextExpiration_MultipleServices(t *testing.T) {
+	t.Parallel()
 	is := assert.New(t)
 	injector := New()
 
@@ -1190,6 +1225,7 @@ func TestScope_HealthCheckWithContextExpiration_MultipleServices(t *testing.T) {
 }
 
 func TestScope_HealthCheckWithContextExpiration_ChildScopes(t *testing.T) {
+	t.Parallel()
 	is := assert.New(t)
 	injector := New()
 	childScope := injector.Scope("child")
@@ -1233,6 +1269,7 @@ func TestScope_HealthCheckWithContextExpiration_ChildScopes(t *testing.T) {
 }
 
 func TestScope_HealthCheckWithContextExpiration_GlobalTimeoutOption(t *testing.T) {
+	t.Parallel()
 	is := assert.New(t)
 	// Create injector with global healthcheck timeout
 	injector := NewWithOpts(&InjectorOpts{
@@ -1269,6 +1306,7 @@ func TestScope_HealthCheckWithContextExpiration_GlobalTimeoutOption(t *testing.T
 
 // Test mixed scenarios
 func TestScope_ContextExpiration_ShutdownAndHealthcheckSameTimeout(t *testing.T) {
+	t.Parallel()
 	is := assert.New(t)
 	injector := New()
 
@@ -1304,6 +1342,7 @@ func TestScope_ContextExpiration_ShutdownAndHealthcheckSameTimeout(t *testing.T)
 }
 
 func TestScope_ContextExpiration_ParallelOperations(t *testing.T) {
+	t.Parallel()
 	is := assert.New(t)
 	injector := New()
 

@@ -107,8 +107,8 @@ func TestServiceAlias_getInstanceAny(t *testing.T) {
 }
 
 func TestServiceAlias_getInstance(t *testing.T) {
-	testWithTimeout(t, 100*time.Millisecond)
 	t.Parallel()
+	testWithTimeout(t, 100*time.Millisecond)
 	is := assert.New(t)
 
 	i := New()
@@ -144,8 +144,8 @@ func TestServiceAlias_getInstance(t *testing.T) {
 }
 
 func TestServiceAlias_isHealthchecker(t *testing.T) {
-	testWithTimeout(t, 100*time.Millisecond)
 	t.Parallel()
+	testWithTimeout(t, 100*time.Millisecond)
 	is := assert.New(t)
 
 	// no healthcheck
@@ -198,8 +198,8 @@ func TestServiceAlias_isHealthchecker(t *testing.T) {
 
 // @TODO: missing tests for context
 func TestServiceAlias_healthcheck(t *testing.T) {
-	testWithTimeout(t, 100*time.Millisecond)
 	t.Parallel()
+	testWithTimeout(t, 100*time.Millisecond)
 	is := assert.New(t)
 
 	ctx := context.Background()
@@ -252,8 +252,8 @@ func TestServiceAlias_healthcheck(t *testing.T) {
 
 // @TODO: missing tests for context
 func TestServiceAlias_isShutdowner(t *testing.T) {
-	testWithTimeout(t, 100*time.Millisecond)
 	t.Parallel()
+	testWithTimeout(t, 100*time.Millisecond)
 	is := assert.New(t)
 
 	// no shutdown
@@ -303,8 +303,8 @@ func TestServiceAlias_isShutdowner(t *testing.T) {
 }
 
 func TestServiceAlias_shutdown(t *testing.T) {
-	testWithTimeout(t, 100*time.Millisecond)
 	t.Parallel()
+	testWithTimeout(t, 100*time.Millisecond)
 	is := assert.New(t)
 
 	ctx := context.Background()

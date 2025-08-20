@@ -8,6 +8,7 @@ import (
 )
 
 func TestGetInjectorOrDefault(t *testing.T) {
+	t.Parallel()
 	testWithTimeout(t, 100*time.Millisecond)
 	is := assert.New(t)
 

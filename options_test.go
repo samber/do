@@ -8,6 +8,7 @@ import (
 )
 
 func TestInjectorOpts_addHook(t *testing.T) {
+	t.Parallel()
 	testWithTimeout(t, 100*time.Millisecond)
 	is := assert.New(t)
 
@@ -84,6 +85,7 @@ func TestInjectorOpts_addHook(t *testing.T) {
 }
 
 func TestInjectorOpts_onEvent(t *testing.T) {
+	t.Parallel()
 	testWithTimeout(t, 100*time.Millisecond)
 	is := assert.New(t)
 

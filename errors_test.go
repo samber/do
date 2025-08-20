@@ -8,6 +8,7 @@ import (
 )
 
 func TestShutdownErrors_Add(t *testing.T) {
+	t.Parallel()
 	testWithTimeout(t, 100*time.Millisecond)
 	is := assert.New(t)
 
@@ -29,6 +30,7 @@ func TestShutdownErrors_Add(t *testing.T) {
 }
 
 func TestShutdownErrors_Error(t *testing.T) {
+	t.Parallel()
 	testWithTimeout(t, 100*time.Millisecond)
 	is := assert.New(t)
 
@@ -49,6 +51,7 @@ func TestShutdownErrors_Error(t *testing.T) {
 }
 
 func TestMergeShutdownErrors(t *testing.T) {
+	t.Parallel()
 	testWithTimeout(t, 100*time.Millisecond)
 	is := assert.New(t)
 

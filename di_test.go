@@ -10,6 +10,7 @@ import (
 )
 
 func TestNameOf(t *testing.T) {
+	t.Parallel()
 	testWithTimeout(t, 100*time.Millisecond)
 	is := assert.New(t)
 
@@ -21,6 +22,7 @@ func TestNameOf(t *testing.T) {
 }
 
 func TestProvide(t *testing.T) {
+	t.Parallel()
 	testWithTimeout(t, 100*time.Millisecond)
 	is := assert.New(t)
 
@@ -72,6 +74,7 @@ func TestProvide(t *testing.T) {
 }
 
 func TestProvideNamed(t *testing.T) {
+	t.Parallel()
 	testWithTimeout(t, 100*time.Millisecond)
 	is := assert.New(t)
 
@@ -123,6 +126,7 @@ func TestProvideNamed(t *testing.T) {
 }
 
 func TestProvideValue(t *testing.T) {
+	t.Parallel()
 	testWithTimeout(t, 100*time.Millisecond)
 	is := assert.New(t)
 
@@ -168,6 +172,7 @@ func TestProvideValue(t *testing.T) {
 }
 
 func TestProvideNamedValue(t *testing.T) {
+	t.Parallel()
 	testWithTimeout(t, 100*time.Millisecond)
 	is := assert.New(t)
 
@@ -213,6 +218,7 @@ func TestProvideNamedValue(t *testing.T) {
 }
 
 func TestProvideTransient(t *testing.T) {
+	t.Parallel()
 	testWithTimeout(t, 100*time.Millisecond)
 	is := assert.New(t)
 
@@ -264,6 +270,7 @@ func TestProvideTransient(t *testing.T) {
 }
 
 func TestProvideNamedTransient(t *testing.T) {
+	t.Parallel()
 	testWithTimeout(t, 100*time.Millisecond)
 	is := assert.New(t)
 
@@ -339,6 +346,7 @@ func TestProvide_race(t *testing.T) {
 }
 
 func TestOverride(t *testing.T) {
+	t.Parallel()
 	testWithTimeout(t, 100*time.Millisecond)
 	is := assert.New(t)
 
@@ -373,6 +381,7 @@ func TestOverride(t *testing.T) {
 }
 
 func TestOverrideNamed(t *testing.T) {
+	t.Parallel()
 	testWithTimeout(t, 100*time.Millisecond)
 	is := assert.New(t)
 
@@ -394,6 +403,7 @@ func TestOverrideNamed(t *testing.T) {
 }
 
 func TestOverrideValue(t *testing.T) {
+	t.Parallel()
 	testWithTimeout(t, 100*time.Millisecond)
 	is := assert.New(t)
 
@@ -415,6 +425,7 @@ func TestOverrideValue(t *testing.T) {
 }
 
 func TestOverrideNamedValue(t *testing.T) {
+	t.Parallel()
 	testWithTimeout(t, 100*time.Millisecond)
 	is := assert.New(t)
 
@@ -434,16 +445,19 @@ func TestOverrideNamedValue(t *testing.T) {
 }
 
 func TestOverrideTransient(t *testing.T) {
+	t.Parallel()
 	testWithTimeout(t, 100*time.Millisecond)
 	// @TODO
 }
 
 func TestOverrideNamedTransient(t *testing.T) {
+	t.Parallel()
 	testWithTimeout(t, 100*time.Millisecond)
 	// @TODO
 }
 
 func TestInvoke(t *testing.T) {
+	t.Parallel()
 	testWithTimeout(t, 100*time.Millisecond)
 	is := assert.New(t)
 
@@ -485,6 +499,7 @@ func TestInvoke(t *testing.T) {
 }
 
 func TestMustInvoke(t *testing.T) {
+	t.Parallel()
 	testWithTimeout(t, 100*time.Millisecond)
 	is := assert.New(t)
 
@@ -512,6 +527,7 @@ func TestMustInvoke(t *testing.T) {
 }
 
 func TestInvokeNamed(t *testing.T) {
+	t.Parallel()
 	testWithTimeout(t, 100*time.Millisecond)
 	is := assert.New(t)
 
@@ -554,6 +570,7 @@ func TestInvokeNamed(t *testing.T) {
 }
 
 func TestMustInvokeNamed(t *testing.T) {
+	t.Parallel()
 	testWithTimeout(t, 100*time.Millisecond)
 	is := assert.New(t)
 
@@ -578,6 +595,7 @@ func TestMustInvokeNamed(t *testing.T) {
 }
 
 func TestInvokeStruct(t *testing.T) {
+	t.Parallel()
 	testWithTimeout(t, 100*time.Millisecond)
 	is := assert.New(t)
 
@@ -675,6 +693,7 @@ func TestInvokeStruct(t *testing.T) {
 }
 
 func TestMustInvokeStruct(t *testing.T) {
+	t.Parallel()
 	testWithTimeout(t, 100*time.Millisecond)
 	is := assert.New(t)
 	i := New()

@@ -8,8 +8,8 @@ import (
 )
 
 func TestHandleProviderPanic(t *testing.T) {
-	testWithTimeout(t, 100*time.Millisecond)
 	t.Parallel()
+	testWithTimeout(t, 100*time.Millisecond)
 	is := assert.New(t)
 
 	is.NotPanics(func() {

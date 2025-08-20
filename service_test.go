@@ -9,8 +9,8 @@ import (
 )
 
 func TestInferServiceName(t *testing.T) {
-	testWithTimeout(t, 100*time.Millisecond)
 	t.Parallel()
+	testWithTimeout(t, 100*time.Millisecond)
 	is := assert.New(t)
 
 	// more tests in the package
@@ -31,8 +31,8 @@ func TestInferServiceInfo(t *testing.T) {
 }
 
 func TestDoServiceCanCastToGeneric(t *testing.T) {
-	testWithTimeout(t, 100*time.Millisecond)
 	t.Parallel()
+	testWithTimeout(t, 100*time.Millisecond)
 	is := assert.New(t)
 
 	svc1 := newServiceLazy("foobar", func(i Injector) (*lazyTestHeathcheckerOK, error) {
@@ -50,8 +50,8 @@ func TestDoServiceCanCastToGeneric(t *testing.T) {
 }
 
 func TestDoServiceCanCastToType(t *testing.T) {
-	testWithTimeout(t, 100*time.Millisecond)
 	t.Parallel()
+	testWithTimeout(t, 100*time.Millisecond)
 	is := assert.New(t)
 
 	svc1 := newServiceLazy("foobar", func(i Injector) (*lazyTestHeathcheckerOK, error) {
