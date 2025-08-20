@@ -92,7 +92,9 @@ func mergeShutdownErrors(ins ...*ShutdownErrors) *ShutdownErrors {
 		}
 
 		for k, v := range *in {
-			(*out)[k] = v
+			if v != nil {
+				(*out)[k] = v
+			}
 		}
 	}
 

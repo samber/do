@@ -397,9 +397,6 @@ func (s *Scope) shutdownServicesInParallel(ctx context.Context) *ShutdownErrors 
 	}
 
 	for len(listServices()) > 0 {
-		if ctx.Err() != nil {
-			break
-		}
 		services := listServices()
 		servicesToShutdown := []string{}
 

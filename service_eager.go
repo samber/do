@@ -84,8 +84,16 @@ func (s *serviceEager[T]) isHealthchecker() bool {
 
 func (s *serviceEager[T]) healthcheck(ctx context.Context) error {
 	if instance, ok := any(s.instance).(HealthcheckerWithContext); ok {
+		if ctx.Err() != nil {
+			return ctx.Err()
+		}
+
 		return instance.HealthCheck(ctx)
 	} else if instance, ok := any(s.instance).(Healthchecker); ok {
+		if ctx.Err() != nil {
+			return ctx.Err()
+		}
+
 		return instance.HealthCheck()
 	}
 
@@ -102,13 +110,29 @@ func (s *serviceEager[T]) isShutdowner() bool {
 
 func (s *serviceEager[T]) shutdown(ctx context.Context) error {
 	if instance, ok := any(s.instance).(ShutdownerWithContextAndError); ok {
+		if ctx.Err() != nil {
+			return ctx.Err()
+		}
+
 		return instance.Shutdown(ctx)
 	} else if instance, ok := any(s.instance).(ShutdownerWithError); ok {
+		if ctx.Err() != nil {
+			return ctx.Err()
+		}
+
 		return instance.Shutdown()
 	} else if instance, ok := any(s.instance).(ShutdownerWithContext); ok {
+		if ctx.Err() != nil {
+			return ctx.Err()
+		}
+
 		instance.Shutdown(ctx)
 		return nil
 	} else if instance, ok := any(s.instance).(Shutdowner); ok {
+		if ctx.Err() != nil {
+			return ctx.Err()
+		}
+
 		instance.Shutdown()
 		return nil
 	}
