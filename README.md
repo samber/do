@@ -46,6 +46,7 @@ I love the **short name** for such a utility library. This name is the sum of `D
 - **🔁 Service lifecycle**
   - Health check
   - Graceful unload (shutdown)
+  - Dependency-aware parallel shutdown
   - Lifecycle hooks
 - **📦 Scope (a.k.a module) tree**
   - Visibility control
@@ -55,6 +56,9 @@ I love the **short name** for such a utility library. This name is the sum of `D
   - Default container
   - Container cloning
   - Service override
+- **🧪 Debugging & introspection**
+  - Explain APIs: scope tree and service dependencies
+  - Web UI & HTTP middleware (std, Gin, Fiber, Echo, Chi)
 - **🌈 Lightweight, no dependencies**
 - **🔅 No code generation**
 - **😷 Type‑safe API**
