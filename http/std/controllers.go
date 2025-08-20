@@ -46,6 +46,12 @@ import (
 //
 // The handler automatically strips the basePath prefix from incoming requests
 // to ensure proper routing within the debugging interface.
+//
+// Security:
+// Do not expose this debug UI publicly in production. It reveals internal details
+// about your application's DI graph. Protect these routes with authentication
+// (for example, Basic Auth) and/or network restrictions (IP allowlist, VPN, etc.).
+// Wrap this handler with your auth/middleware before mounting it.
 func Use(basePath string, injector do.Injector) http.Handler {
 	mux := http.NewServeMux()
 

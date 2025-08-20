@@ -39,6 +39,11 @@ import (
 //   - Service dependency graphs
 //   - Service inspection and debugging tools
 //   - Navigation between different views
+//
+// Security:
+// Do not expose this group publicly in production. Protect it with authentication
+// (e.g., Basic Auth) and/or network restrictions, since it reveals internals
+// about your DI graph. Attach auth middleware to the Echo group before Use.
 func Use(router *echo.Group, basePath string, injector do.Injector) {
 	router.GET("", func(c echo.Context) error {
 		output, err := dohttp.IndexHTML(basePath)

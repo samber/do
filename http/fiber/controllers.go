@@ -39,6 +39,11 @@ import (
 //   - Service dependency graphs
 //   - Service inspection and debugging tools
 //   - Navigation between different views
+//
+// Security:
+// Do not expose this group publicly in production. Protect it with authentication
+// (e.g., Basic Auth) and/or network restrictions, since it reveals internal details
+// about your application's DI graph. Attach auth middleware to the group before Use.
 func Use(router fiber.Router, basePath string, injector do.Injector) {
 	router.Get("", func(c *fiber.Ctx) error {
 		output, err := dohttp.IndexHTML(basePath)
