@@ -75,7 +75,9 @@ func (s *serviceAlias[Initial, Alias]) getInstance(i Injector) (Alias, error) {
 		}
 	}
 
-	instance, err := invokeByName[Initial](s.scope, s.targetName)
+	// Use the virtual scope received as parameter to ensure proper circular dependency detection.
+	// The injector passed here should be a virtual scope that contains the current invocation chain
+	instance, err := invokeByName[Initial](i, s.targetName)
 	if err != nil {
 		return empty[Alias](), err
 	}
@@ -95,7 +97,7 @@ func (s *serviceAlias[Initial, Alias]) isHealthchecker() bool {
 		return false
 	}
 
-	service, ok := serviceAny.(serviceWrapper[Initial])
+	service, ok := serviceAny.(serviceWrapperIsHealthchecker)
 	if !ok {
 		return false
 	}
@@ -109,7 +111,7 @@ func (s *serviceAlias[Initial, Alias]) healthcheck(ctx context.Context) error {
 		return nil
 	}
 
-	service, ok := serviceAny.(serviceWrapper[Initial])
+	service, ok := serviceAny.(serviceWrapperHealthcheck)
 	if !ok {
 		return nil
 	}
@@ -123,7 +125,7 @@ func (s *serviceAlias[Initial, Alias]) isShutdowner() bool {
 		return false
 	}
 
-	service, ok := serviceAny.(serviceWrapper[Initial])
+	service, ok := serviceAny.(serviceWrapperIsShutdowner)
 	if !ok {
 		return false
 	}
@@ -137,7 +139,7 @@ func (s *serviceAlias[Initial, Alias]) shutdown(ctx context.Context) error {
 		return nil
 	}
 
-	service, ok := serviceAny.(serviceWrapper[Initial])
+	service, ok := serviceAny.(serviceWrapperShutdown)
 	if !ok {
 		return nil
 	}

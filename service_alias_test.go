@@ -9,8 +9,8 @@ import (
 )
 
 func TestNewServiceAlias(t *testing.T) {
-	testWithTimeout(t, 100*time.Millisecond)
 	t.Parallel()
+	testWithTimeout(t, 100*time.Millisecond)
 	is := assert.New(t)
 
 	i := New()
@@ -22,8 +22,8 @@ func TestNewServiceAlias(t *testing.T) {
 }
 
 func TestServiceAlias_getName(t *testing.T) {
-	testWithTimeout(t, 100*time.Millisecond)
 	t.Parallel()
+	testWithTimeout(t, 100*time.Millisecond)
 	is := assert.New(t)
 
 	i := New()
@@ -33,8 +33,8 @@ func TestServiceAlias_getName(t *testing.T) {
 }
 
 func TestServiceAlias_getTypeName(t *testing.T) {
-	testWithTimeout(t, 100*time.Millisecond)
 	t.Parallel()
+	testWithTimeout(t, 100*time.Millisecond)
 	is := assert.New(t)
 
 	i := New()
@@ -44,8 +44,8 @@ func TestServiceAlias_getTypeName(t *testing.T) {
 }
 
 func TestServiceAlias_getServiceType(t *testing.T) {
-	testWithTimeout(t, 100*time.Millisecond)
 	t.Parallel()
+	testWithTimeout(t, 100*time.Millisecond)
 	is := assert.New(t)
 
 	i := New()
@@ -55,8 +55,8 @@ func TestServiceAlias_getServiceType(t *testing.T) {
 }
 
 func TestServiceAlias_getReflectType(t *testing.T) {
-	testWithTimeout(t, 100*time.Millisecond)
 	t.Parallel()
+	testWithTimeout(t, 100*time.Millisecond)
 	is := assert.New(t)
 
 	service1 := newServiceAlias[string, int]("foobar1", nil, "foobar2")
@@ -70,8 +70,8 @@ func TestServiceAlias_getReflectType(t *testing.T) {
 }
 
 func TestServiceAlias_getInstanceAny(t *testing.T) {
-	testWithTimeout(t, 100*time.Millisecond)
 	t.Parallel()
+	testWithTimeout(t, 100*time.Millisecond)
 	is := assert.New(t)
 
 	i := New()
@@ -165,7 +165,7 @@ func TestServiceAlias_isHealthchecker(t *testing.T) {
 	is.Nil(As[*lazyTestHeathcheckerOK, Healthchecker](i2))
 	service2, _ := i2.serviceGet("github.com/samber/do/v2.Healthchecker")
 	is.False(service2.(serviceWrapperIsHealthchecker).isHealthchecker())
-	_, _ = service2.(serviceWrapperGetInstanceAny).getInstanceAny(nil)
+	_, _ = service2.(serviceWrapperGetInstanceAny).getInstanceAny(i2)
 	is.True(service2.(serviceWrapperIsHealthchecker).isHealthchecker())
 
 	// healthcheck ko
@@ -176,21 +176,23 @@ func TestServiceAlias_isHealthchecker(t *testing.T) {
 	is.Nil(As[*lazyTestHeathcheckerKO, Healthchecker](i3))
 	service3, _ := i3.serviceGet("github.com/samber/do/v2.Healthchecker")
 	is.False(service3.(serviceWrapperIsHealthchecker).isHealthchecker())
-	_, _ = service3.(serviceWrapperGetInstanceAny).getInstanceAny(nil)
+	_, _ = service3.(serviceWrapperGetInstanceAny).getInstanceAny(i3)
 	is.True(service3.(serviceWrapperIsHealthchecker).isHealthchecker())
 
 	// service not found (wrong type)
 	i4 := New()
 	service4 := newServiceAlias[*lazyTestHeathcheckerKO, Healthchecker]("github.com/samber/do/v2.Healthchecker", i4, "*github.com/samber/do/v2.lazyTestHeathcheckerKO")
 	is.False(service4.isHealthchecker())
-	_, _ = service4.getInstanceAny(nil)
+	_, err4 := service4.getInstanceAny(i4)
+	is.Error(err4)
 	is.False(service4.isHealthchecker())
 
 	// service not found (wrong name)
 	i5 := New()
 	service5 := newServiceAlias[*lazyTestHeathcheckerOK, Healthchecker]("github.com/samber/do/v2.Healthchecker", i5, "*github.com/samber/do/v2.lazyTestHeathcheckerKO")
 	is.False(service5.isHealthchecker())
-	_, _ = service5.getInstanceAny(nil)
+	_, err5 := service5.getInstanceAny(i5)
+	is.Error(err5)
 	is.False(service5.isHealthchecker())
 }
 
@@ -219,7 +221,7 @@ func TestServiceAlias_healthcheck(t *testing.T) {
 	is.Nil(As[*lazyTestHeathcheckerOK, Healthchecker](i2))
 	service2, _ := i2.serviceGet("github.com/samber/do/v2.Healthchecker")
 	is.Nil(service2.(serviceWrapper[Healthchecker]).healthcheck(ctx))
-	_, _ = service2.(serviceWrapper[Healthchecker]).getInstance(nil)
+	_, _ = service2.(serviceWrapper[Healthchecker]).getInstance(i2)
 	is.Nil(service2.(serviceWrapper[Healthchecker]).healthcheck(ctx))
 
 	// healthcheck ko
@@ -230,21 +232,21 @@ func TestServiceAlias_healthcheck(t *testing.T) {
 	is.Nil(As[*lazyTestHeathcheckerKO, Healthchecker](i3))
 	service3, _ := i3.serviceGet("github.com/samber/do/v2.Healthchecker")
 	is.Nil(service3.(serviceWrapper[Healthchecker]).healthcheck(ctx))
-	_, _ = service3.(serviceWrapper[Healthchecker]).getInstance(nil)
+	_, _ = service3.(serviceWrapper[Healthchecker]).getInstance(i3)
 	is.Equal(assert.AnError, service3.(serviceWrapper[Healthchecker]).healthcheck(ctx))
 
 	// service not found (wrong type)
 	i4 := New()
 	service4 := newServiceAlias[*lazyTestHeathcheckerKO, Healthchecker]("github.com/samber/do/v2.Healthchecker", i4, "*github.com/samber/do/v2.lazyTestHeathcheckerKO")
 	is.Nil(service4.healthcheck(ctx))
-	_, _ = service4.getInstanceAny(nil)
+	_, _ = service4.getInstanceAny(i4)
 	is.Nil(service4.healthcheck(ctx))
 
 	// service not found (wrong name)
 	i5 := New()
 	service5 := newServiceAlias[*lazyTestHeathcheckerOK, Healthchecker]("github.com/samber/do/v2.Healthchecker", i5, "*github.com/samber/do/v2.lazyTestHeathcheckerKO")
 	is.Nil(service5.healthcheck(ctx))
-	_, _ = service5.getInstanceAny(nil)
+	_, _ = service5.getInstanceAny(i5)
 	is.Nil(service5.healthcheck(ctx))
 }
 
@@ -271,7 +273,7 @@ func TestServiceAlias_isShutdowner(t *testing.T) {
 	is.Nil(As[*lazyTestShutdownerOK, ShutdownerWithContextAndError](i2))
 	service2, _ := i2.serviceGet("github.com/samber/do/v2.ShutdownerWithContextAndError")
 	is.False(service2.(serviceWrapper[ShutdownerWithContextAndError]).isShutdowner())
-	_, _ = service2.(serviceWrapper[ShutdownerWithContextAndError]).getInstance(nil)
+	_, _ = service2.(serviceWrapper[ShutdownerWithContextAndError]).getInstance(i2)
 	is.True(service2.(serviceWrapper[ShutdownerWithContextAndError]).isShutdowner())
 
 	// shutdown ko
@@ -282,21 +284,21 @@ func TestServiceAlias_isShutdowner(t *testing.T) {
 	is.Nil(As[*lazyTestShutdownerKO, ShutdownerWithError](i3))
 	service3, _ := i3.serviceGet("github.com/samber/do/v2.ShutdownerWithError")
 	is.False(service3.(serviceWrapper[ShutdownerWithError]).isShutdowner())
-	_, _ = service3.(serviceWrapper[ShutdownerWithError]).getInstance(nil)
+	_, _ = service3.(serviceWrapper[ShutdownerWithError]).getInstance(i3)
 	is.True(service3.(serviceWrapper[ShutdownerWithError]).isShutdowner())
 
 	// service not found (wrong type)
 	i4 := New()
 	service4 := newServiceAlias[*lazyTestShutdownerKO, Healthchecker]("*github.com/samber/do/v2.Healthchecker", i4, "*github.com/samber/do/v2.lazyTestShutdownerKO")
 	is.False(service4.isShutdowner())
-	_, _ = service4.getInstanceAny(nil)
+	_, _ = service4.getInstanceAny(i4)
 	is.False(service4.isShutdowner())
 
 	// service not found (wrong name)
 	i5 := New()
 	service5 := newServiceAlias[*lazyTestShutdownerOK, Healthchecker]("*github.com/samber/do/v2.Healthchecker", i5, "*github.com/samber/do/v2.lazyTestShutdownerKO")
 	is.False(service5.isShutdowner())
-	_, _ = service5.getInstanceAny(nil)
+	_, _ = service5.getInstanceAny(i5)
 	is.False(service5.isShutdowner())
 }
 
@@ -324,7 +326,7 @@ func TestServiceAlias_shutdown(t *testing.T) {
 	is.Nil(As[*lazyTestShutdownerOK, ShutdownerWithContextAndError](i2))
 	service2, _ := i2.serviceGet("github.com/samber/do/v2.ShutdownerWithContextAndError")
 	is.Nil(service2.(serviceWrapper[ShutdownerWithContextAndError]).shutdown(ctx))
-	_, _ = service2.(serviceWrapper[ShutdownerWithContextAndError]).getInstance(nil)
+	_, _ = service2.(serviceWrapper[ShutdownerWithContextAndError]).getInstance(i2)
 	is.Nil(service2.(serviceWrapper[ShutdownerWithContextAndError]).shutdown(ctx))
 
 	// shutdown ko
@@ -335,21 +337,21 @@ func TestServiceAlias_shutdown(t *testing.T) {
 	is.Nil(As[*lazyTestShutdownerKO, ShutdownerWithError](i3))
 	service3, _ := i3.serviceGet("github.com/samber/do/v2.ShutdownerWithError")
 	is.Nil(service3.(serviceWrapper[ShutdownerWithError]).shutdown(ctx))
-	_, _ = service3.(serviceWrapper[ShutdownerWithError]).getInstance(nil)
+	_, _ = service3.(serviceWrapper[ShutdownerWithError]).getInstance(i3)
 	is.Equal(assert.AnError, service3.(serviceWrapper[ShutdownerWithError]).shutdown(ctx))
 
 	// service not found (wrong type)
 	i4 := New()
 	service4 := newServiceAlias[*lazyTestShutdownerKO, Healthchecker]("github.com/samber/do/v2.Healthchecker", i4, "*github.com/samber/do/v2.lazyTestShutdownerKO")
 	is.Nil(service4.shutdown(ctx))
-	_, _ = service4.getInstanceAny(nil)
+	_, _ = service4.getInstanceAny(i4)
 	is.Nil(service4.shutdown(ctx))
 
 	// service not found (wrong name)
 	i5 := New()
 	service5 := newServiceAlias[*lazyTestShutdownerOK, Healthchecker]("github.com/samber/do/v2.Healthchecker", i5, "*github.com/samber/do/v2.lazyTestHeathcheckerKO")
 	is.Nil(service5.shutdown(ctx))
-	_, _ = service5.getInstanceAny(nil)
+	_, _ = service5.getInstanceAny(i5)
 	is.Nil(service5.shutdown(ctx))
 }
 
