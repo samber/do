@@ -3,11 +3,13 @@ package do
 import (
 	"context"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 )
 
 func TestHealthCheck(t *testing.T) {
+	testWithTimeout(t, 100*time.Millisecond)
 	is := assert.New(t)
 
 	i := New()
@@ -30,6 +32,7 @@ func TestHealthCheck(t *testing.T) {
 }
 
 func TestHealthCheckWithContext(t *testing.T) {
+	testWithTimeout(t, 100*time.Millisecond)
 	is := assert.New(t)
 
 	i := New()
@@ -45,6 +48,7 @@ func TestHealthCheckWithContext(t *testing.T) {
 }
 
 func TestHealthCheckNamed(t *testing.T) {
+	testWithTimeout(t, 100*time.Millisecond)
 	is := assert.New(t)
 
 	i := New()
@@ -57,6 +61,7 @@ func TestHealthCheckNamed(t *testing.T) {
 }
 
 func TestHealthCheckNamedWithContext(t *testing.T) {
+	testWithTimeout(t, 100*time.Millisecond)
 	is := assert.New(t)
 
 	i := New()
@@ -72,6 +77,7 @@ func TestHealthCheckNamedWithContext(t *testing.T) {
 }
 
 func TestShutdown(t *testing.T) {
+	testWithTimeout(t, 100*time.Millisecond)
 	is := assert.New(t)
 
 	type test struct {
@@ -100,6 +106,7 @@ func TestShutdown(t *testing.T) {
 }
 
 func TestShutdownWithContext(t *testing.T) {
+	testWithTimeout(t, 100*time.Millisecond)
 	is := assert.New(t)
 
 	i := New()
@@ -115,6 +122,7 @@ func TestShutdownWithContext(t *testing.T) {
 }
 
 func TestMustShutdown(t *testing.T) {
+	testWithTimeout(t, 100*time.Millisecond)
 	is := assert.New(t)
 
 	type test struct {
@@ -145,6 +153,7 @@ func TestMustShutdown(t *testing.T) {
 }
 
 func TestMustShutdownWithContext(t *testing.T) {
+	testWithTimeout(t, 100*time.Millisecond)
 	is := assert.New(t)
 
 	i := New()
@@ -164,6 +173,7 @@ func TestMustShutdownWithContext(t *testing.T) {
 }
 
 func TestShutdownNamed(t *testing.T) {
+	testWithTimeout(t, 100*time.Millisecond)
 	is := assert.New(t)
 
 	i := New()
@@ -186,6 +196,7 @@ func TestShutdownNamed(t *testing.T) {
 }
 
 func TestShutdownNamedWithContext(t *testing.T) {
+	testWithTimeout(t, 100*time.Millisecond)
 	is := assert.New(t)
 
 	i := New()
@@ -201,6 +212,7 @@ func TestShutdownNamedWithContext(t *testing.T) {
 }
 
 func TestMustShutdownNamed(t *testing.T) {
+	testWithTimeout(t, 100*time.Millisecond)
 	is := assert.New(t)
 
 	i := New()
@@ -225,6 +237,7 @@ func TestMustShutdownNamed(t *testing.T) {
 }
 
 func TestMustShutdownNamedWithContext(t *testing.T) {
+	testWithTimeout(t, 100*time.Millisecond)
 	is := assert.New(t)
 
 	i := New()
@@ -244,6 +257,7 @@ func TestMustShutdownNamedWithContext(t *testing.T) {
 }
 
 func TestDoubleInjection(t *testing.T) {
+	testWithTimeout(t, 100*time.Millisecond)
 	is := assert.New(t)
 
 	type test struct{}

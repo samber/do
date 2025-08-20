@@ -3,11 +3,13 @@ package do
 import (
 	"context"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 )
 
 func TestNewServiceAlias(t *testing.T) {
+	testWithTimeout(t, 100*time.Millisecond)
 	t.Parallel()
 	is := assert.New(t)
 
@@ -20,6 +22,7 @@ func TestNewServiceAlias(t *testing.T) {
 }
 
 func TestServiceAlias_getName(t *testing.T) {
+	testWithTimeout(t, 100*time.Millisecond)
 	t.Parallel()
 	is := assert.New(t)
 
@@ -30,6 +33,7 @@ func TestServiceAlias_getName(t *testing.T) {
 }
 
 func TestServiceAlias_getTypeName(t *testing.T) {
+	testWithTimeout(t, 100*time.Millisecond)
 	t.Parallel()
 	is := assert.New(t)
 
@@ -40,6 +44,7 @@ func TestServiceAlias_getTypeName(t *testing.T) {
 }
 
 func TestServiceAlias_getServiceType(t *testing.T) {
+	testWithTimeout(t, 100*time.Millisecond)
 	t.Parallel()
 	is := assert.New(t)
 
@@ -50,6 +55,7 @@ func TestServiceAlias_getServiceType(t *testing.T) {
 }
 
 func TestServiceAlias_getReflectType(t *testing.T) {
+	testWithTimeout(t, 100*time.Millisecond)
 	t.Parallel()
 	is := assert.New(t)
 
@@ -64,6 +70,7 @@ func TestServiceAlias_getReflectType(t *testing.T) {
 }
 
 func TestServiceAlias_getInstanceAny(t *testing.T) {
+	testWithTimeout(t, 100*time.Millisecond)
 	t.Parallel()
 	is := assert.New(t)
 
@@ -100,6 +107,7 @@ func TestServiceAlias_getInstanceAny(t *testing.T) {
 }
 
 func TestServiceAlias_getInstance(t *testing.T) {
+	testWithTimeout(t, 100*time.Millisecond)
 	t.Parallel()
 	is := assert.New(t)
 
@@ -136,6 +144,7 @@ func TestServiceAlias_getInstance(t *testing.T) {
 }
 
 func TestServiceAlias_isHealthchecker(t *testing.T) {
+	testWithTimeout(t, 100*time.Millisecond)
 	t.Parallel()
 	is := assert.New(t)
 
@@ -187,6 +196,7 @@ func TestServiceAlias_isHealthchecker(t *testing.T) {
 
 // @TODO: missing tests for context
 func TestServiceAlias_healthcheck(t *testing.T) {
+	testWithTimeout(t, 100*time.Millisecond)
 	t.Parallel()
 	is := assert.New(t)
 
@@ -240,6 +250,7 @@ func TestServiceAlias_healthcheck(t *testing.T) {
 
 // @TODO: missing tests for context
 func TestServiceAlias_isShutdowner(t *testing.T) {
+	testWithTimeout(t, 100*time.Millisecond)
 	t.Parallel()
 	is := assert.New(t)
 
@@ -290,6 +301,7 @@ func TestServiceAlias_isShutdowner(t *testing.T) {
 }
 
 func TestServiceAlias_shutdown(t *testing.T) {
+	testWithTimeout(t, 100*time.Millisecond)
 	t.Parallel()
 	is := assert.New(t)
 
@@ -342,9 +354,11 @@ func TestServiceAlias_shutdown(t *testing.T) {
 }
 
 func TestServiceAlias_clone(t *testing.T) {
+	testWithTimeout(t, 100*time.Millisecond)
 	// @TODO
 }
 
 func TestServiceAlias_source(t *testing.T) {
+	testWithTimeout(t, 100*time.Millisecond)
 	// @TODO
 }

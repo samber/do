@@ -2,11 +2,13 @@ package do
 
 import (
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 )
 
 func TestGetInjectorOrDefault(t *testing.T) {
+	testWithTimeout(t, 100*time.Millisecond)
 	is := assert.New(t)
 
 	is.Equal(DefaultRootScope, getInjectorOrDefault(nil))

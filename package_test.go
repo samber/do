@@ -3,11 +3,13 @@ package do
 import (
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 )
 
 func TestPackage(t *testing.T) {
+	testWithTimeout(t, 100*time.Millisecond)
 	is := assert.New(t)
 
 	type test struct{}
@@ -44,6 +46,7 @@ func TestPackage(t *testing.T) {
 }
 
 func TestNewWithPackage(t *testing.T) {
+	testWithTimeout(t, 100*time.Millisecond)
 	is := assert.New(t)
 
 	type test struct{}
@@ -81,6 +84,7 @@ func TestNewWithPackage(t *testing.T) {
 }
 
 func TestLazy(t *testing.T) {
+	testWithTimeout(t, 100*time.Millisecond)
 	is := assert.New(t)
 
 	type test struct{}
@@ -113,6 +117,7 @@ func TestLazy(t *testing.T) {
 }
 
 func TestLazyNamed(t *testing.T) {
+	testWithTimeout(t, 100*time.Millisecond)
 	is := assert.New(t)
 
 	type test struct{}
@@ -145,6 +150,7 @@ func TestLazyNamed(t *testing.T) {
 }
 
 func TestEager(t *testing.T) {
+	testWithTimeout(t, 100*time.Millisecond)
 	is := assert.New(t)
 
 	type test struct{}
@@ -169,6 +175,7 @@ func TestEager(t *testing.T) {
 }
 
 func TestEagerNamed(t *testing.T) {
+	testWithTimeout(t, 100*time.Millisecond)
 	is := assert.New(t)
 
 	type test struct{}
@@ -193,6 +200,7 @@ func TestEagerNamed(t *testing.T) {
 }
 
 func TestTransient(t *testing.T) {
+	testWithTimeout(t, 100*time.Millisecond)
 	is := assert.New(t)
 
 	type test struct{}
@@ -225,6 +233,7 @@ func TestTransient(t *testing.T) {
 }
 
 func TestTransientNamed(t *testing.T) {
+	testWithTimeout(t, 100*time.Millisecond)
 	is := assert.New(t)
 
 	type test struct{}
@@ -257,6 +266,7 @@ func TestTransientNamed(t *testing.T) {
 }
 
 func TestBind(t *testing.T) {
+	testWithTimeout(t, 100*time.Millisecond)
 	is := assert.New(t)
 
 	type test struct{}
@@ -293,6 +303,7 @@ func TestBind(t *testing.T) {
 }
 
 func TestBindNamed(t *testing.T) {
+	testWithTimeout(t, 100*time.Millisecond)
 	is := assert.New(t)
 
 	type test struct{}

@@ -2,6 +2,7 @@ package do
 
 import (
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -11,6 +12,7 @@ import (
 /////////////////////////////////////////////////////////////////////////////
 
 func TestAs(t *testing.T) {
+	testWithTimeout(t, 100*time.Millisecond)
 	is := assert.New(t)
 
 	i := New()
@@ -30,10 +32,12 @@ func TestAs(t *testing.T) {
 }
 
 func TestMustAs(t *testing.T) {
+	testWithTimeout(t, 100*time.Millisecond)
 	// @TODO
 }
 
 func TestAsNamed(t *testing.T) {
+	testWithTimeout(t, 100*time.Millisecond)
 	is := assert.New(t)
 
 	i := New()
@@ -50,6 +54,7 @@ func TestAsNamed(t *testing.T) {
 }
 
 func TestMustAsNamed(t *testing.T) {
+	testWithTimeout(t, 100*time.Millisecond)
 	// @TODO
 }
 
@@ -58,6 +63,7 @@ func TestMustAsNamed(t *testing.T) {
 /////////////////////////////////////////////////////////////////////////////
 
 func TestInvokeAs(t *testing.T) {
+	testWithTimeout(t, 100*time.Millisecond)
 	is := assert.New(t)
 
 	i := New()
@@ -82,5 +88,6 @@ func TestInvokeAs(t *testing.T) {
 }
 
 func TestMustInvokeAs(t *testing.T) {
+	testWithTimeout(t, 100*time.Millisecond)
 	// @TODO
 }

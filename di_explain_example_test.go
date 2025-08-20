@@ -18,7 +18,7 @@ func (s *explainTestService) Shutdown() error {
 	return nil
 }
 
-func explainTestServiceProvider(i Injector) (*explainTestService, error) {
+func newExplainTestService(i Injector) (*explainTestService, error) {
 	return &explainTestService{
 		Name:  "explain-test-service",
 		Value: MustInvokeNamed[int](i, "value"),
@@ -29,7 +29,7 @@ func ExampleExplainService() {
 	injector := New()
 
 	ProvideNamedValue(injector, "value", 42)
-	Provide(injector, explainTestServiceProvider)
+	Provide(injector, newExplainTestService)
 	_, _ = Invoke[*explainTestService](injector)
 
 	explanation, found := ExplainService[*explainTestService](injector)
@@ -53,7 +53,7 @@ func ExampleExplainService() {
 	// Service name: *github.com/samber/do/v2.explainTestService
 	// Service type: lazy
 	// Service build time: 10ms
-	// Invoked: /Users/samber/project/github.com/samber/do/di_explain_example_test.go:explainTestServiceProvider:21
+	// Invoked: /Users/samber/project/github.com/samber/do/di_explain_example_test.go:newExplainTestService:21
 	//
 	// Dependencies:
 	// * value from scope [root]
@@ -65,7 +65,7 @@ func ExampleExplainNamedService() {
 	injector := New()
 
 	ProvideNamedValue(injector, "value", 42)
-	ProvideNamed(injector, "my-service", explainTestServiceProvider)
+	ProvideNamed(injector, "my-service", newExplainTestService)
 	_, _ = InvokeNamed[*explainTestService](injector, "my-service")
 
 	explanation, found := ExplainNamedService(injector, "my-service")
@@ -89,7 +89,7 @@ func ExampleExplainNamedService() {
 	// Service name: my-service
 	// Service type: lazy
 	// Service build time: 10ms
-	// Invoked: /Users/samber/project/github.com/samber/do/di_explain_example_test.go:explainTestServiceProvider:21
+	// Invoked: /Users/samber/project/github.com/samber/do/di_explain_example_test.go:newExplainTestService:21
 	//
 	// Dependencies:
 	// * value from scope [root]
@@ -101,7 +101,7 @@ func ExampleExplainInjector() {
 	injector := New()
 
 	ProvideNamedValue(injector, "value", 42)
-	ProvideNamed(injector, "service1", explainTestServiceProvider)
+	ProvideNamed(injector, "service1", newExplainTestService)
 	ProvideNamedValue(injector, "service2", "value")
 
 	explanation := ExplainInjector(injector)

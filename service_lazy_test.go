@@ -91,10 +91,12 @@ func (t *lazyTestShutdownerKOCtx) Shutdown(ctx context.Context) error {
 }
 
 func TestNewServiceLazy(t *testing.T) {
+	testWithTimeout(t, 100*time.Millisecond)
 	// @TODO
 }
 
 func TestServiceLazy_getName(t *testing.T) {
+	testWithTimeout(t, 100*time.Millisecond)
 	t.Parallel()
 	is := assert.New(t)
 
@@ -115,6 +117,7 @@ func TestServiceLazy_getName(t *testing.T) {
 }
 
 func TestServiceLazy_getTypeName(t *testing.T) {
+	testWithTimeout(t, 100*time.Millisecond)
 	t.Parallel()
 	is := assert.New(t)
 
@@ -135,6 +138,7 @@ func TestServiceLazy_getTypeName(t *testing.T) {
 }
 
 func TestServiceLazy_getServiceType(t *testing.T) {
+	testWithTimeout(t, 100*time.Millisecond)
 	t.Parallel()
 	is := assert.New(t)
 
@@ -155,6 +159,7 @@ func TestServiceLazy_getServiceType(t *testing.T) {
 }
 
 func TestServiceLazy_getReflectType(t *testing.T) {
+	testWithTimeout(t, 100*time.Millisecond)
 	t.Parallel()
 	is := assert.New(t)
 
@@ -187,6 +192,7 @@ func TestServiceLazy_getReflectType(t *testing.T) {
 }
 
 func TestServiceLazy_getInstanceAny(t *testing.T) {
+	testWithTimeout(t, 100*time.Millisecond)
 	t.Parallel()
 	is := assert.New(t)
 
@@ -250,6 +256,7 @@ func TestServiceLazy_getInstanceAny(t *testing.T) {
 }
 
 func TestServiceLazy_getInstance(t *testing.T) {
+	testWithTimeout(t, 100*time.Millisecond)
 	t.Parallel()
 	is := assert.New(t)
 
@@ -313,6 +320,7 @@ func TestServiceLazy_getInstance(t *testing.T) {
 }
 
 func TestServiceLazy_build(t *testing.T) {
+	testWithTimeout(t, 100*time.Millisecond)
 	t.Parallel()
 	is := assert.New(t)
 
@@ -390,6 +398,7 @@ func TestServiceLazy_build(t *testing.T) {
 }
 
 func TestServiceLazy_isHealthchecker(t *testing.T) {
+	testWithTimeout(t, 100*time.Millisecond)
 	t.Parallel()
 	is := assert.New(t)
 
@@ -418,6 +427,7 @@ func TestServiceLazy_isHealthchecker(t *testing.T) {
 
 // @TODO: missing tests for context
 func TestServiceLazy_healthcheck(t *testing.T) {
+	testWithTimeout(t, 100*time.Millisecond)
 	t.Parallel()
 	is := assert.New(t)
 
@@ -450,6 +460,7 @@ func TestServiceLazy_healthcheck(t *testing.T) {
 
 // @TODO: missing tests for context
 func TestServiceLazy_isShutdowner(t *testing.T) {
+	testWithTimeout(t, 100*time.Millisecond)
 	t.Parallel()
 	is := assert.New(t)
 
@@ -478,6 +489,7 @@ func TestServiceLazy_isShutdowner(t *testing.T) {
 
 // @TODO: missing tests for context
 func TestServiceLazy_shutdown(t *testing.T) {
+	testWithTimeout(t, 100*time.Millisecond)
 	t.Parallel()
 	is := assert.New(t)
 
@@ -518,6 +530,7 @@ func TestServiceLazy_shutdown(t *testing.T) {
 }
 
 func TestServiceLazy_clone(t *testing.T) {
+	testWithTimeout(t, 100*time.Millisecond)
 	t.Parallel()
 	is := assert.New(t)
 
@@ -547,5 +560,6 @@ func TestServiceLazy_clone(t *testing.T) {
 }
 
 func TestServiceLazy_source(t *testing.T) {
+	testWithTimeout(t, 100*time.Millisecond)
 	// @TODO
 }

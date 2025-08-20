@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -53,10 +54,12 @@ func (t *transientTestShutdownerKO) Shutdown() error {
 }
 
 func TestNewServiceTransient(t *testing.T) {
+	testWithTimeout(t, 100*time.Millisecond)
 	// @TODO
 }
 
 func TestServiceTransient_getName(t *testing.T) {
+	testWithTimeout(t, 100*time.Millisecond)
 	t.Parallel()
 	is := assert.New(t)
 
@@ -77,6 +80,7 @@ func TestServiceTransient_getName(t *testing.T) {
 }
 
 func TestServiceTransient_getTypeName(t *testing.T) {
+	testWithTimeout(t, 100*time.Millisecond)
 	t.Parallel()
 	is := assert.New(t)
 
@@ -97,6 +101,7 @@ func TestServiceTransient_getTypeName(t *testing.T) {
 }
 
 func TestServiceTransient_getServiceType(t *testing.T) {
+	testWithTimeout(t, 100*time.Millisecond)
 	t.Parallel()
 	is := assert.New(t)
 
@@ -117,6 +122,7 @@ func TestServiceTransient_getServiceType(t *testing.T) {
 }
 
 func TestServiceTransient_getReflectType(t *testing.T) {
+	testWithTimeout(t, 100*time.Millisecond)
 	t.Parallel()
 	is := assert.New(t)
 
@@ -149,6 +155,7 @@ func TestServiceTransient_getReflectType(t *testing.T) {
 }
 
 func TestServiceTransient_getInstanceAny(t *testing.T) {
+	testWithTimeout(t, 100*time.Millisecond)
 	t.Parallel()
 	is := assert.New(t)
 
@@ -212,6 +219,7 @@ func TestServiceTransient_getInstanceAny(t *testing.T) {
 }
 
 func TestServiceTransient_getInstance(t *testing.T) {
+	testWithTimeout(t, 100*time.Millisecond)
 	t.Parallel()
 	is := assert.New(t)
 
@@ -276,6 +284,7 @@ func TestServiceTransient_getInstance(t *testing.T) {
 
 // @TODO: missing tests for context
 func TestServiceTransient_isHealthchecker(t *testing.T) {
+	testWithTimeout(t, 100*time.Millisecond)
 	t.Parallel()
 	is := assert.New(t)
 
@@ -304,6 +313,7 @@ func TestServiceTransient_isHealthchecker(t *testing.T) {
 
 // @TODO: missing tests for context
 func TestServiceTransient_healthcheck(t *testing.T) {
+	testWithTimeout(t, 100*time.Millisecond)
 	t.Parallel()
 	is := assert.New(t)
 
@@ -336,6 +346,7 @@ func TestServiceTransient_healthcheck(t *testing.T) {
 
 // @TODO: missing tests for context
 func TestServiceTransient_isShutdowner(t *testing.T) {
+	testWithTimeout(t, 100*time.Millisecond)
 	t.Parallel()
 	is := assert.New(t)
 
@@ -364,6 +375,7 @@ func TestServiceTransient_isShutdowner(t *testing.T) {
 
 // @TODO: missing tests for context
 func TestServiceTransient_shutdown(t *testing.T) {
+	testWithTimeout(t, 100*time.Millisecond)
 	t.Parallel()
 	is := assert.New(t)
 
@@ -395,6 +407,7 @@ func TestServiceTransient_shutdown(t *testing.T) {
 }
 
 func TestServiceTransient_clone(t *testing.T) {
+	testWithTimeout(t, 100*time.Millisecond)
 	t.Parallel()
 	is := assert.New(t)
 	// @TODO
@@ -417,6 +430,7 @@ func TestServiceTransient_clone(t *testing.T) {
 }
 
 func TestServiceTransient_source(t *testing.T) {
+	testWithTimeout(t, 100*time.Millisecond)
 	t.Parallel()
 	is := assert.New(t)
 

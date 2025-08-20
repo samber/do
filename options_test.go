@@ -2,11 +2,13 @@ package do
 
 import (
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 )
 
 func TestInjectorOpts_addHook(t *testing.T) {
+	testWithTimeout(t, 100*time.Millisecond)
 	is := assert.New(t)
 
 	hookBeforeRegistration := func(scope *Scope, serviceName string) {}
@@ -82,6 +84,7 @@ func TestInjectorOpts_addHook(t *testing.T) {
 }
 
 func TestInjectorOpts_onEvent(t *testing.T) {
+	testWithTimeout(t, 100*time.Millisecond)
 	is := assert.New(t)
 
 	result := ""

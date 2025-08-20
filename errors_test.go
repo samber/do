@@ -2,11 +2,13 @@ package do
 
 import (
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 )
 
 func TestShutdownErrors_Add(t *testing.T) {
+	testWithTimeout(t, 100*time.Millisecond)
 	is := assert.New(t)
 
 	se := newShutdownErrors()
@@ -27,6 +29,7 @@ func TestShutdownErrors_Add(t *testing.T) {
 }
 
 func TestShutdownErrors_Error(t *testing.T) {
+	testWithTimeout(t, 100*time.Millisecond)
 	is := assert.New(t)
 
 	se := newShutdownErrors()
@@ -46,6 +49,7 @@ func TestShutdownErrors_Error(t *testing.T) {
 }
 
 func TestMergeShutdownErrors(t *testing.T) {
+	testWithTimeout(t, 100*time.Millisecond)
 	is := assert.New(t)
 
 	se1 := newShutdownErrors()

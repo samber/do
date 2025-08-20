@@ -6,6 +6,7 @@ import (
 	"sort"
 	"strconv"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -215,6 +216,7 @@ func TestUtilsCoalesce(t *testing.T) {
 }
 
 func TestUtilsJobPool(t *testing.T) {
+	testWithTimeout(t, 100*time.Millisecond)
 	t.Parallel()
 	is := assert.New(t)
 
