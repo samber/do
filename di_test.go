@@ -4,11 +4,13 @@ import (
 	"fmt"
 	"sync"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 )
 
 func TestNameOf(t *testing.T) {
+	testWithTimeout(t, 100*time.Millisecond)
 	is := assert.New(t)
 
 	is.Equal("int", NameOf[int]())
@@ -19,6 +21,7 @@ func TestNameOf(t *testing.T) {
 }
 
 func TestProvide(t *testing.T) {
+	testWithTimeout(t, 100*time.Millisecond)
 	is := assert.New(t)
 
 	type test struct{}
@@ -69,6 +72,7 @@ func TestProvide(t *testing.T) {
 }
 
 func TestProvideNamed(t *testing.T) {
+	testWithTimeout(t, 100*time.Millisecond)
 	is := assert.New(t)
 
 	type test struct{}
@@ -119,6 +123,7 @@ func TestProvideNamed(t *testing.T) {
 }
 
 func TestProvideValue(t *testing.T) {
+	testWithTimeout(t, 100*time.Millisecond)
 	is := assert.New(t)
 
 	i := New()
@@ -163,6 +168,7 @@ func TestProvideValue(t *testing.T) {
 }
 
 func TestProvideNamedValue(t *testing.T) {
+	testWithTimeout(t, 100*time.Millisecond)
 	is := assert.New(t)
 
 	i := New()
@@ -207,6 +213,7 @@ func TestProvideNamedValue(t *testing.T) {
 }
 
 func TestProvideTransient(t *testing.T) {
+	testWithTimeout(t, 100*time.Millisecond)
 	is := assert.New(t)
 
 	type test struct{}
@@ -257,6 +264,7 @@ func TestProvideTransient(t *testing.T) {
 }
 
 func TestProvideNamedTransient(t *testing.T) {
+	testWithTimeout(t, 100*time.Millisecond)
 	is := assert.New(t)
 
 	type test struct{}
@@ -307,6 +315,7 @@ func TestProvideNamedTransient(t *testing.T) {
 }
 
 func TestProvide_race(t *testing.T) {
+	testWithTimeout(t, 300*time.Millisecond)
 	injector := New()
 
 	var wg sync.WaitGroup
@@ -330,6 +339,7 @@ func TestProvide_race(t *testing.T) {
 }
 
 func TestOverride(t *testing.T) {
+	testWithTimeout(t, 100*time.Millisecond)
 	is := assert.New(t)
 
 	type test struct {
@@ -349,20 +359,21 @@ func TestOverride(t *testing.T) {
 		})
 		is.Equal(1, MustInvoke[*test](i).foobar)
 
-		// OverrideNamed(i, "*github.com/samber/do/v2.test", func(i Injector) (*test, error) {
-		// 	return &test{2}, nil
-		// })
-		// is.Equal(2, MustInvoke[*test](i).foobar)
+		OverrideNamed(i, "*github.com/samber/do/v2.test", func(i Injector) (*test, error) {
+			return &test{2}, nil
+		})
+		is.Equal(2, MustInvoke[*test](i).foobar)
 
-		// OverrideValue(i, &test{3})
-		// is.Equal(3, MustInvoke[*test](i).foobar)
+		OverrideValue(i, &test{3})
+		is.Equal(3, MustInvoke[*test](i).foobar)
 
-		// OverrideNamedValue(i, "*github.com/samber/do/v2.test", &test{4})
-		// is.Equal(4, MustInvoke[*test](i).foobar)
+		OverrideNamedValue(i, "*github.com/samber/do/v2.test", &test{4})
+		is.Equal(4, MustInvoke[*test](i).foobar)
 	})
 }
 
 func TestOverrideNamed(t *testing.T) {
+	testWithTimeout(t, 100*time.Millisecond)
 	is := assert.New(t)
 
 	type test struct {
@@ -383,6 +394,7 @@ func TestOverrideNamed(t *testing.T) {
 }
 
 func TestOverrideValue(t *testing.T) {
+	testWithTimeout(t, 100*time.Millisecond)
 	is := assert.New(t)
 
 	type test struct {
@@ -403,6 +415,7 @@ func TestOverrideValue(t *testing.T) {
 }
 
 func TestOverrideNamedValue(t *testing.T) {
+	testWithTimeout(t, 100*time.Millisecond)
 	is := assert.New(t)
 
 	type test struct {
@@ -421,14 +434,17 @@ func TestOverrideNamedValue(t *testing.T) {
 }
 
 func TestOverrideTransient(t *testing.T) {
+	testWithTimeout(t, 100*time.Millisecond)
 	// @TODO
 }
 
 func TestOverrideNamedTransient(t *testing.T) {
+	testWithTimeout(t, 100*time.Millisecond)
 	// @TODO
 }
 
 func TestInvoke(t *testing.T) {
+	testWithTimeout(t, 100*time.Millisecond)
 	is := assert.New(t)
 
 	type test struct {
@@ -469,6 +485,7 @@ func TestInvoke(t *testing.T) {
 }
 
 func TestMustInvoke(t *testing.T) {
+	testWithTimeout(t, 100*time.Millisecond)
 	is := assert.New(t)
 
 	i := New()
@@ -495,6 +512,7 @@ func TestMustInvoke(t *testing.T) {
 }
 
 func TestInvokeNamed(t *testing.T) {
+	testWithTimeout(t, 100*time.Millisecond)
 	is := assert.New(t)
 
 	i := New()
@@ -536,6 +554,7 @@ func TestInvokeNamed(t *testing.T) {
 }
 
 func TestMustInvokeNamed(t *testing.T) {
+	testWithTimeout(t, 100*time.Millisecond)
 	is := assert.New(t)
 
 	i := New()
@@ -559,6 +578,7 @@ func TestMustInvokeNamed(t *testing.T) {
 }
 
 func TestInvokeStruct(t *testing.T) {
+	testWithTimeout(t, 100*time.Millisecond)
 	is := assert.New(t)
 
 	i := New()
@@ -655,6 +675,7 @@ func TestInvokeStruct(t *testing.T) {
 }
 
 func TestMustInvokeStruct(t *testing.T) {
+	testWithTimeout(t, 100*time.Millisecond)
 	is := assert.New(t)
 	i := New()
 

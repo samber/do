@@ -2,11 +2,13 @@ package do
 
 import (
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 )
 
 func TestHandleProviderPanic(t *testing.T) {
+	testWithTimeout(t, 100*time.Millisecond)
 	t.Parallel()
 	is := assert.New(t)
 

@@ -9,6 +9,7 @@ import (
 )
 
 func TestNew(t *testing.T) {
+	testWithTimeout(t, 100*time.Millisecond)
 	t.Parallel()
 	is := assert.New(t)
 
@@ -34,6 +35,7 @@ func TestNew(t *testing.T) {
 }
 
 func TestNewWithOpts(t *testing.T) {
+	testWithTimeout(t, 100*time.Millisecond)
 	t.Parallel()
 	is := assert.New(t)
 
@@ -74,6 +76,7 @@ func TestNewWithOpts(t *testing.T) {
 }
 
 func TestRootScope_RootScope(t *testing.T) {
+	testWithTimeout(t, 100*time.Millisecond)
 	t.Parallel()
 	is := assert.New(t)
 
@@ -82,6 +85,7 @@ func TestRootScope_RootScope(t *testing.T) {
 }
 
 func TestRootScope_Ancestors(t *testing.T) {
+	testWithTimeout(t, 100*time.Millisecond)
 	t.Parallel()
 	is := assert.New(t)
 
@@ -158,6 +162,7 @@ func TestRootScope_queueServiceHealthcheck(t *testing.T) {
 }
 
 func TestRootScope_Clone(t *testing.T) {
+	testWithTimeout(t, 100*time.Millisecond)
 	is := assert.New(t)
 
 	opts := &InjectorOpts{
@@ -214,6 +219,7 @@ func TestRootScope_Clone(t *testing.T) {
 }
 
 func TestRootScope_CloneWithOpts(t *testing.T) {
+	testWithTimeout(t, 100*time.Millisecond)
 	is := assert.New(t)
 
 	i := New()
@@ -267,9 +273,16 @@ func TestRootScope_CloneWithOpts(t *testing.T) {
 }
 
 func TestRootScope_ShutdownOnSignals(t *testing.T) {
-	// @TODO
+	testWithTimeout(t, 100*time.Millisecond)
+	// Note: This test cannot be fully automated because it waits for OS signals (SIGINT, SIGTERM)
+	// which require user input or external process termination. In a real scenario, this method
+	// would block until the application receives a termination signal from the OS.
 }
 
 func TestRootScope_ShutdownOnSignalsWithContext(t *testing.T) {
-	// @TODO
+	testWithTimeout(t, 100*time.Millisecond)
+	// Note: This test cannot be fully automated because it waits for OS signals (SIGINT, SIGTERM)
+	// which require user input or external process termination. In a real scenario, this method
+	// would block until the application receives a termination signal from the OS or the context
+	// is cancelled.
 }

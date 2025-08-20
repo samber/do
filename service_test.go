@@ -3,11 +3,13 @@ package do
 import (
 	"reflect"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 )
 
 func TestInferServiceName(t *testing.T) {
+	testWithTimeout(t, 100*time.Millisecond)
 	t.Parallel()
 	is := assert.New(t)
 
@@ -19,14 +21,17 @@ func TestInferServiceName(t *testing.T) {
 }
 
 func TestInferServiceProviderStacktrace(t *testing.T) {
+	testWithTimeout(t, 100*time.Millisecond)
 	// @TODO
 }
 
 func TestInferServiceInfo(t *testing.T) {
+	testWithTimeout(t, 100*time.Millisecond)
 	// @TODO
 }
 
 func TestDoServiceCanCastToGeneric(t *testing.T) {
+	testWithTimeout(t, 100*time.Millisecond)
 	t.Parallel()
 	is := assert.New(t)
 
@@ -45,6 +50,7 @@ func TestDoServiceCanCastToGeneric(t *testing.T) {
 }
 
 func TestDoServiceCanCastToType(t *testing.T) {
+	testWithTimeout(t, 100*time.Millisecond)
 	t.Parallel()
 	is := assert.New(t)
 

@@ -46,6 +46,7 @@ func fakeProvider6(i Injector) (int, error) {
 }
 
 func TestFromTemplate(t *testing.T) {
+	testWithTimeout(t, 100*time.Millisecond)
 	is := assert.New(t)
 
 	output := fromTemplate("foobar", nil)
@@ -66,10 +67,12 @@ func TestFromTemplate(t *testing.T) {
 /////////////////////////////////////////////////////////////////////////////
 
 func TestExplainService_String(t *testing.T) {
+	testWithTimeout(t, 100*time.Millisecond)
 	// @TODO
 }
 
 func TestExplainServiceDependency_String(t *testing.T) {
+	testWithTimeout(t, 100*time.Millisecond)
 	is := assert.New(t)
 
 	a1 := ExplainServiceDependencyOutput{
@@ -113,10 +116,12 @@ func TestExplainServiceDependency_String(t *testing.T) {
 }
 
 func TestExplainService(t *testing.T) {
+	testWithTimeout(t, 100*time.Millisecond)
 	// @TODO
 }
 
 func TestExplainNamedService(t *testing.T) {
+	testWithTimeout(t, 100*time.Millisecond)
 	is := assert.New(t)
 
 	// prepare env
@@ -199,14 +204,17 @@ Dependents:
 /////////////////////////////////////////////////////////////////////////////
 
 func TestExplainInjector_String(t *testing.T) {
+	testWithTimeout(t, 100*time.Millisecond)
 	// @TODO
 }
 
 func TestExplainInjectorScope_String(t *testing.T) {
+	testWithTimeout(t, 100*time.Millisecond)
 	// @TODO
 }
 
 func TestExplainInjectorService_String(t *testing.T) {
+	testWithTimeout(t, 100*time.Millisecond)
 	is := assert.New(t)
 
 	svc := ExplainInjectorServiceOutput{ServiceName: "service-name", ServiceType: ServiceTypeLazy, ServiceTypeIcon: "😴", ServiceBuildTime: 1 * time.Second, IsHealthchecker: true, IsShutdowner: true}
@@ -223,6 +231,7 @@ func TestExplainInjectorService_String(t *testing.T) {
 }
 
 func TestExplainInjector(t *testing.T) {
+	testWithTimeout(t, 100*time.Millisecond)
 	is := assert.New(t)
 
 	// prepare env

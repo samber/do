@@ -14,6 +14,7 @@ import (
 )
 
 func TestNewScope(t *testing.T) {
+	testWithTimeout(t, 100*time.Millisecond)
 	is := assert.New(t)
 
 	parentScope := &Scope{name: "[root]"}
@@ -31,6 +32,7 @@ func TestNewScope(t *testing.T) {
 }
 
 func TestScope_ID(t *testing.T) {
+	testWithTimeout(t, 100*time.Millisecond)
 	is := assert.New(t)
 
 	scope := newScope("foobar", nil, nil)
@@ -40,6 +42,7 @@ func TestScope_ID(t *testing.T) {
 }
 
 func TestScope_Name(t *testing.T) {
+	testWithTimeout(t, 100*time.Millisecond)
 	is := assert.New(t)
 
 	scope := newScope("foobar", nil, nil)
@@ -49,6 +52,7 @@ func TestScope_Name(t *testing.T) {
 }
 
 func TestScope_Scope(t *testing.T) {
+	testWithTimeout(t, 100*time.Millisecond)
 	is := assert.New(t)
 
 	parentScope := &Scope{name: "[root]"}
@@ -88,6 +92,7 @@ func TestScope_Scope(t *testing.T) {
 }
 
 func TestScope_Scope_race(t *testing.T) {
+	testWithTimeout(t, 300*time.Millisecond)
 	injector := New()
 
 	var wg sync.WaitGroup
@@ -102,6 +107,7 @@ func TestScope_Scope_race(t *testing.T) {
 }
 
 func TestScope_RootScope(t *testing.T) {
+	testWithTimeout(t, 100*time.Millisecond)
 	is := assert.New(t)
 
 	rootScope := New()
@@ -119,6 +125,7 @@ func TestScope_RootScope(t *testing.T) {
 }
 
 func TestScope_Ancestors(t *testing.T) {
+	testWithTimeout(t, 100*time.Millisecond)
 	is := assert.New(t)
 
 	rootScope := New()
@@ -136,6 +143,7 @@ func TestScope_Ancestors(t *testing.T) {
 }
 
 func TestScope_Children(t *testing.T) {
+	testWithTimeout(t, 100*time.Millisecond)
 	is := assert.New(t)
 
 	rootScope := New()
@@ -154,6 +162,7 @@ func TestScope_Children(t *testing.T) {
 }
 
 func TestScope_ChildByID(t *testing.T) {
+	testWithTimeout(t, 100*time.Millisecond)
 	is := assert.New(t)
 
 	rootScope := New()
@@ -907,10 +916,6 @@ func (s *scopeTestBlockingShutdowner) getShutdownCount() int {
 	return int(atomic.LoadInt32(&s.shutdownCount))
 }
 
-func (s *scopeTestBlockingShutdowner) unblock() {
-	close(s.blocked)
-}
-
 var _ HealthcheckerWithContext = (*scopeTestBlockingHealthchecker)(nil)
 
 type scopeTestBlockingHealthchecker struct {
@@ -939,12 +944,9 @@ func (s *scopeTestBlockingHealthchecker) getHealthcheckCount() int {
 	return int(atomic.LoadInt32(&s.healthcheckCount))
 }
 
-func (s *scopeTestBlockingHealthchecker) unblock() {
-	close(s.blocked)
-}
-
 // Test shutdown context expiration
 func TestScope_ShutdownWithContextExpiration_Timeout(t *testing.T) {
+	testWithTimeout(t, 450*time.Millisecond)
 	is := assert.New(t)
 	injector := New()
 
@@ -973,6 +975,7 @@ func TestScope_ShutdownWithContextExpiration_Timeout(t *testing.T) {
 }
 
 func TestScope_ShutdownWithContextExpiration_Cancellation(t *testing.T) {
+	testWithTimeout(t, 450*time.Millisecond)
 	is := assert.New(t)
 	injector := New()
 
@@ -1008,6 +1011,7 @@ func TestScope_ShutdownWithContextExpiration_Cancellation(t *testing.T) {
 }
 
 func TestScope_ShutdownWithContextExpiration_MultipleServices(t *testing.T) {
+	testWithTimeout(t, 450*time.Millisecond)
 	is := assert.New(t)
 	injector := New()
 
