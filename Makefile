@@ -44,3 +44,6 @@ outdated: tools
 
 weight: tools
 	goweight
+
+doc:
+	cd docs && npm install && npm start
