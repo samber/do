@@ -74,11 +74,11 @@ func TestUtilsKeys(t *testing.T) {
 	t.Parallel()
 	is := assert.New(t)
 
-	value1 := keys[int, string](map[int]string{1: "foo", 2: "bar"})
+	value1 := keys(map[int]string{1: "foo", 2: "bar"})
 	sort.IntSlice(value1).Sort()
 	is.Equal([]int{1, 2}, value1)
 
-	value2 := keys[int, string](map[int]string{})
+	value2 := keys(map[int]string{})
 	is.Empty(value2)
 }
 
@@ -216,8 +216,8 @@ func TestUtilsCoalesce(t *testing.T) {
 }
 
 func TestUtilsJobPool(t *testing.T) {
-	testWithTimeout(t, 100*time.Millisecond)
 	t.Parallel()
+	testWithTimeout(t, 100*time.Millisecond)
 	is := assert.New(t)
 
 	p := newJobPool[error](42)

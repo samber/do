@@ -9,6 +9,7 @@ import (
 )
 
 func TestPackage(t *testing.T) {
+	t.Parallel()
 	testWithTimeout(t, 100*time.Millisecond)
 	is := assert.New(t)
 
@@ -46,6 +47,7 @@ func TestPackage(t *testing.T) {
 }
 
 func TestNewWithPackage(t *testing.T) {
+	t.Parallel()
 	testWithTimeout(t, 100*time.Millisecond)
 	is := assert.New(t)
 
@@ -84,6 +86,7 @@ func TestNewWithPackage(t *testing.T) {
 }
 
 func TestLazy(t *testing.T) {
+	t.Parallel()
 	testWithTimeout(t, 100*time.Millisecond)
 	is := assert.New(t)
 
@@ -117,6 +120,7 @@ func TestLazy(t *testing.T) {
 }
 
 func TestLazyNamed(t *testing.T) {
+	t.Parallel()
 	testWithTimeout(t, 100*time.Millisecond)
 	is := assert.New(t)
 
@@ -150,6 +154,7 @@ func TestLazyNamed(t *testing.T) {
 }
 
 func TestEager(t *testing.T) {
+	t.Parallel()
 	testWithTimeout(t, 100*time.Millisecond)
 	is := assert.New(t)
 
@@ -175,6 +180,7 @@ func TestEager(t *testing.T) {
 }
 
 func TestEagerNamed(t *testing.T) {
+	t.Parallel()
 	testWithTimeout(t, 100*time.Millisecond)
 	is := assert.New(t)
 
@@ -200,6 +206,7 @@ func TestEagerNamed(t *testing.T) {
 }
 
 func TestTransient(t *testing.T) {
+	t.Parallel()
 	testWithTimeout(t, 100*time.Millisecond)
 	is := assert.New(t)
 
@@ -233,6 +240,7 @@ func TestTransient(t *testing.T) {
 }
 
 func TestTransientNamed(t *testing.T) {
+	t.Parallel()
 	testWithTimeout(t, 100*time.Millisecond)
 	is := assert.New(t)
 
@@ -266,6 +274,7 @@ func TestTransientNamed(t *testing.T) {
 }
 
 func TestBind(t *testing.T) {
+	t.Parallel()
 	testWithTimeout(t, 100*time.Millisecond)
 	is := assert.New(t)
 
@@ -303,6 +312,7 @@ func TestBind(t *testing.T) {
 }
 
 func TestBindNamed(t *testing.T) {
+	t.Parallel()
 	testWithTimeout(t, 100*time.Millisecond)
 	is := assert.New(t)
 

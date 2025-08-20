@@ -58,8 +58,8 @@ func TestNewServiceEager(t *testing.T) {
 }
 
 func TestServiceEager_getName(t *testing.T) {
-	testWithTimeout(t, 100*time.Millisecond)
 	t.Parallel()
+	testWithTimeout(t, 100*time.Millisecond)
 	is := assert.New(t)
 
 	test := eagerTest{foobar: "foobar"}
@@ -72,8 +72,8 @@ func TestServiceEager_getName(t *testing.T) {
 }
 
 func TestServiceEager_getTypeName(t *testing.T) {
-	testWithTimeout(t, 100*time.Millisecond)
 	t.Parallel()
+	testWithTimeout(t, 100*time.Millisecond)
 	is := assert.New(t)
 
 	test := eagerTest{foobar: "foobar"}
@@ -86,8 +86,8 @@ func TestServiceEager_getTypeName(t *testing.T) {
 }
 
 func TestServiceEager_getServiceType(t *testing.T) {
-	testWithTimeout(t, 100*time.Millisecond)
 	t.Parallel()
+	testWithTimeout(t, 100*time.Millisecond)
 	is := assert.New(t)
 
 	test := eagerTest{foobar: "foobar"}
@@ -100,8 +100,8 @@ func TestServiceEager_getServiceType(t *testing.T) {
 }
 
 func TestServiceEager_getReflectType(t *testing.T) {
-	testWithTimeout(t, 100*time.Millisecond)
 	t.Parallel()
+	testWithTimeout(t, 100*time.Millisecond)
 	is := assert.New(t)
 
 	test := eagerTest{foobar: "foobar"}
@@ -123,8 +123,8 @@ func TestServiceEager_getReflectType(t *testing.T) {
 }
 
 func TestServiceEager_getInstanceAny(t *testing.T) {
-	testWithTimeout(t, 100*time.Millisecond)
 	t.Parallel()
+	testWithTimeout(t, 100*time.Millisecond)
 	is := assert.New(t)
 
 	test := eagerTest{foobar: "foobar"}
@@ -141,8 +141,8 @@ func TestServiceEager_getInstanceAny(t *testing.T) {
 }
 
 func TestServiceEager_getInstance(t *testing.T) {
-	testWithTimeout(t, 100*time.Millisecond)
 	t.Parallel()
+	testWithTimeout(t, 100*time.Millisecond)
 	is := assert.New(t)
 
 	test := eagerTest{foobar: "foobar"}
@@ -159,8 +159,8 @@ func TestServiceEager_getInstance(t *testing.T) {
 }
 
 func TestServiceEager_isHealthchecker(t *testing.T) {
-	testWithTimeout(t, 100*time.Millisecond)
 	t.Parallel()
+	testWithTimeout(t, 100*time.Millisecond)
 	is := assert.New(t)
 
 	// no healthcheck
@@ -178,8 +178,8 @@ func TestServiceEager_isHealthchecker(t *testing.T) {
 
 // @TODO: missing tests for context
 func TestServiceEager_healthcheck(t *testing.T) {
-	testWithTimeout(t, 100*time.Millisecond)
 	t.Parallel()
+	testWithTimeout(t, 100*time.Millisecond)
 	is := assert.New(t)
 
 	ctx := context.Background()
@@ -203,8 +203,8 @@ func TestServiceEager_healthcheck(t *testing.T) {
 }
 
 func TestServiceEager_isShutdowner(t *testing.T) {
-	testWithTimeout(t, 100*time.Millisecond)
 	t.Parallel()
+	testWithTimeout(t, 100*time.Millisecond)
 	is := assert.New(t)
 
 	// no shutdown
@@ -222,8 +222,8 @@ func TestServiceEager_isShutdowner(t *testing.T) {
 
 // @TODO: missing tests for context
 func TestServiceEager_shutdown(t *testing.T) {
-	testWithTimeout(t, 100*time.Millisecond)
 	t.Parallel()
+	testWithTimeout(t, 100*time.Millisecond)
 	is := assert.New(t)
 
 	ctx := context.Background()
@@ -247,8 +247,8 @@ func TestServiceEager_shutdown(t *testing.T) {
 }
 
 func TestServiceEager_clone(t *testing.T) {
-	testWithTimeout(t, 100*time.Millisecond)
 	t.Parallel()
+	testWithTimeout(t, 100*time.Millisecond)
 	is := assert.New(t)
 
 	test := eagerTest{foobar: "foobar"}

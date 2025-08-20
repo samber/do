@@ -96,8 +96,8 @@ func TestNewServiceLazy(t *testing.T) {
 }
 
 func TestServiceLazy_getName(t *testing.T) {
-	testWithTimeout(t, 100*time.Millisecond)
 	t.Parallel()
+	testWithTimeout(t, 100*time.Millisecond)
 	is := assert.New(t)
 
 	test := lazyTest{foobar: "foobar"}
@@ -117,8 +117,8 @@ func TestServiceLazy_getName(t *testing.T) {
 }
 
 func TestServiceLazy_getTypeName(t *testing.T) {
-	testWithTimeout(t, 100*time.Millisecond)
 	t.Parallel()
+	testWithTimeout(t, 100*time.Millisecond)
 	is := assert.New(t)
 
 	test := lazyTest{foobar: "foobar"}
@@ -138,8 +138,8 @@ func TestServiceLazy_getTypeName(t *testing.T) {
 }
 
 func TestServiceLazy_getServiceType(t *testing.T) {
-	testWithTimeout(t, 100*time.Millisecond)
 	t.Parallel()
+	testWithTimeout(t, 100*time.Millisecond)
 	is := assert.New(t)
 
 	test := lazyTest{foobar: "foobar"}
@@ -159,8 +159,8 @@ func TestServiceLazy_getServiceType(t *testing.T) {
 }
 
 func TestServiceLazy_getReflectType(t *testing.T) {
-	testWithTimeout(t, 100*time.Millisecond)
 	t.Parallel()
+	testWithTimeout(t, 100*time.Millisecond)
 	is := assert.New(t)
 
 	test := lazyTest{foobar: "foobar"}
@@ -192,8 +192,8 @@ func TestServiceLazy_getReflectType(t *testing.T) {
 }
 
 func TestServiceLazy_getInstanceAny(t *testing.T) {
-	testWithTimeout(t, 100*time.Millisecond)
 	t.Parallel()
+	testWithTimeout(t, 100*time.Millisecond)
 	is := assert.New(t)
 
 	test := lazyTest{foobar: "foobar"}
@@ -256,8 +256,8 @@ func TestServiceLazy_getInstanceAny(t *testing.T) {
 }
 
 func TestServiceLazy_getInstance(t *testing.T) {
-	testWithTimeout(t, 100*time.Millisecond)
 	t.Parallel()
+	testWithTimeout(t, 100*time.Millisecond)
 	is := assert.New(t)
 
 	test := lazyTest{foobar: "foobar"}
@@ -320,8 +320,8 @@ func TestServiceLazy_getInstance(t *testing.T) {
 }
 
 func TestServiceLazy_build(t *testing.T) {
-	testWithTimeout(t, 100*time.Millisecond)
 	t.Parallel()
+	testWithTimeout(t, 100*time.Millisecond)
 	is := assert.New(t)
 
 	test := lazyTest{foobar: "foobar"}
@@ -398,8 +398,8 @@ func TestServiceLazy_build(t *testing.T) {
 }
 
 func TestServiceLazy_isHealthchecker(t *testing.T) {
-	testWithTimeout(t, 100*time.Millisecond)
 	t.Parallel()
+	testWithTimeout(t, 100*time.Millisecond)
 	is := assert.New(t)
 
 	// no healthcheck
@@ -427,8 +427,8 @@ func TestServiceLazy_isHealthchecker(t *testing.T) {
 
 // @TODO: missing tests for context
 func TestServiceLazy_healthcheck(t *testing.T) {
-	testWithTimeout(t, 100*time.Millisecond)
 	t.Parallel()
+	testWithTimeout(t, 100*time.Millisecond)
 	is := assert.New(t)
 
 	ctx := context.Background()
@@ -460,8 +460,8 @@ func TestServiceLazy_healthcheck(t *testing.T) {
 
 // @TODO: missing tests for context
 func TestServiceLazy_isShutdowner(t *testing.T) {
-	testWithTimeout(t, 100*time.Millisecond)
 	t.Parallel()
+	testWithTimeout(t, 100*time.Millisecond)
 	is := assert.New(t)
 
 	// no shutdown
@@ -489,8 +489,8 @@ func TestServiceLazy_isShutdowner(t *testing.T) {
 
 // @TODO: missing tests for context
 func TestServiceLazy_shutdown(t *testing.T) {
-	testWithTimeout(t, 100*time.Millisecond)
 	t.Parallel()
+	testWithTimeout(t, 100*time.Millisecond)
 	is := assert.New(t)
 
 	ctx := context.Background()
@@ -530,8 +530,8 @@ func TestServiceLazy_shutdown(t *testing.T) {
 }
 
 func TestServiceLazy_clone(t *testing.T) {
-	testWithTimeout(t, 100*time.Millisecond)
 	t.Parallel()
+	testWithTimeout(t, 100*time.Millisecond)
 	is := assert.New(t)
 
 	// initial

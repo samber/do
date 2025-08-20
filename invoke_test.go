@@ -11,6 +11,7 @@ import (
 )
 
 func TestInvokeAnyByName(t *testing.T) {
+	t.Parallel()
 	testWithTimeout(t, 100*time.Millisecond)
 	is := assert.New(t)
 
@@ -63,6 +64,7 @@ func TestInvokeAnyByName(t *testing.T) {
 }
 
 func TestInvokeByName(t *testing.T) {
+	t.Parallel()
 	testWithTimeout(t, 100*time.Millisecond)
 	is := assert.New(t)
 
@@ -121,6 +123,7 @@ func TestInvokeByName(t *testing.T) {
 }
 
 func TestInvokeByGenericType(t *testing.T) {
+	t.Parallel()
 	testWithTimeout(t, 100*time.Millisecond)
 	is := assert.New(t)
 
@@ -243,6 +246,7 @@ func TestInvokeByGenericType_race(t *testing.T) {
 }
 
 func TestInvokeByTags(t *testing.T) {
+	t.Parallel()
 	testWithTimeout(t, 100*time.Millisecond)
 	is := assert.New(t)
 
@@ -322,6 +326,7 @@ func TestInvokeByTags(t *testing.T) {
 }
 
 func TestInvokeByTags_ImplicitAliasing_FallbackOnNotFound(t *testing.T) {
+	t.Parallel()
 	testWithTimeout(t, 100*time.Millisecond)
 	is := assert.New(t)
 
@@ -366,6 +371,7 @@ func TestInvokeByTags_ImplicitAliasing_FallbackOnNotFound(t *testing.T) {
 }
 
 func TestInvokeByTags_ImplicitAliasing_NoFallbackOnOtherErrors(t *testing.T) {
+	t.Parallel()
 	testWithTimeout(t, 100*time.Millisecond)
 	is := assert.New(t)
 
@@ -412,8 +418,8 @@ func TestInvokeByTags_ImplicitAliasing_NoFallbackOnOtherErrors(t *testing.T) {
 }
 
 func TestServiceNotFound(t *testing.T) {
-	testWithTimeout(t, 100*time.Millisecond)
 	t.Parallel()
+	testWithTimeout(t, 100*time.Millisecond)
 	is := assert.New(t)
 
 	rootScope := New()
