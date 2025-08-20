@@ -42,6 +42,11 @@ import (
 //
 // Chi routes are registered with the full basePath, so the debugging interface
 // will be available at the exact path specified in basePath.
+//
+// Security:
+// Do not expose these routes publicly in production. They reveal internal details
+// about your DI graph. Protect the basePath with authentication (e.g., Basic Auth)
+// and/or network restrictions. Apply your auth middleware before calling Use.
 func Use(router *chi.Mux, basePath string, injector do.Injector) {
 	router.Get(basePath, func(w http.ResponseWriter, r *http.Request) {
 		output, err := dohttp.IndexHTML(basePath)

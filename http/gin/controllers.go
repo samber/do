@@ -38,6 +38,12 @@ import (
 //   - Service dependency graphs
 //   - Service inspection and debugging tools
 //   - Navigation between different views
+//
+// Security:
+// Do not expose this group publicly in production. Protect it with authentication
+// (e.g., Basic Auth) and/or network restrictions, since it can leak internals
+// about your application's DI graph. Attach auth middleware to the router group
+// before calling Use.
 func Use(router *gin.RouterGroup, injector do.Injector) {
 	basePathDo := router.BasePath()
 
