@@ -393,9 +393,15 @@ func TestInvokeByGenericType(t *testing.T) {
 	// Should select the first matching service (order is not guaranteed, but should work)
 	healthchecker2, err := invokeByGenericType[Healthchecker](i)
 	is.Nil(err)
-	// The selection is non-deterministic, so we just check that we got one of them
-	is.True(healthchecker2.(*lazyTestHeathcheckerOK).foobar == "healthchecker" ||
-		healthchecker2.(*lazyTestHeathcheckerKO).foobar == "healthchecker2")
+
+	// Use safe type assertion to check which type we got
+	if okType, ok := healthchecker2.(*lazyTestHeathcheckerOK); ok {
+		is.Equal("healthchecker", okType.foobar)
+	} else if koType, ok := healthchecker2.(*lazyTestHeathcheckerKO); ok {
+		is.Equal("healthchecker2", koType.foobar)
+	} else {
+		is.Fail("Unexpected healthchecker type")
+	}
 }
 
 func TestInvokeByName_race(t *testing.T) {
