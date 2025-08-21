@@ -18,12 +18,12 @@ A shutdown can be triggered on a root scope:
 
 ```go
 // on demand
-injector.Shutdown() *do.ShutdownErrors
-injector.ShutdownWithContext(context.Context) *do.ShutdownErrors
+injector.Shutdown() *do.ShutdownReport
+injector.ShutdownWithContext(context.Context) *do.ShutdownReport
  
 // on signal (helper methods on the root scope)
-injector.ShutdownOnSignals(...os.Signal) (os.Signal, *do.ShutdownErrors)
-injector.ShutdownOnSignalsWithContext(context.Context, ...os.Signal) (os.Signal, *do.ShutdownErrors)
+injector.ShutdownOnSignals(...os.Signal) (os.Signal, *do.ShutdownReport)
+injector.ShutdownOnSignalsWithContext(context.Context, ...os.Signal) (os.Signal, *do.ShutdownReport)
 ```
 
 ...on a single service:

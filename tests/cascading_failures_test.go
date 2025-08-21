@@ -121,9 +121,9 @@ func TestCascadingShutdownFailures(t *testing.T) {
 	is.NoError(err)
 
 	// Shutdown should complete but with errors
-	shutdownErrors := root.Shutdown()
-	is.NotNil(shutdownErrors)
-	is.Contains(shutdownErrors.Error(), "shutdown failed for service-2")
+	report := root.Shutdown()
+	is.NotNil(report)
+	is.Contains(report.Error(), "shutdown failed for service-2")
 
 	// Verify shutdown order (all services should attempt shutdown)
 	is.Len(shutdownOrder, 3)

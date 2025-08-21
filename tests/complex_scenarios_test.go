@@ -52,8 +52,9 @@ func TestComplexServiceLifecycle(t *testing.T) {
 	is.NoError(err)
 
 	// Shutdown the root scope
-	shutdownErrors := root.Shutdown()
-	is.Nil(shutdownErrors)
+	report := root.Shutdown()
+	is.True(report.Succeed)
+	is.Len(report.Errors, 0)
 
 	// Verify all services were shut down
 	is.Len(shutdownOrder, 3)
@@ -307,8 +308,9 @@ func TestComplexContextHandling(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), 100*time.Millisecond)
 	defer cancel()
 
-	shutdownErrors := root.ShutdownWithContext(ctx)
-	is.Nil(shutdownErrors)
+	report := root.ShutdownWithContext(ctx)
+	is.True(report.Succeed)
+	is.Len(report.Errors, 0)
 }
 
 // Helper types for testing

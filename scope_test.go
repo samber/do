@@ -447,7 +447,9 @@ func TestScope_Shutdown(t *testing.T) {
 	_, _ = InvokeNamed[*lazyTestShutdownerOK](i, "lazy-ok")
 	_, _ = InvokeNamed[*lazyTestShutdownerKO](i, "lazy-ko")
 
-	is.EqualValues(&ShutdownErrors{EdgeService{ScopeID: i.self.id, ScopeName: i.self.name, Service: "lazy-ko"}: assert.AnError}, i.Shutdown())
+	shutdownReport := i.Shutdown()
+	is.Len(shutdownReport.Errors, 1)
+	is.Contains(shutdownReport.Errors, EdgeService{ScopeID: i.self.id, ScopeName: i.self.name, Service: "lazy-ko"})
 }
 
 // @TODO: missing tests for context
@@ -571,7 +573,8 @@ func TestScope_serviceHealthCheck(t *testing.T) {
 	_, _ = invokeByName[int](child3, "child3-a")
 
 	is.ElementsMatch([]EdgeService{newEdgeService(child3.id, child3.name, "child3-a"), newEdgeService(child2a.id, child2a.name, "child2a-a"), newEdgeService(child2a.id, child2a.name, "child2a-b"), newEdgeService(child1.id, child1.name, "child1-a")}, child3.ListInvokedServices())
-	is.Nil(child1.Shutdown())
+	shutdownReport := child1.Shutdown()
+	is.Len(shutdownReport.Errors, 0)
 	is.ElementsMatch([]EdgeService{}, child3.ListInvokedServices())
 }
 
@@ -840,7 +843,9 @@ func TestScope_Shutdown_NoDependencies(t *testing.T) {
 	ProvideNamedValue(i, "svc-c", &shutdownRecorder{called: &c})
 
 	// No dependencies between services; shutdown should call all three
-	is.Nil(i.Shutdown())
+	report := i.Shutdown()
+	is.True(report.Succeed)
+	is.Len(report.Errors, 0)
 
 	is.EqualValues(int32(1), atomic.LoadInt32(&a))
 	is.EqualValues(int32(1), atomic.LoadInt32(&b))
@@ -996,8 +1001,7 @@ func TestScope_ShutdownWithContextExpiration_Timeout(t *testing.T) {
 	is.Less(duration, 70*time.Millisecond)
 
 	// Should have shutdown errors due to timeout
-	is.NotNil(errors)
-	is.Equal(1, errors.Len())
+	is.Len(errors.Errors, 1)
 
 	// Check that the service was attempted to be shut down
 	is.Equal(1, slowService.getShutdownCount())
@@ -1017,12 +1021,12 @@ func TestScope_ShutdownWithContextExpiration_Cancellation(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 
 	// Start shutdown in goroutine
-	var shutdownErrors *ShutdownErrors
+	var report *ShutdownReport
 	var wg sync.WaitGroup
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		shutdownErrors = injector.ShutdownWithContext(ctx)
+		report = injector.ShutdownWithContext(ctx)
 	}()
 
 	// Cancel context after short delay
@@ -1033,8 +1037,9 @@ func TestScope_ShutdownWithContextExpiration_Cancellation(t *testing.T) {
 	wg.Wait()
 
 	// Should have shutdown errors due to cancellation
-	is.NotNil(shutdownErrors)
-	is.Equal(1, shutdownErrors.Len())
+	is.NotNil(report)
+	is.False(report.Succeed)
+	is.Len(report.Errors, 1)
 
 	// Check that the service was attempted to be shut down
 	is.Equal(1, blockingService.getShutdownCount())
@@ -1062,7 +1067,7 @@ func TestScope_ShutdownWithContextExpiration_MultipleServices(t *testing.T) {
 
 	// Should have shutdown errors due to timeout
 	is.NotNil(errors)
-	is.Equal(1, errors.Len())
+	is.Len(errors.Errors, 1)
 
 	// Both services should have been attempted
 	is.Equal(1, fastService.getShutdownCount())
@@ -1094,8 +1099,7 @@ func TestScope_ShutdownWithContextExpiration_ChildScopes(t *testing.T) {
 
 	// Shutdown should timeout - call shutdown on root scope should shut down all child scopes
 	errors := injector.ShutdownWithContext(ctx)
-	is.NotNil(errors)
-	is.Equal(2, errors.Len())
+	is.Len(errors.Errors, 2)
 
 	// Child service should have been attempted (child scopes are shut down first)
 	is.Equal(1, childService.getShutdownCount())
@@ -1322,9 +1326,10 @@ func TestScope_ContextExpiration_ShutdownAndHealthcheckSameTimeout(t *testing.T)
 	defer cancel()
 
 	// Test shutdown timeout
-	shutdownErrors := injector.ShutdownWithContext(ctx)
-	is.NotNil(shutdownErrors)
-	is.Equal(1, shutdownErrors.Len())
+	report := injector.ShutdownWithContext(ctx)
+	is.NotNil(report)
+	is.False(report.Succeed)
+	is.Len(report.Errors, 1)
 
 	// Recreate injector for healthcheck test
 	injector2 := New()
@@ -1357,12 +1362,12 @@ func TestScope_ContextExpiration_ParallelOperations(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 
 	// Start shutdown in goroutine
-	var shutdownErrors *ShutdownErrors
+	var report *ShutdownReport
 	var wg sync.WaitGroup
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		shutdownErrors = injector.ShutdownWithContext(ctx)
+		report = injector.ShutdownWithContext(ctx)
 	}()
 
 	// Cancel context after short delay
@@ -1373,8 +1378,9 @@ func TestScope_ContextExpiration_ParallelOperations(t *testing.T) {
 	wg.Wait()
 
 	// Should have shutdown errors due to cancellation
-	is.NotNil(shutdownErrors)
-	is.Equal(5, shutdownErrors.Len())
+	is.NotNil(report)
+	is.False(report.Succeed)
+	is.Len(report.Errors, 5)
 
 	// All services should have been attempted
 	for _, service := range services {

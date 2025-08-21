@@ -165,11 +165,11 @@ func (s *RootScope) HealthCheckWithContext(ctx context.Context) map[string]error
 }
 
 // Shutdown gracefully shuts down the root scope and all its descendant scopes.
-func (s *RootScope) Shutdown() *ShutdownErrors { return s.ShutdownWithContext(context.Background()) }
+func (s *RootScope) Shutdown() *ShutdownReport { return s.ShutdownWithContext(context.Background()) }
 
 // ShutdownWithContext gracefully shuts down the root scope and all its descendant scopes with context support.
 // This method ensures proper cleanup of the health check pool and all registered services.
-func (s *RootScope) ShutdownWithContext(ctx context.Context) *ShutdownErrors {
+func (s *RootScope) ShutdownWithContext(ctx context.Context) *ShutdownReport {
 	defer func() {
 		if s.healthCheckPool != nil {
 			s.healthCheckPool.stop()
@@ -287,14 +287,14 @@ func (s *RootScope) CloneWithOpts(opts *InjectorOpts) *RootScope {
 // ShutdownOnSignals listens for the provided signals in order to gracefully stop services.
 // It will block until receiving any of these signals.
 // If no signal is provided, syscall.SIGTERM and os.Interrupt will be handled by default.
-func (s *RootScope) ShutdownOnSignals(signals ...os.Signal) (os.Signal, *ShutdownErrors) {
+func (s *RootScope) ShutdownOnSignals(signals ...os.Signal) (os.Signal, *ShutdownReport) {
 	return s.ShutdownOnSignalsWithContext(context.Background(), signals...)
 }
 
 // ShutdownOnSignalsWithContext listens for the provided signals in order to gracefully stop services.
 // It will block until receiving any of these signals.
 // If no signal is provided, syscall.SIGTERM and os.Interrupt will be handled by default.
-func (s *RootScope) ShutdownOnSignalsWithContext(ctx context.Context, signals ...os.Signal) (os.Signal, *ShutdownErrors) {
+func (s *RootScope) ShutdownOnSignalsWithContext(ctx context.Context, signals ...os.Signal) (os.Signal, *ShutdownReport) {
 	// Make sure there is at least syscall.SIGTERM and os.Interrupt as a signal
 	if len(signals) < 1 {
 		signals = append(signals, syscall.SIGTERM, os.Interrupt)

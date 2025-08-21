@@ -1,74 +1,87 @@
 package do
 
 import (
+	"context"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/assert"
 )
 
-func TestShutdownErrors_Add(t *testing.T) {
+func TestShutdownReport_ErrorFormatting(t *testing.T) {
 	t.Parallel()
-	testWithTimeout(t, 100*time.Millisecond)
 	is := assert.New(t)
 
-	se := newShutdownErrors()
-	is.Equal(0, len(*se))
-	is.Equal(0, se.Len())
+	edge := EdgeService{ScopeID: "sid", ScopeName: "sname", Service: "svc"}
+	rep := ShutdownReport{
+		Succeed:             false,
+		Services:            []EdgeService{edge},
+		Errors:              map[EdgeService]error{edge: assert.AnError},
+		ShutdownTime:        0,
+		ServiceShutdownTime: map[EdgeService]time.Duration{edge: time.Millisecond},
+	}
 
-	se.Add("scope-1", "scope-a", "service-a", nil)
-	is.Equal(0, len(*se))
-	is.Equal(0, se.Len())
-	is.EqualValues(&ShutdownErrors{}, se)
-
-	se.Add("scope-2", "scope-b", "service-b", assert.AnError)
-	is.Equal(1, len(*se))
-	is.Equal(1, se.Len())
-	is.EqualValues(&ShutdownErrors{
-		{ScopeID: "scope-2", ScopeName: "scope-b", Service: "service-b"}: assert.AnError,
-	}, se)
+	is.Len(rep.Services, 1)
+	is.Len(rep.Errors, 1)
+	is.Len(rep.ServiceShutdownTime, 1)
+	msg := rep.Error()
+	is.Contains(msg, "DI: shutdown errors:")
+	is.Contains(msg, "sname > svc")
 }
 
-func TestShutdownErrors_Error(t *testing.T) {
+func TestScope_Shutdown_ReportFields(t *testing.T) {
 	t.Parallel()
-	testWithTimeout(t, 100*time.Millisecond)
 	is := assert.New(t)
 
-	se := newShutdownErrors()
-	is.Equal(0, len(*se))
-	is.Equal(0, se.Len())
-	is.EqualValues("DI: no shutdown errors", se.Error())
+	i := New()
 
-	se.Add("scope-1", "scope-a", "service-a", nil)
-	is.Equal(0, len(*se))
-	is.Equal(0, se.Len())
-	is.EqualValues("DI: no shutdown errors", se.Error())
+	// OK shutdowner
+	ProvideNamedValue(i, "ok-svc", &lazyTestShutdownerOK{})
+	// Failing shutdowner
+	ProvideNamedValue(i, "ko-svc", &lazyTestShutdownerKO{})
 
-	se.Add("scope-2", "scope-b", "service-b", assert.AnError)
-	is.Equal(1, len(*se))
-	is.Equal(1, se.Len())
-	is.EqualValues("DI: shutdown errors:\n  - scope-b > service-b: assert.AnError general error for testing", se.Error())
+	// Invoke both
+	_, _ = InvokeNamed[*lazyTestShutdownerOK](i, "ok-svc")
+	_, _ = InvokeNamed[*lazyTestShutdownerKO](i, "ko-svc")
+
+	rep := i.Shutdown()
+
+	is.NotNil(rep)
+	is.False(rep.Succeed)
+	is.Len(rep.Errors, 1)
+	// Two services were shut down
+	is.Len(rep.Services, 2)
+	is.Len(rep.ServiceShutdownTime, 2)
+
+	// Error should be attached to the failing service edge
+	failing := EdgeService{ScopeID: i.self.id, ScopeName: i.self.name, Service: "ko-svc"}
+	_, ok := rep.Errors[failing]
+	is.True(ok)
 }
 
-func TestMergeShutdownErrors(t *testing.T) {
+func TestScope_ShutdownWithContext_ReportTimings(t *testing.T) {
 	t.Parallel()
-	testWithTimeout(t, 100*time.Millisecond)
 	is := assert.New(t)
 
-	se1 := newShutdownErrors()
-	se2 := newShutdownErrors()
-	se3 := newShutdownErrors()
+	i := New()
+	// Create a slow shutdowner (100ms)
+	slow := newScopeTestSlowShutdowner(50 * time.Millisecond)
+	ProvideNamedValue(i, "slow", slow)
+	_, _ = InvokeNamed[*scopeTestSlowShutdowner](i, "slow")
 
-	se1.Add("scope-1", "scope-a", "service-a", assert.AnError)
-	se2.Add("scope-2", "scope-b", "service-b", assert.AnError)
+	// Use a generous timeout to allow shutdown to complete
+	ctx, cancel := context.WithTimeout(context.Background(), 200*time.Millisecond)
+	defer cancel()
 
-	result := mergeShutdownErrors(se1, se2, se3, nil)
-	is.Equal(2, result.Len())
-	is.EqualValues(
-		&ShutdownErrors{
-			{ScopeID: "scope-1", ScopeName: "scope-a", Service: "service-a"}: assert.AnError,
-			{ScopeID: "scope-2", ScopeName: "scope-b", Service: "service-b"}: assert.AnError,
-		},
-		result,
-	)
+	rep := i.ShutdownWithContext(ctx)
+
+	is.NotNil(rep)
+	is.True(rep.Succeed)
+	// One service
+	is.Len(rep.Services, 1)
+	// Per-service timing should be recorded and > 0
+	edge := EdgeService{ScopeID: i.self.id, ScopeName: i.self.name, Service: "slow"}
+	dt, ok := rep.ServiceShutdownTime[edge]
+	is.True(ok)
+	is.Greater(dt, time.Duration(0))
 }

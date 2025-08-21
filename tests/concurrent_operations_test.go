@@ -236,7 +236,7 @@ func TestConcurrentHealthCheckDuringShutdown(t *testing.T) {
 	is.NoError(err)
 
 	// Start shutdown in background
-	shutdownComplete := make(chan *do.ShutdownErrors)
+	shutdownComplete := make(chan *do.ShutdownReport)
 	go func() {
 		shutdownComplete <- root.Shutdown()
 	}()
@@ -255,10 +255,11 @@ func TestConcurrentHealthCheckDuringShutdown(t *testing.T) {
 	}
 
 	wg.Wait()
-	shutdownErrors := <-shutdownComplete
+	report := <-shutdownComplete
 
 	// Shutdown should complete successfully
-	is.Nil(shutdownErrors)
+	is.True(report.Succeed)
+	is.Len(report.Errors, 0)
 
 	// Health checks should either succeed or fail gracefully during shutdown
 	for i := 0; i < numHealthChecks; i++ {
@@ -473,7 +474,7 @@ func TestConcurrentShutdown(t *testing.T) {
 	// Concurrently shutdown the root scope
 	const numGoroutines = 5
 	var wg sync.WaitGroup
-	errors := make([]*do.ShutdownErrors, numGoroutines)
+	errors := make([]*do.ShutdownReport, numGoroutines)
 
 	for i := 0; i < numGoroutines; i++ {
 		wg.Add(1)
@@ -628,25 +629,26 @@ func TestConcurrentBlockingOperations(t *testing.T) {
 
 	const numGoroutines = 3
 	var wg sync.WaitGroup
-	errors := make([]*do.ShutdownErrors, numGoroutines)
+	reports := make([]*do.ShutdownReport, numGoroutines)
 
 	for i := 0; i < numGoroutines; i++ {
 		wg.Add(1)
 		go func(index int) {
 			defer wg.Done()
-			errors[index] = root.ShutdownWithContext(ctx)
+			reports[index] = root.ShutdownWithContext(ctx)
 		}(i)
 	}
 
 	wg.Wait()
 
 	// All shutdown operations should complete
-	// Some may have errors due to blocking/timeout, some may succeed if shutdown completes quickly
+	// Some may have erroreportsrs due to blocking/timeout, some may succeed if shutdown completes quickly
 	for i := 0; i < numGoroutines; i++ {
 		// Each shutdown call should return (either success or timeout)
 		// The result depends on timing - first call might succeed, others might timeout
 		// We just ensure all calls completed
-		_ = errors[i] // Either nil (success) or non-nil (timeout/error) is acceptable
+		is.NotNil(reports[i])
+		is.Less(len(reports[i].Services), 2)
 	}
 }
 

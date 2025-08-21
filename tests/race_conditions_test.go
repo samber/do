@@ -217,7 +217,7 @@ func TestRaceConditionShutdownInvocation(t *testing.T) {
 	const numOperations = 10
 	var wg sync.WaitGroup
 	invokeErrors := make([]error, numOperations)
-	shutdownErrors := make([]*do.ShutdownErrors, numOperations)
+	report := make([]*do.ShutdownReport, numOperations)
 
 	for i := 0; i < numOperations; i++ {
 		wg.Add(1)
@@ -230,7 +230,7 @@ func TestRaceConditionShutdownInvocation(t *testing.T) {
 				invokeErrors[index] = err
 			} else {
 				// Shutdown
-				shutdownErrors[index] = root.Shutdown()
+				report[index] = root.Shutdown()
 			}
 		}(i)
 	}
