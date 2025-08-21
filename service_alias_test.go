@@ -5,6 +5,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/samber/do/v2/stacktrace"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -356,11 +357,186 @@ func TestServiceAlias_shutdown(t *testing.T) {
 }
 
 func TestServiceAlias_clone(t *testing.T) {
+	t.Parallel()
 	testWithTimeout(t, 100*time.Millisecond)
-	// @TODO
+	is := assert.New(t)
+
+	// Create original service alias
+	originalScope := New()
+	newScope := New()
+
+	originalService := newServiceAlias[string, int]("test-alias", originalScope, "target-service")
+
+	// Set some invocation frames to test that they are reset
+	originalService.mu.Lock()
+	originalService.invokationFrames[stacktrace.Frame{File: "test.go", Line: 42}] = struct{}{}
+	originalService.invokationFrames[stacktrace.Frame{File: "test2.go", Line: 100}] = struct{}{}
+	originalService.invokationFramesCounter = 5
+	originalService.mu.Unlock()
+
+	// Clone the service
+	clonedServiceAny := originalService.clone(newScope)
+	clonedService, ok := clonedServiceAny.(*serviceAlias[string, int])
+	is.True(ok, "Clone should return the correct type")
+
+	// Test that all fields are properly copied
+	is.Equal(originalService.name, clonedService.name, "Name should be copied")
+	is.Equal(originalService.typeName, clonedService.typeName, "Type name should be copied")
+	is.Equal(originalService.targetName, clonedService.targetName, "Target name should be copied")
+	is.Equal(originalService.providerFrame, clonedService.providerFrame, "Provider frame should be copied")
+
+	// Test that scope is replaced with new scope
+	is.Equal(newScope, clonedService.scope, "Scope should be replaced with new scope")
+	is.NotEqual(originalService.scope, clonedService.scope, "Original and cloned scopes should be different")
+
+	// Test that invocation frames are reset
+	is.Empty(clonedService.invokationFrames, "Invocation frames should be reset to empty")
+	is.Equal(uint32(0), clonedService.invokationFramesCounter, "Invocation frames counter should be reset to 0")
+
+	// Test that original service is not affected
+	is.NotEmpty(originalService.invokationFrames, "Original service invocation frames should remain unchanged")
+	is.Equal(uint32(5), originalService.invokationFramesCounter, "Original service counter should remain unchanged")
+
+	// Test that cloned service has a new mutex (not shared with original)
+	originalService.mu.Lock()
+	clonedService.mu.Lock()
+	// If mutexes were shared, this would deadlock
+	clonedService.mu.Unlock()
+	originalService.mu.Unlock()
+
+	// Test clone with different types
+	originalService2 := newServiceAlias[*lazyTestHeathcheckerOK, Healthchecker]("healthchecker-alias", originalScope, "healthchecker-target")
+	clonedService2Any := originalService2.clone(newScope)
+	clonedService2, ok := clonedService2Any.(*serviceAlias[*lazyTestHeathcheckerOK, Healthchecker])
+	is.True(ok, "Clone should return the correct type for different generic types")
+	is.Equal(originalService2.name, clonedService2.name)
+	is.Equal(originalService2.typeName, clonedService2.typeName)
+	is.Equal(newScope, clonedService2.scope)
+
+	// Test clone with nil scope
+	originalService3 := newServiceAlias[bool, string]("bool-alias", nil, "bool-target")
+	clonedService3Any := originalService3.clone(newScope)
+	clonedService3, ok := clonedService3Any.(*serviceAlias[bool, string])
+	is.True(ok)
+	is.Equal(newScope, clonedService3.scope, "Clone should work even when original scope is nil")
+
+	// Test that cloned service can be used independently
+	// This tests that the clone is a completely independent copy
+	clonedService.mu.Lock()
+	clonedService.invokationFrames[stacktrace.Frame{File: "cloned.go", Line: 1}] = struct{}{}
+	clonedService.invokationFramesCounter = 10
+	clonedService.mu.Unlock()
+
+	// Original should not be affected
+	is.NotContains(originalService.invokationFrames, stacktrace.Frame{File: "cloned.go", Line: 1})
+	is.Equal(uint32(5), originalService.invokationFramesCounter)
+
+	// Cloned should have the new data
+	is.Contains(clonedService.invokationFrames, stacktrace.Frame{File: "cloned.go", Line: 1})
+	is.Equal(uint32(10), clonedService.invokationFramesCounter)
 }
 
 func TestServiceAlias_source(t *testing.T) {
+	t.Parallel()
 	testWithTimeout(t, 100*time.Millisecond)
-	// @TODO
+	is := assert.New(t)
+
+	// Create a service alias
+	scope := New()
+	service := newServiceAlias[string, string]("test-alias", scope, "string")
+
+	// Test initial state - should have provider frame but no invocation frames
+	providerFrame, invocationFrames := service.source()
+
+	// Provider frame should be set (from newServiceAlias)
+	is.NotEmpty(providerFrame.File, "Provider frame should have a file")
+	is.Greater(providerFrame.Line, 0, "Provider frame should have a line number")
+
+	// Initially no invocation frames
+	is.Empty(invocationFrames, "Should have no invocation frames initially")
+
+	// Test after getting instance (which should add invocation frames)
+	// First, we need to provide the target service
+	Provide(scope, func(i Injector) (string, error) {
+		return "test-value", nil
+	})
+
+	// Get instance to trigger invocation frame collection
+	_, err := service.getInstance(scope)
+	is.NoError(err, "Should be able to get instance")
+
+	// Check source after invocation
+	providerFrame2, invocationFrames2 := service.source()
+
+	// Provider frame should remain the same
+	is.Equal(providerFrame, providerFrame2, "Provider frame should remain unchanged")
+
+	// Should now have invocation frames
+	is.NotEmpty(invocationFrames2, "Should have invocation frames after getInstance")
+	is.Len(invocationFrames2, 1, "Should have exactly one invocation frame")
+
+	// Test multiple invocations
+	_, err = service.getInstance(scope)
+	is.NoError(err)
+
+	_, invocationFrames3 := service.source()
+	is.Len(invocationFrames3, 1, "Should still have only one unique invocation frame (duplicates are ignored)")
+
+	// Test with different service types
+	service2 := newServiceAlias[*lazyTestHeathcheckerOK, Healthchecker]("healthchecker-alias", scope, "healthchecker-target")
+
+	// Provide the target service
+	Provide(scope, func(i Injector) (*lazyTestHeathcheckerOK, error) {
+		return &lazyTestHeathcheckerOK{foobar: "test"}, nil
+	})
+	ProvideNamed(scope, "healthchecker-target", func(i Injector) (*lazyTestHeathcheckerOK, error) {
+		return &lazyTestHeathcheckerOK{foobar: "target"}, nil
+	})
+
+	// Get instance multiple times
+	_, err = service2.getInstance(scope)
+	is.NoError(err)
+	_, err = service2.getInstance(scope)
+	is.NoError(err)
+
+	providerFrame3, invocationFrames4 := service2.source()
+	is.NotEmpty(providerFrame3.File, "Provider frame should be set")
+	is.Len(invocationFrames4, 1, "Should have one unique invocation frame")
+
+	// Test concurrent access to source method
+	done := make(chan bool, 10)
+	for i := 0; i < 10; i++ {
+		go func() {
+			_, _ = service.source()
+			done <- true
+		}()
+	}
+
+	// Wait for all goroutines to complete
+	for i := 0; i < 10; i++ {
+		<-done
+	}
+
+	// Source should still work correctly after concurrent access
+	providerFrame4, invocationFrames5 := service.source()
+	is.Equal(providerFrame, providerFrame4, "Provider frame should remain consistent under concurrent access")
+	is.Len(invocationFrames5, 1, "Invocation frames should remain consistent under concurrent access")
+
+	// Test that invocation frames are properly collected from different call sites
+	// This tests the frame collection mechanism
+
+	// Add a frame manually to simulate different call sites
+	service.mu.Lock()
+	service.invokationFrames[stacktrace.Frame{File: "different_file.go", Line: 42}] = struct{}{}
+	service.mu.Unlock()
+
+	_, invocationFrames6 := service.source()
+	is.Len(invocationFrames6, 2, "Should have two invocation frames after adding different call site")
+
+	// Verify the frames are different
+	frameFiles := make(map[string]bool)
+	for _, frame := range invocationFrames6 {
+		frameFiles[frame.File] = true
+	}
+	is.Len(frameFiles, 2, "Should have frames from two different files")
 }
