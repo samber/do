@@ -8,7 +8,7 @@ import (
 )
 
 func TestGetInjectorOrDefault(t *testing.T) {
-	t.Parallel()
+	// t.Parallel() // parallel forbidden by write on DefaultRootScope
 	testWithTimeout(t, 100*time.Millisecond)
 	is := assert.New(t)
 

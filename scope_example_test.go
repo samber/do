@@ -178,12 +178,12 @@ func ExampleScope_Shutdown() {
 	ProvideNamed(scope, "db", scopeDbServiceProvider)
 	_, _ = InvokeNamed[*scopeDbService](scope, "db")
 
-	errors := scope.Shutdown()
-	fmt.Println(errors.Len())
-	fmt.Println(len(*errors))
-	fmt.Println(errors.Error())
+	report := scope.Shutdown()
+	fmt.Println(report.Succeed)
+	fmt.Println(len(report.Services))
+	fmt.Println(report.Error())
 	// Output:
-	// 1
+	// false
 	// 1
 	// DI: shutdown errors:
 	//   - api > db: shutdown error
@@ -199,10 +199,13 @@ func ExampleScope_ShutdownWithContext() {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Millisecond)
 	defer cancel()
 
-	errors := injector.ShutdownWithContext(ctx)
-	fmt.Println(errors)
+	report := injector.ShutdownWithContext(ctx)
+	fmt.Println(report.Succeed)
+	fmt.Println(len(report.Services))
+	fmt.Println(report.Error())
 	// Output:
-	// <nil>
+	// true
+	// 1
 }
 
 func ExampleScope_ShutdownWithContext_timeout() {
@@ -217,8 +220,8 @@ func ExampleScope_ShutdownWithContext_timeout() {
 
 	time.Sleep(100 * time.Millisecond) // will trigger timeout
 
-	errors := injector.ShutdownWithContext(ctx)
-	fmt.Println(errors)
+	report := injector.ShutdownWithContext(ctx)
+	fmt.Println(report.Error())
 	// Output:
 	// DI: shutdown errors:
 	//   - api > db: context deadline exceeded

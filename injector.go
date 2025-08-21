@@ -49,10 +49,10 @@ type Injector interface {
 	HealthCheckWithContext(context.Context) map[string]error
 
 	// Shutdown gracefully shuts down the injector and all its descendant scopes.
-	Shutdown() *ShutdownErrors
+	Shutdown() *ShutdownReport
 
 	// ShutdownWithContext gracefully shuts down the injector and all its descendant scopes with context support.
-	ShutdownWithContext(context.Context) *ShutdownErrors
+	ShutdownWithContext(context.Context) *ShutdownReport
 
 	// clone creates a deep copy of the injector with all its services and child scopes.
 	clone(*RootScope, *Scope) *Scope

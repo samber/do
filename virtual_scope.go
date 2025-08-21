@@ -54,8 +54,8 @@ func (s *virtualScope) HealthCheck() map[string]error              { return s.se
 func (s *virtualScope) HealthCheckWithContext(ctx context.Context) map[string]error {
 	return s.self.HealthCheckWithContext(ctx)
 }
-func (s *virtualScope) Shutdown() *ShutdownErrors { return s.self.Shutdown() }
-func (s *virtualScope) ShutdownWithContext(ctx context.Context) *ShutdownErrors {
+func (s *virtualScope) Shutdown() *ShutdownReport { return s.self.Shutdown() }
+func (s *virtualScope) ShutdownWithContext(ctx context.Context) *ShutdownReport {
 	return s.self.ShutdownWithContext(ctx)
 }
 func (s *virtualScope) clone(r *RootScope, p *Scope) *Scope              { return s.self.clone(r, p) }

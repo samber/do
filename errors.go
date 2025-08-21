@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"strings"
+	"time"
 )
 
 var ErrServiceNotFound = errors.New("DI: could not find service")
@@ -11,66 +12,29 @@ var ErrServiceNotMatch = errors.New("DI: could not find service satisfying inter
 var ErrCircularDependency = errors.New("DI: circular dependency detected")
 var ErrHealthCheckTimeout = errors.New("DI: health check timeout")
 
-// newShutdownErrors creates a new ShutdownErrors instance for collecting shutdown errors.
-// This function initializes an empty map to store errors that occur during service shutdown.
+// ShutdownReport represents the result of a shutdown operation.
+// It includes overall success, the list of services that were shut down,
+// any errors encountered, total shutdown time, and per-service shutdown durations.
 //
-// Returns a new ShutdownErrors instance ready for error collection.
-func newShutdownErrors() *ShutdownErrors {
-	return &ShutdownErrors{}
+// It implements the error interface, returning a formatted description of errors
+// when any occurred, or a "no shutdown errors" message otherwise.
+type ShutdownReport struct {
+	Succeed             bool
+	Services            []EdgeService
+	Errors              map[EdgeService]error
+	ShutdownTime        time.Duration
+	ServiceShutdownTime map[EdgeService]time.Duration
 }
 
-// ShutdownErrors is a map that collects errors that occur during service shutdown.
-// This type is used to aggregate multiple shutdown errors from different services
-// and provide a comprehensive error report.
-//
-// The map key is an EdgeService that uniquely identifies the service that failed to shutdown,
-// and the value is the error that occurred during shutdown.
-type ShutdownErrors map[EdgeService]error
-
-// Add adds an error to the ShutdownErrors collection for a specific service.
-// This method is used to record errors that occur during service shutdown.
-// If the error is nil, no entry is added to the collection.
-//
-// Parameters:
-//   - scopeID: The unique identifier of the scope containing the service
-//   - scopeName: The human-readable name of the scope containing the service
-//   - serviceName: The name of the service that failed to shutdown
-//   - err: The error that occurred during shutdown (nil errors are ignored)
-func (e *ShutdownErrors) Add(scopeID string, scopeName string, serviceName string, err error) {
-	if err != nil {
-		(*e)[newEdgeService(scopeID, scopeName, serviceName)] = err
+// Error implements the error interface for ShutdownReport.
+// If there are errors, it returns a multiline description. Otherwise a friendly message.
+func (r ShutdownReport) Error() string {
+	if len(r.Errors) == 0 {
+		return ""
 	}
-}
 
-// Len returns the number of non-nil errors in the ShutdownErrors collection.
-// This method provides a count of actual shutdown failures.
-//
-// Returns the number of services that failed to shutdown properly.
-func (e ShutdownErrors) Len() int {
-	out := 0
-	for _, v := range e {
-		if v != nil {
-			out++
-		}
-	}
-	return out
-}
-
-// Error returns a formatted string representation of all shutdown errors.
-// This method implements the error interface and provides a human-readable
-// summary of all shutdown failures.
-//
-// Returns a formatted string containing all shutdown errors, or a message
-// indicating no errors if the collection is empty.
-//
-// Example output:
-//
-//	"DI: shutdown errors:
-//	  - root > database: connection refused
-//	  - api > logger: failed to flush logs"
-func (e ShutdownErrors) Error() string {
 	lines := []string{}
-	for k, v := range e {
+	for k, v := range r.Errors {
 		if v != nil {
 			lines = append(lines, fmt.Sprintf("  - %s > %s: %s", k.ScopeName, k.Service, v.Error()))
 		}
@@ -83,20 +47,39 @@ func (e ShutdownErrors) Error() string {
 	return "DI: shutdown errors:\n" + strings.Join(lines, "\n")
 }
 
-func mergeShutdownErrors(ins ...*ShutdownErrors) *ShutdownErrors {
-	out := newShutdownErrors()
-
-	for _, in := range ins {
-		if in == nil {
-			continue
-		}
-
-		for k, v := range *in {
-			if v != nil {
-				(*out)[k] = v
-			}
-		}
+// mergeShutdownReports merges multiple ShutdownReport values into a single report.
+// Services and ServiceShutdownTime are merged, and Errors are combined.
+// Succeed is true only if all reports succeeded and no errors are present.
+// ShutdownTime is the sum of individual report times.
+func mergeShutdownReports(reports ...*ShutdownReport) *ShutdownReport {
+	out := ShutdownReport{
+		Succeed:             true,
+		Services:            []EdgeService{},
+		Errors:              map[EdgeService]error{},
+		ShutdownTime:        0,
+		ServiceShutdownTime: map[EdgeService]time.Duration{},
 	}
 
-	return out
+	for _, r := range reports {
+		// Merge services
+		out.Services = append(out.Services, r.Services...)
+
+		// Merge errors
+		for k, v := range r.Errors {
+			if v != nil {
+				out.Errors[k] = v
+			}
+		}
+
+		// Merge per-service times
+		for k, v := range r.ServiceShutdownTime {
+			out.ServiceShutdownTime[k] = v
+		}
+
+		out.ShutdownTime += r.ShutdownTime
+	}
+
+	out.Succeed = len(out.Errors) > 0
+
+	return &out
 }

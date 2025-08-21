@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"sync"
+	"time"
 )
 
 // newScope creates a new Scope instance with the provided parameters.
@@ -313,8 +314,8 @@ func (s *Scope) asyncHealthCheckWithContext(ctx context.Context) map[string]<-ch
 // Shutdown gracefully shuts down the scope and all its children.
 // This method calls ShutdownWithContext with a background context.
 //
-// Returns a ShutdownErrors object containing any errors that occurred during shutdown.
-func (s *Scope) Shutdown() *ShutdownErrors {
+// Returns a ShutdownReport containing any errors and timings that occurred during shutdown.
+func (s *Scope) Shutdown() *ShutdownReport {
 	return s.ShutdownWithContext(context.Background())
 }
 
@@ -324,19 +325,19 @@ func (s *Scope) Shutdown() *ShutdownErrors {
 // Parameters:
 //   - ctx: Context for cancellation and timeout control
 //
-// Returns a ShutdownErrors object containing any errors that occurred during shutdown.
-func (s *Scope) ShutdownWithContext(ctx context.Context) *ShutdownErrors {
+// Returns a ShutdownReport containing any errors and timings that occurred during shutdown.
+func (s *Scope) ShutdownWithContext(ctx context.Context) *ShutdownReport {
 	s.logf("requested shutdown")
-	err1 := s.shutdownChildrenInParallel(ctx)
-	err2 := s.shutdownServicesInParallel(ctx)
+	start := time.Now()
+
+	rep1 := s.shutdownChildrenInParallel(ctx)
+	rep2 := s.shutdownServicesInParallel(ctx)
 	s.logf("shut down services")
 
-	err := mergeShutdownErrors(err1, err2)
-	if err.Len() > 0 {
-		return err
-	}
-
-	return nil
+	report := mergeShutdownReports(rep1, rep2)
+	report.ShutdownTime = time.Since(start)
+	report.Succeed = len(report.Errors) == 0
+	return report
 }
 
 // shutdownChildrenInParallel runs a parallel shutdown of children scopes.
@@ -346,34 +347,31 @@ func (s *Scope) ShutdownWithContext(ctx context.Context) *ShutdownErrors {
 // Parameters:
 //   - ctx: Context for cancellation and timeout control
 //
-// Returns a ShutdownErrors object containing any errors from child scope shutdowns.
-func (s *Scope) shutdownChildrenInParallel(ctx context.Context) *ShutdownErrors {
+// Returns a ShutdownReport containing any errors from child scope shutdowns.
+func (s *Scope) shutdownChildrenInParallel(ctx context.Context) *ShutdownReport {
 	// Snapshot children under lock
-	s.mu.RLock()
+	s.mu.Lock()
 	children := make([]*Scope, 0, len(s.childScopes))
 	for _, c := range s.childScopes {
 		children = append(children, c)
 	}
-	s.mu.RUnlock()
+	s.childScopes = make(map[string]*Scope) // scopes are removed from DI container
+	s.mu.Unlock()
 
-	errors := make([]*ShutdownErrors, len(children))
+	reports := make([]*ShutdownReport, len(children))
 
 	var wg sync.WaitGroup
-	for index, scope := range children {
+	for index, child := range children {
 		wg.Add(1)
 
-		go func(s *Scope, i int) {
-			errors[i] = s.ShutdownWithContext(ctx)
+		go func(c *Scope, i int) {
+			reports[i] = c.ShutdownWithContext(ctx)
 			wg.Done()
-		}(scope, index)
+		}(child, index)
 	}
 	wg.Wait()
 
-	s.mu.Lock()
-	defer s.mu.Unlock()
-
-	s.childScopes = make(map[string]*Scope) // scopes are removed from DI container
-	return mergeShutdownErrors(errors...)
+	return mergeShutdownReports(reports...)
 }
 
 // shutdownServicesInParallel runs a parallel shutdown of scope services.
@@ -386,9 +384,15 @@ func (s *Scope) shutdownChildrenInParallel(ctx context.Context) *ShutdownErrors 
 // Parameters:
 //   - ctx: Context for cancellation and timeout control
 //
-// Returns a ShutdownErrors object containing any errors from service shutdowns.
-func (s *Scope) shutdownServicesInParallel(ctx context.Context) *ShutdownErrors {
-	err := newShutdownErrors()
+// Returns a ShutdownReport containing any errors from service shutdowns.
+func (s *Scope) shutdownServicesInParallel(ctx context.Context) *ShutdownReport {
+	report := &ShutdownReport{
+		Succeed:             true,
+		Services:            []EdgeService{},
+		Errors:              map[EdgeService]error{},
+		ShutdownTime:        0,
+		ServiceShutdownTime: map[EdgeService]time.Duration{},
+	}
 
 	listServices := func() []string {
 		s.mu.RLock()
@@ -412,17 +416,17 @@ func (s *Scope) shutdownServicesInParallel(ctx context.Context) *ShutdownErrors 
 		}
 
 		if len(servicesToShutdown) > 0 {
-			e := s.shutdownServicesWithoutDependenciesInParallel(ctx, servicesToShutdown)
-			err = mergeShutdownErrors(err, e)
+			r := s.shutdownServicesWithoutDependenciesInParallel(ctx, servicesToShutdown)
+			report = mergeShutdownReports(report, r)
 		} else {
 			// In this branch, we expect that there is a circular dependency. We shutdown all services, without taking care of order.
 			// This is a fallback mechanism to ensure all services are eventually shut down.
-			e := s.shutdownServicesWithoutDependenciesInParallel(ctx, services)
-			err = mergeShutdownErrors(err, e)
+			r := s.shutdownServicesWithoutDependenciesInParallel(ctx, services)
+			report = mergeShutdownReports(report, r)
 		}
 	}
 
-	return err
+	return report
 }
 
 // shutdownServicesWithoutDependenciesInParallel shuts down multiple services concurrently
@@ -433,24 +437,33 @@ func (s *Scope) shutdownServicesInParallel(ctx context.Context) *ShutdownErrors 
 //   - ctx: Context for cancellation and timeout control
 //   - serviceNames: List of service names to shut down
 //
-// Returns a ShutdownErrors object containing any errors from the shutdown operations.
-func (s *Scope) shutdownServicesWithoutDependenciesInParallel(ctx context.Context, serviceNames []string) *ShutdownErrors {
+// Returns a ShutdownReport containing any errors from the shutdown operations.
+func (s *Scope) shutdownServicesWithoutDependenciesInParallel(ctx context.Context, serviceNames []string) *ShutdownReport {
 	if len(serviceNames) == 0 {
-		return nil
+		return &ShutdownReport{Succeed: true, Services: []EdgeService{}, Errors: map[EdgeService]error{}, ShutdownTime: 0, ServiceShutdownTime: map[EdgeService]time.Duration{}}
 	}
 
-	err := newShutdownErrors()
 	mu := sync.Mutex{}
+	services := []EdgeService{}
+	errors := map[EdgeService]error{}
+	perServiceTimes := map[EdgeService]time.Duration{}
 
 	var wg sync.WaitGroup
 	wg.Add(len(serviceNames))
 
 	for _, name := range serviceNames {
 		go func(n string) {
+			edge := newEdgeService(s.id, s.name, n)
+			start := time.Now()
 			e := s.serviceShutdown(ctx, n)
+			dt := time.Since(start)
 
 			mu.Lock()
-			err.Add(s.id, s.name, n, e)
+			services = append(services, edge)
+			if e != nil {
+				errors[edge] = e
+			}
+			perServiceTimes[edge] = dt
 			mu.Unlock()
 
 			wg.Done()
@@ -459,7 +472,13 @@ func (s *Scope) shutdownServicesWithoutDependenciesInParallel(ctx context.Contex
 
 	wg.Wait()
 
-	return err
+	return &ShutdownReport{
+		Succeed:             len(errors) == 0,
+		Services:            services,
+		Errors:              errors,
+		ShutdownTime:        0,
+		ServiceShutdownTime: perServiceTimes,
+	}
 }
 
 // clone creates a deep copy of the scope with all its services and child scopes.

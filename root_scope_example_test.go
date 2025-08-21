@@ -41,12 +41,14 @@ func ExampleNewWithOpts() {
 		return "postgres://user:pass@host:5432/db", nil
 	})
 	MustInvokeNamed[string](injector, "PG_URI")
-	err := injector.Shutdown()
-	fmt.Println(err)
+	report := injector.Shutdown()
+	fmt.Println(report.Succeed)
+	fmt.Println(len(report.Errors))
 
 	// Output:
 	// service shutdown: PG_URI
-	// <nil>
+	// true
+	// 0
 }
 
 func ExampleRootScope_AddBeforeRegistrationHook() {
