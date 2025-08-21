@@ -1,10 +1,10 @@
-module github.com/samber/do/v2/examples/http/chi
+module github.com/samber/do/v2/examples/web-application
 
 go 1.18
 
-replace github.com/samber/do/v2 => ../../../
+replace github.com/samber/do/v2 => ../../
 
-replace github.com/samber/do/http/chi/v2 => ../../../http/chi
+replace github.com/samber/do/http/chi/v2 => ../../http/chi
 
 require (
 	github.com/go-chi/chi/v5 v5.0.11

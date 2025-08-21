@@ -1,4 +1,4 @@
-module github.com/samber/do/http/std/v2
+module github.com/samber/do/v2/examples/package-system
 
 go 1.18
 
