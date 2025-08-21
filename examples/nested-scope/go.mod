@@ -1,4 +1,4 @@
-module github.com/samber/do/http/std/v2
+module github.com/samber/do/v2/examples/nested-scope
 
 go 1.18
 
