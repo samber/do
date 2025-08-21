@@ -65,12 +65,15 @@ func (s *virtualScope) serviceGet(name string) (any, bool)               { retur
 func (s *virtualScope) serviceGetRec(n string) (any, *Scope, bool)       { return s.self.serviceGetRec(n) }
 func (s *virtualScope) serviceSet(name string, service any)              { s.self.serviceSet(name, service) } // serviceSet is not protected against double registration.
 func (s *virtualScope) serviceForEach(cb func(string, *Scope, any) bool) { s.self.serviceForEach(cb) }
+
 func (s *virtualScope) serviceForEachRec(cb func(string, *Scope, any) bool) {
 	s.self.serviceForEachRec(cb)
 }
+
 func (s *virtualScope) serviceHealthCheck(ctx context.Context, n string) error {
 	return s.self.serviceHealthCheck(ctx, n)
 }
+
 func (s *virtualScope) serviceShutdown(ctx context.Context, name string) error {
 	return s.self.serviceShutdown(ctx, name)
 }

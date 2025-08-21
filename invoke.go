@@ -247,7 +247,7 @@ func invokeByTags(i Injector, structName string, structValue reflect.Value, impl
 			// When a field is not exported, we override it.
 			// See https://stackoverflow.com/questions/42664837/how-to-access-unexported-struct-fields/43918797#43918797
 			// bearer:disable go_gosec_unsafe_unsafe
-			fieldValue = reflect.NewAt(fieldValue.Type(), unsafe.Pointer(fieldValue.UnsafeAddr())).Elem()
+			fieldValue = reflect.NewAt(fieldValue.Type(), unsafe.Pointer(fieldValue.UnsafeAddr())).Elem() //nolint:gosec
 		}
 
 		if serviceName == "" {
@@ -314,7 +314,13 @@ func serviceNotFound(injector Injector, err error, chain []string) error {
 	sortedServiceNames := sortServiceNames(serviceNames)
 
 	if len(chain) > 1 {
-		return fmt.Errorf("%w `%s`, available services: %s, path: %s", err, name, strings.Join(sortedServiceNames, ", "), humanReadableInvokerChain(chain))
+		return fmt.Errorf(
+			"%w `%s`, available services: %s, path: %s",
+			err,
+			name,
+			strings.Join(sortedServiceNames, ", "),
+			humanReadableInvokerChain(chain),
+		)
 	}
 	return fmt.Errorf("%w `%s`, available services: %s", err, name, strings.Join(sortedServiceNames, ", "))
 }

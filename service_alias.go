@@ -9,10 +9,12 @@ import (
 	"github.com/samber/do/v2/stacktrace"
 )
 
-var _ serviceWrapper[int] = (*serviceAlias[int, int])(nil)
-var _ serviceWrapperHealthcheck = (*serviceAlias[int, int])(nil)
-var _ serviceWrapperShutdown = (*serviceAlias[int, int])(nil)
-var _ serviceWrapperClone = (*serviceAlias[int, int])(nil)
+var (
+	_ serviceWrapper[int]       = (*serviceAlias[int, int])(nil)
+	_ serviceWrapperHealthcheck = (*serviceAlias[int, int])(nil)
+	_ serviceWrapperShutdown    = (*serviceAlias[int, int])(nil)
+	_ serviceWrapperClone       = (*serviceAlias[int, int])(nil)
+)
 
 type serviceAlias[Initial any, Alias any] struct {
 	mu         sync.RWMutex
@@ -26,7 +28,11 @@ type serviceAlias[Initial any, Alias any] struct {
 	invokationFramesCounter uint32
 }
 
-func newServiceAlias[Initial any, Alias any](name string, scope Injector, targetName string) *serviceAlias[Initial, Alias] {
+func newServiceAlias[Initial any, Alias any](
+	name string,
+	scope Injector,
+	targetName string,
+) *serviceAlias[Initial, Alias] {
 	providerFrame, _ := stacktrace.NewFrameFromCaller()
 
 	return &serviceAlias[Initial, Alias]{
@@ -161,7 +167,6 @@ func (s *serviceAlias[Initial, Alias]) clone(newScope Injector) any {
 	}
 }
 
-// nolint:unused
 func (s *serviceAlias[Initial, Alias]) source() (stacktrace.Frame, []stacktrace.Frame) {
 	s.mu.RLock()
 	invokationFrames := make([]stacktrace.Frame, 0, len(s.invokationFrames))

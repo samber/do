@@ -32,7 +32,7 @@ func newScope(name string, root *RootScope, parent *Scope) *Scope {
 	}
 }
 
-// Ensure Scope implements the Injector interface at compile time
+// Ensure Scope implements the Injector interface at compile time.
 var _ Injector = (*Scope)(nil)
 
 // Scope represents a dependency injection container that can contain services

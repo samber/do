@@ -10,14 +10,12 @@ import (
 /**
  * Wheel
  */
-type Wheel struct {
-}
+type Wheel struct{}
 
 /**
  * AutoPilot
  */
-type AutoPilot struct {
-}
+type AutoPilot struct{}
 
 func (a *AutoPilot) ShutdownWithContext(ctx context.Context) error {
 	return nil
@@ -26,8 +24,7 @@ func (a *AutoPilot) ShutdownWithContext(ctx context.Context) error {
 /**
  * Engine
  */
-type Engine struct {
-}
+type Engine struct{}
 
 func (c *Engine) Shutdown() error {
 	println("engine stopped")

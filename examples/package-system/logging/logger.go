@@ -4,7 +4,7 @@ import (
 	"fmt"
 )
 
-// Logger represents a logging service
+// Logger represents a logging service.
 type Logger struct {
 	Level string
 }

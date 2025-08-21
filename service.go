@@ -85,37 +85,42 @@ type serviceWrapperAny interface {
 // These interfaces allow for type-safe access to specific service methods
 // without requiring the full serviceWrapper[T] interface.
 
-type serviceWrapperGetName interface{ getName() string }
-type serviceWrapperGetTypeName interface{ getTypeName() string }
-type serviceWrapperGetServiceType interface{ getServiceType() ServiceType }
-type serviceWrapperGetReflectType interface{ getReflectType() reflect.Type }
-type serviceWrapperGetInstanceAny interface{ getInstanceAny(Injector) (any, error) }
-type serviceWrapperGetInstance[T any] interface{ getInstance(Injector) (T, error) } //nolint:unused
-type serviceWrapperIsHealthchecker interface{ isHealthchecker() bool }
-type serviceWrapperHealthcheck interface{ healthcheck(context.Context) error }
-type serviceWrapperIsShutdowner interface{ isShutdowner() bool }
-type serviceWrapperShutdown interface{ shutdown(context.Context) error }
-type serviceWrapperClone interface{ clone(Injector) any }
-type serviceWrapperSource interface {
-	source() (stacktrace.Frame, []stacktrace.Frame)
-}
+type (
+	serviceWrapperGetName            interface{ getName() string }
+	serviceWrapperGetTypeName        interface{ getTypeName() string }
+	serviceWrapperGetServiceType     interface{ getServiceType() ServiceType }
+	serviceWrapperGetReflectType     interface{ getReflectType() reflect.Type }
+	serviceWrapperGetInstanceAny     interface{ getInstanceAny(Injector) (any, error) }
+	serviceWrapperGetInstance[T any] interface{ getInstance(Injector) (T, error) } //nolint:unused
+	serviceWrapperIsHealthchecker    interface{ isHealthchecker() bool }
+	serviceWrapperHealthcheck        interface{ healthcheck(context.Context) error }
+	serviceWrapperIsShutdowner       interface{ isShutdowner() bool }
+	serviceWrapperShutdown           interface{ shutdown(context.Context) error }
+	serviceWrapperClone              interface{ clone(Injector) any }
+	serviceWrapperSource             interface {
+		source() (stacktrace.Frame, []stacktrace.Frame)
+	}
+)
+
 type serviceWrapperBuildTime interface {
 	getBuildTime() (time.Duration, bool)
 }
 
 // Interface compliance checks to ensure serviceWrapper[T] implements all required interfaces.
 // These compile-time checks help catch interface implementation errors early.
-var _ serviceWrapperGetName = (serviceWrapper[int])(nil)
-var _ serviceWrapperGetTypeName = (serviceWrapper[int])(nil)
-var _ serviceWrapperGetServiceType = (serviceWrapper[int])(nil)
-var _ serviceWrapperGetReflectType = (serviceWrapper[int])(nil)
-var _ serviceWrapperGetInstanceAny = (serviceWrapper[int])(nil)
-var _ serviceWrapperIsHealthchecker = (serviceWrapper[int])(nil)
-var _ serviceWrapperHealthcheck = (serviceWrapper[int])(nil)
-var _ serviceWrapperIsShutdowner = (serviceWrapper[int])(nil)
-var _ serviceWrapperShutdown = (serviceWrapper[int])(nil)
-var _ serviceWrapperClone = (serviceWrapper[int])(nil)
-var _ serviceWrapperSource = (serviceWrapper[int])(nil)
+var (
+	_ serviceWrapperGetName         = (serviceWrapper[int])(nil)
+	_ serviceWrapperGetTypeName     = (serviceWrapper[int])(nil)
+	_ serviceWrapperGetServiceType  = (serviceWrapper[int])(nil)
+	_ serviceWrapperGetReflectType  = (serviceWrapper[int])(nil)
+	_ serviceWrapperGetInstanceAny  = (serviceWrapper[int])(nil)
+	_ serviceWrapperIsHealthchecker = (serviceWrapper[int])(nil)
+	_ serviceWrapperHealthcheck     = (serviceWrapper[int])(nil)
+	_ serviceWrapperIsShutdowner    = (serviceWrapper[int])(nil)
+	_ serviceWrapperShutdown        = (serviceWrapper[int])(nil)
+	_ serviceWrapperClone           = (serviceWrapper[int])(nil)
+	_ serviceWrapperSource          = (serviceWrapper[int])(nil)
+)
 
 // inferServiceName uses type inference to determine the service name
 // based on the generic type parameter T. This is used internally

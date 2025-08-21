@@ -89,6 +89,7 @@ func TestMultiLevelNestedScopes_NonConcurrentShutdown(t *testing.T) {
 
 	// Shutdown the root scope (should shutdown all nested scopes)
 	report := root.Shutdown()
+	is.True(report.Succeed)
 	is.Len(report.Errors, 0)
 
 	// Verify shutdown order (children should be shut down before parents)
@@ -330,6 +331,7 @@ func TestMultiLevelNestedScopes_ShutdownOrder(t *testing.T) {
 
 	// Shutdown the root scope
 	report := root.Shutdown()
+	is.True(report.Succeed)
 	is.Len(report.Errors, 0)
 
 	// Verify all levels were shut down

@@ -7,14 +7,12 @@ import (
 /**
  * Wheel
  */
-type Wheel struct {
-}
+type Wheel struct{}
 
 /**
  * Engine
  */
-type Engine struct {
-}
+type Engine struct{}
 
 /**
  * Car

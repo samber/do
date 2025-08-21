@@ -10,7 +10,7 @@ import (
 	"github.com/samber/do/v2/examples/package-system/services"
 )
 
-// Configuration represents application configuration
+// Configuration represents application configuration.
 type Configuration struct {
 	AppName string
 	Port    int
@@ -45,9 +45,9 @@ func main() {
 
 	// Create aliases for Configuration to bridge interface types
 	// This is needed for do.InvokeAs to work across packages
-	do.As[*Configuration, database.Configuration](injector)
-	do.As[*Configuration, logging.Configuration](injector)
-	do.As[*Configuration, application.Configuration](injector)
+	_ = do.As[*Configuration, database.Configuration](injector)
+	_ = do.As[*Configuration, logging.Configuration](injector)
+	_ = do.As[*Configuration, application.Configuration](injector)
 
 	fmt.Println("=== Package System Example ===")
 	fmt.Println("Available services:", injector.ListProvidedServices())

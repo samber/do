@@ -4,7 +4,7 @@ import (
 	"fmt"
 )
 
-// Application represents the main application
+// Application represents the main application.
 type Application struct {
 	Config       *Configuration
 	DB           *Database
@@ -18,7 +18,7 @@ func (app *Application) Run() {
 	app.Logger.Log("Starting application...")
 
 	// Connect to database
-	app.DB.Connect()
+	_ = app.DB.Connect()
 
 	// Test services
 	fmt.Println("User data:", app.UserService.GetUser("123"))

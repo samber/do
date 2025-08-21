@@ -4,7 +4,7 @@ import (
 	"fmt"
 )
 
-// Database represents a database service
+// Database represents a database service.
 type Database struct {
 	Config *Configuration
 	URL    string

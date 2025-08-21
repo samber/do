@@ -63,16 +63,6 @@ func keys[K comparable, V any](in map[K]V) []K {
 	return result
 }
 
-func values[K comparable, V any](in map[K]V) []V {
-	result := make([]V, 0, len(in))
-
-	for _, v := range in {
-		result = append(result, v)
-	}
-
-	return result
-}
-
 func flatten[T any](collection [][]T) []T {
 	totalLen := 0
 	for i := range collection {
@@ -112,28 +102,6 @@ func filter[V any](collection []V, predicate func(item V, index int) bool) []V {
 	}
 
 	return result
-}
-
-func mergeMaps[K comparable, V any](ins ...map[K]V) map[K]V {
-	out := map[K]V{}
-
-	for _, in := range ins {
-		for k, v := range in {
-			out[k] = v
-		}
-	}
-
-	return out
-}
-
-func invertMap[K comparable, V comparable](in map[K]V) map[V]K {
-	out := map[V]K{}
-
-	for k, v := range in {
-		out[v] = k
-	}
-
-	return out
 }
 
 func reverseSlice[S ~[]E, E any](s S) {
@@ -222,6 +190,7 @@ func (p *jobPool[R]) rpc(f func() R) <-chan R {
 
 func (p *jobPool[R]) start() {
 	p.startOnce.Do(func() {
+		//nolint:gosec
 		for i := 0; i < int(p.parallelism); i++ {
 			go func() {
 				for job := range p.jobs {
@@ -253,7 +222,7 @@ func raceWithTimeout(ctx context.Context, fn func(context.Context) error) error 
 	case e := <-err:
 		return e
 	case <-ctx.Done():
-		return fmt.Errorf("%w: %v", ErrHealthCheckTimeout, ctx.Err())
+		return fmt.Errorf("%w: %w", ErrHealthCheckTimeout, ctx.Err())
 	}
 }
 

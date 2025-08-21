@@ -54,8 +54,11 @@ func NewFrameFromCaller() (Frame, bool) {
 		isGoPkg := strings.Contains(file, runtime.GOROOT())                // skip frames in GOROOT
 		isDoPkg := strings.Contains(file, packageName)                     // skip frames in this package
 		isDoStacktracePkg := strings.Contains(file, packageNameStacktrace) // skip frames in this package
-		isExamplePkg := strings.Contains(file, packageNameExamples)        // do not skip frames in this package examples
-		isTestPkg := strings.Contains(file, "_test.go")                    // do not skip frames in tests
+		isExamplePkg := strings.Contains(
+			file,
+			packageNameExamples,
+		) // do not skip frames in this package examples
+		isTestPkg := strings.Contains(file, "_test.go") // do not skip frames in tests
 
 		if !isGoPkg && (!isDoPkg || !isDoStacktracePkg || isExamplePkg || isTestPkg) {
 			return Frame{
@@ -116,7 +119,7 @@ type Frame struct {
 // The format is "file:function:line" which is useful for debugging
 // and logging purposes.
 //
-// Returns a string in the format "path/to/file.go:FunctionName:123"
+// Returns a string in the format "path/to/file.go:FunctionName:123".
 func (f Frame) String() string {
 	return fmt.Sprintf("%s:%s:%d", f.File, f.Function, f.Line)
 }

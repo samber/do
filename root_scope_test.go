@@ -53,7 +53,7 @@ func TestNewWithOpts(t *testing.T) {
 		HealthCheckGlobalTimeout: 42 * time.Second,
 		HealthCheckTimeout:       42 * time.Second,
 	})
-	defer i.Shutdown() // nolint: errcheck
+	defer i.Shutdown() //nolint: errcheck
 
 	is.NotNil(i)
 
@@ -136,7 +136,7 @@ func TestRootScope_queueServiceHealthcheck(t *testing.T) {
 		HealthCheckParallelism:   1,
 		HealthCheckGlobalTimeout: 50 * time.Millisecond,
 	})
-	defer i.Shutdown() // nolint: errcheck
+	defer i.Shutdown() //nolint: errcheck
 
 	ProvideNamedValue(i, "a", &lazyTestHeathcheckerOKTimeout{})
 	ProvideNamedValue(i, "b", &lazyTestHeathcheckerOKTimeout{})
@@ -145,10 +145,12 @@ func TestRootScope_queueServiceHealthcheck(t *testing.T) {
 	ProvideValue(i, &lazyTestHeathcheckerOK{})
 
 	errAll = i.HealthCheckWithContext(context.Background())
-	errors := values(errAll)
-	errors = filter(errors, func(item error, index int) bool {
-		return item != nil
-	})
+	errors := []error{}
+	for _, err := range errAll {
+		if err != nil {
+			errors = append(errors, err)
+		}
+	}
 
 	is.Len(errAll, 5)
 	// i do not check the exact number of errors due to sleep randomness
@@ -184,8 +186,8 @@ func TestRootScope_Clone(t *testing.T) {
 	i := NewWithOpts(opts)
 	clone := i.Clone()
 
-	defer i.Shutdown()     // nolint: errcheck
-	defer clone.Shutdown() // nolint: errcheck
+	defer i.Shutdown()     //nolint: errcheck
+	defer clone.Shutdown() //nolint: errcheck
 
 	is.NotEqual(i.opts, clone.opts) // copy
 
@@ -240,8 +242,8 @@ func TestRootScope_CloneWithOpts(t *testing.T) {
 		HealthCheckTimeout:       42 * time.Second,
 	})
 
-	defer i.Shutdown()     // nolint: errcheck
-	defer clone.Shutdown() // nolint: errcheck
+	defer i.Shutdown()     //nolint: errcheck
+	defer clone.Shutdown() //nolint: errcheck
 
 	is.Empty(i.opts.HookBeforeRegistration)
 	is.Empty(i.opts.HookAfterRegistration)

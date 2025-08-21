@@ -4,7 +4,7 @@ import (
 	"fmt"
 )
 
-// Database represents a database connection
+// Database represents a database connection.
 type Database struct {
 	URL       string
 	Connected bool

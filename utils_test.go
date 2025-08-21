@@ -82,18 +82,6 @@ func TestUtilsKeys(t *testing.T) {
 	is.Empty(value2)
 }
 
-func TestUtilsValues(t *testing.T) {
-	t.Parallel()
-	is := assert.New(t)
-
-	value1 := values[int, string](map[int]string{1: "foo", 2: "bar"})
-	sort.StringSlice(value1).Sort()
-	is.Equal([]string{"bar", "foo"}, value1)
-
-	value2 := values[int, string](map[int]string{})
-	is.Empty(value2)
-}
-
 func TestUtilsFlatten(t *testing.T) {
 	t.Parallel()
 	is := assert.New(t)
@@ -120,31 +108,6 @@ func TestUtilsMap(t *testing.T) {
 	is.Equal(len(result2), 4)
 	is.Equal(result1, []string{"Hello", "Hello", "Hello", "Hello"})
 	is.Equal(result2, []string{"1", "2", "3", "4"})
-}
-
-func TestUtilsMergeMaps(t *testing.T) {
-	t.Parallel()
-	is := assert.New(t)
-
-	result1 := mergeMaps(map[string]int{"a": 1, "b": 2, "c": 3}, map[string]int{"c": 4, "d": 5, "e": 6})
-	result2 := mergeMaps[string, int]()
-
-	is.Equal(len(result1), 5)
-	is.Equal(len(result2), 0)
-	is.Equal(result1, map[string]int{"a": 1, "b": 2, "c": 4, "d": 5, "e": 6})
-}
-
-func TestUtilsInvertMap(t *testing.T) {
-	t.Parallel()
-	is := assert.New(t)
-
-	result1 := invertMap(map[string]int{"a": 1, "b": 2, "c": 3})
-	result2 := invertMap(map[string]int{"a": 1, "b": 1, "c": 3})
-
-	is.Equal(len(result1), 3)
-	is.Equal(len(result2), 2)
-	is.Equal(result1, map[int]string{1: "a", 2: "b", 3: "c"})
-	// is.Equal(result2, map[int]string{1: "b", 3: "c"})
 }
 
 func TestTypesEqual(t *testing.T) {

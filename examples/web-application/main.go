@@ -7,11 +7,12 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+
 	dochi "github.com/samber/do/http/chi/v2"
 	"github.com/samber/do/v2"
 )
 
-// Server represents the HTTP server
+// Server represents the HTTP server.
 type Server struct {
 	Config        *Configuration
 	DB            *Database
@@ -53,7 +54,7 @@ func (s *Server) Start() error {
 	s.Logger.Log("  GET /health - Health check")
 	s.Logger.Log("  GET /debug/do - DI container debug UI")
 
-	return http.ListenAndServe(fmt.Sprintf(":%d", s.Config.Port), router)
+	return http.ListenAndServe(fmt.Sprintf(":%d", s.Config.Port), router) //nolint:gosec
 }
 
 func (s *Server) Shutdown() error {

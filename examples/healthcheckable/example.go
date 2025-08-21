@@ -11,14 +11,12 @@ import (
 /**
  * Wheel
  */
-type Wheel struct {
-}
+type Wheel struct{}
 
 /**
  * AutoPilot
  */
-type AutoPilot struct {
-}
+type AutoPilot struct{}
 
 func (a *AutoPilot) HealthCheckWithContext(ctx context.Context) error {
 	return nil

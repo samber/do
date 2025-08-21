@@ -41,7 +41,7 @@ Dependents:
 {{.Dependents}}
 `
 
-// @TODO: add service type icon (lazy, eager, transient)
+// @TODO: add service type icon (lazy, eager, transient).
 const explainServiceDependencyTemplate = `* {{.Service}} from scope {{.ScopeName}}{{.Recursive}}`
 
 // ExplainServiceOutput contains detailed information about a service for debugging and analysis.
@@ -255,7 +255,7 @@ func newExplainServiceDependencies(i Injector, edge EdgeService, mode string) []
 	return mAp(deps, func(item EdgeService, _ int) ExplainServiceDependencyOutput {
 		recursive := newExplainServiceDependencies(i, item, mode)
 
-		// @TODO: differenciate status of lazy services (built, not built). Such as: "😴 (✅)"
+		// @TODO: differentiate status of lazy services (built, not built). Such as: "😴 (✅)"
 		return ExplainServiceDependencyOutput{
 			ScopeID:   item.ScopeID,
 			ScopeName: item.ScopeName,
@@ -275,8 +275,11 @@ Scope name: {{.ScopeName}}
 DAG:
 {{.DAG}}
 `
-const explainInjectorScopeTemplate = `{{.ScopeName}} (ID: {{.ScopeID}}){{.Services}}{{.Children}}`
-const explainInjectorServiceTemplate = ` * {{.ServiceType}}{{.ServiceName}}{{.ServiceFeatures}}`
+
+const (
+	explainInjectorScopeTemplate   = `{{.ScopeName}} (ID: {{.ScopeID}}){{.Services}}{{.Children}}`
+	explainInjectorServiceTemplate = ` * {{.ServiceType}}{{.ServiceName}}{{.ServiceFeatures}}`
+)
 
 // ExplainInjectorOutput contains detailed information about an injector and its scope hierarchy.
 // This struct provides a comprehensive view of the injector's scope tree, including
@@ -323,13 +326,14 @@ func mergeScopes(scopes *[]ExplainInjectorScopeOutput) string {
 
 			lines := strings.Split(item.String(), "\n")
 			lines = mAp(lines, func(line string, j int) string {
-				if isLastScope && j == 0 {
+				switch {
+				case isLastScope && j == 0:
 					return prefixLastScopeHeader + line
-				} else if isLastScope {
+				case isLastScope:
 					return prefixLastScopeContent + line
-				} else if j == 0 {
+				case j == 0:
 					return prefixNotLastScopeHeader + line
-				} else {
+				default:
 					return prefixNotLastScopeContent + line
 				}
 			})
@@ -407,7 +411,7 @@ func (idss *ExplainInjectorServiceOutput) String() string {
 	suffix := ""
 
 	if idss.ServiceType != empty[ServiceType]() {
-		// @TODO: differenciate status of lazy services (built, not built). Such as: "😴 (✅)"
+		// @TODO: differentiate status of lazy services (built, not built). Such as: "😴 (✅)"
 		prefix += idss.ServiceTypeIcon + " "
 
 		if idss.IsHealthchecker {
@@ -474,7 +478,7 @@ func ExplainInjector(scope Injector) ExplainInjectorOutput {
 	}
 }
 
-// 2 modes are available: looping on ancestors, focused-scope or children
+// 2 modes are available: looping on ancestors, focused-scope or children.
 func newExplainInjectorScopes(ancestors []Injector, children []Injector) []ExplainInjectorScopeOutput {
 	loopingOn := "children" // @TODO: create a real enum
 	injectors := children
@@ -531,7 +535,7 @@ func newExplainInjectorServices(i Injector) []ExplainInjectorServiceOutput {
 		var isShutdowner bool
 
 		if info, ok := inferServiceInfo(i, item.Service); ok {
-			// @TODO: differenciate status of lazy services (built, not built). Such as: "😴 (✅)"
+			// @TODO: differentiate status of lazy services (built, not built). Such as: "😴 (✅)"
 			serviceType = info.serviceType
 			serviceTypeIcon = serviceTypeToIcon[info.serviceType]
 			serviceBuildTime = info.serviceBuildTime

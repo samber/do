@@ -7,10 +7,12 @@ import (
 	"time"
 )
 
-var ErrServiceNotFound = errors.New("DI: could not find service")
-var ErrServiceNotMatch = errors.New("DI: could not find service satisfying interface")
-var ErrCircularDependency = errors.New("DI: circular dependency detected")
-var ErrHealthCheckTimeout = errors.New("DI: health check timeout")
+var (
+	ErrServiceNotFound    = errors.New("DI: could not find service")
+	ErrServiceNotMatch    = errors.New("DI: could not find service satisfying interface")
+	ErrCircularDependency = errors.New("DI: circular dependency detected")
+	ErrHealthCheckTimeout = errors.New("DI: health check timeout")
+)
 
 // ShutdownReport represents the result of a shutdown operation.
 // It includes overall success, the list of services that were shut down,
