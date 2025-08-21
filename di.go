@@ -5,6 +5,29 @@ import (
 	"reflect"
 )
 
+// DefaultStructTagKey is the default tag key used for struct field injection.
+// When using struct injection, fields can be tagged with `do:""` or `do:"service-name"`
+// to specify which service should be injected.
+const DefaultStructTagKey = "do"
+
+// Provider[T] is a function type that creates and returns a service instance of type T.
+// This is the core abstraction for service creation in the dependency injection container.
+//
+// The provider function receives an Injector instance that can be used to resolve
+// dependencies for the service being created.
+//
+// Example:
+//
+//	func NewMyService(i do.Injector) (*MyService, error) {
+//	    db := do.MustInvoke[*Database](i)
+//	    config := do.MustInvoke[*Config](i)
+//	    return &MyService{DB: db, Config: config}, nil
+//	}
+//
+//	// Register the provider
+//	do.Provide(injector, NewMyService)
+type Provider[T any] func(Injector) (T, error)
+
 // NameOf returns the name of the service in the DI container.
 // This is highly discouraged to use this function, as your code
 // should not declare any dependency explicitly.
@@ -363,4 +386,381 @@ func InvokeStruct[T any](i Injector) (T, error) {
 //	app := do.MustInvokeStruct[App](injector)
 func MustInvokeStruct[T any](i Injector) T {
 	return must1(InvokeStruct[T](i))
+}
+
+/////////////////////////////////////////////////////////////////////////////
+// 							Explicit aliases
+/////////////////////////////////////////////////////////////////////////////
+
+// As declares an alias for a service, allowing it to be retrieved using a different type.
+// This function creates a type alias where the Alias type can be used to retrieve the Initial service.
+// The alias is automatically named using the type name of Alias.
+//
+// Parameters:
+//   - i: The injector to register the alias in
+//
+// Returns an error if the alias cannot be created (e.g., type incompatibility or missing service).
+//
+// Example:
+//
+//	// Register a concrete service
+//	do.Provide(injector, func(i do.Injector) (*PostgresqlDatabase, error) {
+//	    return &PostgresqlDatabase{}, nil
+//	})
+//
+//	// Create an alias so it can be retrieved as an interface
+//	do.As[*PostgresqlDatabase, Database](injector)
+//
+//	// Now both work:
+//	db := do.MustInvoke[*PostgresqlDatabase](injector)
+//	db := do.MustInvoke[Database](injector)
+func As[Initial any, Alias any](i Injector) error {
+	initialName := NameOf[Initial]()
+	aliasName := NameOf[Alias]()
+
+	return AsNamed[Initial, Alias](i, initialName, aliasName)
+}
+
+// MustAs declares an alias for a service and panics if an error occurs.
+// This is a convenience function that wraps As and panics on error.
+//
+// Parameters:
+//   - i: The injector to register the alias in
+//
+// Panics if the alias cannot be created (e.g., type incompatibility or missing service).
+//
+// Example:
+//
+//	do.MustAs[*PostgresqlDatabase, Database](injector)
+func MustAs[Initial any, Alias any](i Injector) {
+	must0(As[Initial, Alias](i))
+}
+
+// AsNamed declares a named alias for a named service.
+// This function allows you to create aliases with custom names for both the initial service and the alias.
+//
+// Parameters:
+//   - i: The injector to register the alias in
+//   - initial: The name of the existing service to alias
+//   - alias: The name for the new alias service
+//
+// Returns an error if the alias cannot be created (e.g., type incompatibility or missing service).
+//
+// Example:
+//
+//	// Register a service with a custom name
+//	do.ProvideNamed(injector, "my-db", func(i do.Injector) (*PostgresqlDatabase, error) {
+//	    return &PostgresqlDatabase{}, nil
+//	})
+//
+//	// Create an alias with custom names
+//	do.AsNamed[*PostgresqlDatabase, Database](injector, "my-db", "db-interface")
+//
+//	// Retrieve using the alias name
+//	db := do.MustInvokeNamed[Database](injector, "db-interface")
+func AsNamed[Initial any, Alias any](i Injector, initial string, alias string) error {
+	// first, we check if Initial can be cast to Alias
+	if !genericCanCastToGeneric[Initial, Alias]() {
+		return fmt.Errorf("DI: `%s` does not implement `%s`", initial, alias)
+	}
+
+	_i := getInjectorOrDefault(i)
+	if ok := _i.serviceExistRec(initial); !ok {
+		return fmt.Errorf("DI: service `%s` has not been declared", initial)
+	}
+
+	provide(i, alias, nil, func(_ string, _ any) serviceWrapper[Alias] {
+		return newServiceAlias[Initial, Alias](alias, i, initial)
+	})
+
+	return nil
+}
+
+// MustAsNamed declares a named alias for a named service and panics if an error occurs.
+// This is a convenience function that wraps AsNamed and panics on error.
+//
+// Parameters:
+//   - i: The injector to register the alias in
+//   - initial: The name of the existing service to alias
+//   - alias: The name for the new alias service
+//
+// Panics if the alias cannot be created (e.g., type incompatibility or missing service).
+//
+// Example:
+//
+//	do.MustAsNamed[*PostgresqlDatabase, Database](injector, "my-db", "db-interface")
+func MustAsNamed[Initial any, Alias any](i Injector, initial string, alias string) {
+	must0(AsNamed[Initial, Alias](i, initial, alias))
+}
+
+/////////////////////////////////////////////////////////////////////////////
+// 							Implicit aliases
+/////////////////////////////////////////////////////////////////////////////
+
+// InvokeAs invokes a service in the DI container by finding the first service that matches the provided type or interface.
+// This function searches through all registered services to find one that can be cast to the requested type T.
+// It's useful when you want to retrieve a service by interface without explicitly creating aliases.
+//
+// Parameters:
+//   - i: The injector to search for the service
+//
+// Returns the service instance and any error that occurred during invocation.
+//
+// Example:
+//
+//	// Register a concrete service
+//	do.Provide(injector, func(i do.Injector) (*PostgresqlDatabase, error) {
+//	    return &PostgresqlDatabase{}, nil
+//	})
+//
+//	// Retrieve by interface
+//	db, err := do.InvokeAs[Database](injector)
+func InvokeAs[T any](i Injector) (T, error) {
+	return invokeByGenericType[T](i)
+}
+
+// MustInvokeAs invokes a service in the DI container by finding the first service that matches the provided type or interface.
+// This function panics if an error occurs during invocation.
+// It's useful when you want to retrieve a service by interface without explicitly creating aliases.
+//
+// Parameters:
+//   - i: The injector to search for the service
+//
+// Returns the service instance.
+// Panics if the service cannot be found or invoked.
+//
+// Example:
+//
+//	// Register a concrete service
+//	do.Provide(injector, func(i do.Injector) (*PostgresqlDatabase, error) {
+//	    return &PostgresqlDatabase{}, nil
+//	})
+//
+//	// Retrieve by interface
+//	db := do.MustInvokeAs[Database](injector)
+func MustInvokeAs[T any](i Injector) T {
+	return must1(InvokeAs[T](i))
+}
+
+/////////////////////////////////////////////////////////////////////////////
+// 							Package-level declaration
+/////////////////////////////////////////////////////////////////////////////
+
+// Package creates a function that executes multiple service registration functions.
+// This function is used to group related service registrations into reusable packages
+// that can be applied to any injector instance.
+//
+// Parameters:
+//   - services: Variable number of service registration functions to execute
+//
+// Returns a function that can be passed to New(), NewWithOpts(), or Scope() to register all services.
+//
+// Example:
+//
+//		 // pkg/database/package.go
+//			// Create a global `Package` variable
+//			var Package = do.Package(
+//			    do.Lazy[*Database](func(i do.Injector) (*Database, error) {
+//			        return &Database{}, nil
+//			    }),
+//			    do.Lazy[*ConnectionPool](func(i do.Injector) (*ConnectionPool, error) {
+//			        return &ConnectionPool{}, nil
+//			    }),
+//	         ...
+//			)
+//
+//		 // main.go
+//			// Apply the package to an injector
+//			injector := do.New(database.Package)
+func Package(services ...func(i Injector)) func(Injector) {
+	return func(injector Injector) {
+		for i := range services {
+			services[i](injector)
+		}
+	}
+}
+
+// Lazy creates a function that registers a lazy service using the default service name.
+// This function is a convenience wrapper for creating lazy service registration functions
+// that can be used in packages.
+//
+// Parameters:
+//   - p: The provider function that creates the service instance
+//
+// Returns a function that registers the service as lazy when executed.
+//
+// Example:
+//
+//	dbService := do.Lazy[*Database](func(i do.Injector) (*Database, error) {
+//	    return &Database{}, nil
+//	})
+//
+//	// Global to a package
+//	var Package = do.Package(dbService, ...)
+func Lazy[T any](p Provider[T]) func(Injector) {
+	return func(injector Injector) {
+		Provide(injector, p)
+	}
+}
+
+// LazyNamed creates a function that registers a lazy service with a custom name.
+// This function is a convenience wrapper for creating named lazy service registration functions
+// that can be used in packages.
+//
+// Parameters:
+//   - serviceName: The custom name for the service
+//   - p: The provider function that creates the service instance
+//
+// Returns a function that registers the service as lazy with the specified name when executed.
+//
+// Example:
+//
+//	dbService := do.LazyNamed[*Database]("main-db", func(i do.Injector) (*Database, error) {
+//	    return &Database{}, nil
+//	})
+//
+//	// Global to a package
+//	var Package = do.Package(dbService)
+func LazyNamed[T any](serviceName string, p Provider[T]) func(Injector) {
+	return func(injector Injector) {
+		ProvideNamed(injector, serviceName, p)
+	}
+}
+
+// Eager creates a function that registers an eager service using the default service name.
+// This function is a convenience wrapper for creating eager service registration functions
+// that can be used in packages. The service value is provided directly.
+//
+// Parameters:
+//   - value: The service instance to register eagerly
+//
+// Returns a function that registers the service as eager when executed.
+//
+// Example:
+//
+//	configService := do.Eager[*Config](&Config{Port: 8080})
+//
+//	// Global to a package
+//	var Package = do.Package(configService)
+func Eager[T any](value T) func(Injector) {
+	return func(injector Injector) {
+		ProvideValue(injector, value)
+	}
+}
+
+// EagerNamed creates a function that registers an eager service with a custom name.
+// This function is a convenience wrapper for creating named eager service registration functions
+// that can be used in packages. The service value is provided directly.
+//
+// Parameters:
+//   - serviceName: The custom name for the service
+//   - value: The service instance to register eagerly
+//
+// Returns a function that registers the service as eager with the specified name when executed.
+//
+// Example:
+//
+//	configService := do.EagerNamed[*Config]("app-config", &Config{Port: 8080})
+//
+//	// Global to a package
+//	var Package = do.Package(configService, ...)
+func EagerNamed[T any](serviceName string, value T) func(Injector) {
+	return func(injector Injector) {
+		ProvideNamedValue(injector, serviceName, value)
+	}
+}
+
+// Transient creates a function that registers a transient service using the default service name.
+// This function is a convenience wrapper for creating transient service registration functions
+// that can be used in packages.
+//
+// Parameters:
+//   - p: The provider function that creates the service instance
+//
+// Returns a function that registers the service as transient when executed.
+//
+// Example:
+//
+//	loggerService := do.Transient[*Logger](func(i do.Injector) (*Logger, error) {
+//	    return &Logger{}, nil
+//	})
+//
+//	// Global to a package
+//	var Package = do.Package(loggerService, ...)
+func Transient[T any](p Provider[T]) func(Injector) {
+	return func(injector Injector) {
+		ProvideTransient(injector, p)
+	}
+}
+
+// TransientNamed creates a function that registers a transient service with a custom name.
+// This function is a convenience wrapper for creating named transient service registration functions
+// that can be used in packages.
+//
+// Parameters:
+//   - serviceName: The custom name for the service
+//   - p: The provider function that creates the service instance
+//
+// Returns a function that registers the service as transient with the specified name when executed.
+//
+// Example:
+//
+//	loggerService := do.TransientNamed[*Logger]("request-logger", func(i do.Injector) (*Logger, error) {
+//	    return &Logger{}, nil
+//	})
+//
+//	// Global to a package
+//	var Package = do.Package(loggerService, ...)
+func TransientNamed[T any](serviceName string, p Provider[T]) func(Injector) {
+	return func(injector Injector) {
+		ProvideNamedTransient(injector, serviceName, p)
+	}
+}
+
+// Bind creates a function that creates a type alias between two types.
+// This function is a convenience wrapper for creating service binding functions
+// that can be used in packages.
+//
+// Parameters:
+//   - Initial: The original type to bind from
+//   - Alias: The type to bind to (must be implemented by Initial)
+//
+// Returns a function that creates the type alias when executed.
+// Panics if the binding cannot be created.
+//
+// Example:
+//
+//	dbBinding := do.Bind[*Database, DatabaseInterface]()
+//
+//	// Global to a package
+//	var Package = do.Package(dbBinding, ...)
+func Bind[Initial any, Alias any]() func(Injector) {
+	return func(injector Injector) {
+		MustAs[Initial, Alias](injector)
+	}
+}
+
+// BindNamed creates a function that creates a named type alias between two types.
+// This function is a convenience wrapper for creating named service binding functions
+// that can be used in packages.
+//
+// Parameters:
+//   - initial: The name of the original service
+//   - alias: The name for the alias service
+//   - Initial: The original type to bind from
+//   - Alias: The type to bind to (must be implemented by Initial)
+//
+// Returns a function that creates the named type alias when executed.
+// Panics if the binding cannot be created.
+//
+// Example:
+//
+//	dbBinding := do.BindNamed[*Database, DatabaseInterface]("main-db", "db-interface")
+//
+//	// Global to a package
+//	var Package = do.Package(dbBinding, ...)
+func BindNamed[Initial any, Alias any](initial string, alias string) func(Injector) {
+	return func(injector Injector) {
+		MustAsNamed[Initial, Alias](injector, initial, alias)
+	}
 }
