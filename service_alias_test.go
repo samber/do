@@ -2,6 +2,7 @@ package do
 
 import (
 	"context"
+	"fmt"
 	"testing"
 	"time"
 
@@ -539,4 +540,69 @@ func TestServiceAlias_source(t *testing.T) {
 		frameFiles[frame.File] = true
 	}
 	is.Len(frameFiles, 2, "Should have frames from two different files")
+}
+
+// Test services for context value propagation in service alias
+type contextValueHealthcheckerAlias struct {
+}
+
+func (c *contextValueHealthcheckerAlias) HealthCheck(ctx context.Context) error {
+	value := ctx.Value("test-key")
+	if value != "healthcheck-value" {
+		return fmt.Errorf("test-key not found or value is incorrect")
+	}
+	return nil
+}
+
+type contextValueShutdownerAlias struct {
+}
+
+func (c *contextValueShutdownerAlias) Shutdown(ctx context.Context) error {
+	value := ctx.Value("test-key")
+	if value != "shutdown-value" {
+		return fmt.Errorf("test-key not found or value is incorrect")
+	}
+	return nil
+}
+
+// Test context value propagation for service alias
+func TestServiceAlias_ContextValuePropagation(t *testing.T) {
+	t.Parallel()
+	testWithTimeout(t, 100*time.Millisecond)
+	is := assert.New(t)
+
+	// Create injector and services
+	injector := New()
+
+	// Create target services
+	healthcheckService := &contextValueHealthcheckerAlias{}
+	shutdownService := &contextValueShutdownerAlias{}
+
+	// Provide target services
+	ProvideNamedValue(injector, "target-healthcheck", healthcheckService)
+	ProvideNamedValue(injector, "target-shutdown", shutdownService)
+
+	// Create service aliases
+	healthcheckAlias := newServiceAlias[*contextValueHealthcheckerAlias, Healthchecker]("healthcheck-alias", injector, "target-healthcheck")
+	shutdownAlias := newServiceAlias[*contextValueShutdownerAlias, Shutdowner]("shutdown-alias", injector, "target-shutdown")
+
+	// Invoke services to make them healthcheckable/shutdownable
+	_, err1 := healthcheckAlias.getInstance(injector)
+	_, err2 := shutdownAlias.getInstance(injector)
+	is.Nil(err1)
+	is.Nil(err2)
+
+	// Test context value propagation for healthcheck
+	ctx1 := context.WithValue(context.Background(), "test-key", "healthcheck-value")
+	err := healthcheckAlias.healthcheck(ctx1)
+	is.Nil(err)
+
+	// Test context value propagation for shutdown
+	ctx2 := context.WithValue(context.Background(), "test-key", "shutdown-value")
+	err = shutdownAlias.shutdown(ctx2)
+	is.Nil(err)
+
+	// Test that alias properly delegates to target service
+	// The alias should not store context values itself, but pass them through
+	// to the underlying target service
 }
