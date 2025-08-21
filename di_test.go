@@ -70,7 +70,23 @@ func TestProvide(t *testing.T) {
 	_, ok3 := i.self.services["github.com/samber/do/v2.*plop"]
 	is.False(ok3)
 
-	// @TODO: check that all services share the same references
+	// Test that all services share the same references when invoked multiple times
+	instance1, err1 := Invoke[*test](i)
+	is.Nil(err1)
+	is.NotNil(instance1)
+
+	instance2, err2 := Invoke[*test](i)
+	is.Nil(err2)
+	is.NotNil(instance2)
+
+	// Lazy services should return the same instance (singleton behavior)
+	is.Same(instance1, instance2, "Lazy services should return the same instance")
+
+	// Test that error services are handled correctly
+	instance3, err3 := Invoke[test](i)
+	is.NotNil(err3)
+	is.Empty(instance3)
+	is.EqualError(err3, "error")
 }
 
 func TestProvideNamed(t *testing.T) {
@@ -122,7 +138,23 @@ func TestProvideNamed(t *testing.T) {
 	_, ok3 := i.self.services["*do.plop"]
 	is.False(ok3)
 
-	// @TODO: check that all services share the same references
+	// Test that all services share the same references when invoked multiple times
+	instance1, err1 := InvokeNamed[*test](i, "*foobar")
+	is.Nil(err1)
+	is.NotNil(instance1)
+
+	instance2, err2 := InvokeNamed[*test](i, "*foobar")
+	is.Nil(err2)
+	is.NotNil(instance2)
+
+	// Lazy services should return the same instance (singleton behavior)
+	is.Same(instance1, instance2, "Named lazy services should return the same instance")
+
+	// Test that error services are handled correctly
+	instance3, err3 := InvokeNamed[test](i, "foobar")
+	is.NotNil(err3)
+	is.Empty(instance3)
+	is.EqualError(err3, "error")
 }
 
 func TestProvideValue(t *testing.T) {
@@ -168,7 +200,29 @@ func TestProvideValue(t *testing.T) {
 		}
 	}
 
-	// @TODO: check that all services share the same references
+	// Test that all services share the same references when invoked multiple times
+	instance1, err1 := Invoke[int](i)
+	is.Nil(err1)
+	is.Equal(42, instance1)
+
+	instance2, err2 := Invoke[int](i)
+	is.Nil(err2)
+	is.Equal(42, instance2)
+
+	// Eager value services should return the same value (not necessarily same reference for primitives)
+	is.Equal(instance1, instance2, "Value services should return the same value")
+
+	// Test struct values
+	structInstance1, err3 := Invoke[test](i)
+	is.Nil(err3)
+	is.Equal(_test, structInstance1)
+
+	structInstance2, err4 := Invoke[test](i)
+	is.Nil(err4)
+	is.Equal(_test, structInstance2)
+
+	// Value services should return the same value
+	is.Equal(structInstance1, structInstance2, "Struct value services should return the same value")
 }
 
 func TestProvideNamedValue(t *testing.T) {
@@ -214,7 +268,29 @@ func TestProvideNamedValue(t *testing.T) {
 		}
 	}
 
-	// @TODO: check that all services share the same references
+	// Test that all services share the same references when invoked multiple times
+	instance1, err1 := InvokeNamed[int](i, "foobar")
+	is.Nil(err1)
+	is.Equal(42, instance1)
+
+	instance2, err2 := InvokeNamed[int](i, "foobar")
+	is.Nil(err2)
+	is.Equal(42, instance2)
+
+	// Named value services should return the same value
+	is.Equal(instance1, instance2, "Named value services should return the same value")
+
+	// Test struct values
+	structInstance1, err3 := InvokeNamed[test](i, "hello")
+	is.Nil(err3)
+	is.Equal(_test, structInstance1)
+
+	structInstance2, err4 := InvokeNamed[test](i, "hello")
+	is.Nil(err4)
+	is.Equal(_test, structInstance2)
+
+	// Named value services should return the same value
+	is.Equal(structInstance1, structInstance2, "Named struct value services should return the same value")
 }
 
 func TestProvideTransient(t *testing.T) {
@@ -266,7 +342,23 @@ func TestProvideTransient(t *testing.T) {
 	_, ok3 := i.self.services["github.com/samber/do/v2.*plop"]
 	is.False(ok3)
 
-	// @TODO: check that all services share the same references
+	// Test that transient services create new instances each time
+	instance1, err1 := Invoke[*test](i)
+	is.Nil(err1)
+	is.NotNil(instance1)
+
+	instance2, err2 := Invoke[*test](i)
+	is.Nil(err2)
+	is.NotNil(instance2)
+
+	// Transient services should return different instances (not the same reference)
+	is.NotSame(instance1, instance2, "Transient services should return different instances")
+
+	// Test that error services are handled correctly
+	instance3, err3 := Invoke[test](i)
+	is.NotNil(err3)
+	is.Empty(instance3)
+	is.EqualError(err3, "error")
 }
 
 func TestProvideNamedTransient(t *testing.T) {
@@ -278,17 +370,17 @@ func TestProvideNamedTransient(t *testing.T) {
 
 	i := New()
 
-	ProvideNamed(i, "*foobar", func(i Injector) (*test, error) {
+	ProvideNamedTransient(i, "*foobar", func(i Injector) (*test, error) {
 		return &test{}, nil
 	})
 
-	ProvideNamed(i, "foobar", func(i Injector) (test, error) {
+	ProvideNamedTransient(i, "foobar", func(i Injector) (test, error) {
 		return test{}, fmt.Errorf("error")
 	})
 
 	is.Panics(func() {
 		// try to erase previous instance
-		ProvideNamed(i, "foobar", func(i Injector) (test, error) {
+		ProvideNamedTransient(i, "foobar", func(i Injector) (test, error) {
 			return test{}, fmt.Errorf("error")
 		})
 	})
@@ -318,7 +410,23 @@ func TestProvideNamedTransient(t *testing.T) {
 	_, ok3 := i.self.services["*do.plop"]
 	is.False(ok3)
 
-	// @TODO: check that all services share the same references
+	// Test that named transient services create new instances each time
+	instance1, err1 := InvokeNamed[*test](i, "*foobar")
+	is.Nil(err1)
+	is.NotNil(instance1)
+
+	instance2, err2 := InvokeNamed[*test](i, "*foobar")
+	is.Nil(err2)
+	is.NotNil(instance2)
+
+	// Named transient services should return different instances (not the same reference)
+	is.NotSame(instance1, instance2, "Named transient services should return different instances")
+
+	// Test that error services are handled correctly
+	instance3, err3 := InvokeNamed[test](i, "foobar")
+	is.NotNil(err3)
+	is.Empty(instance3)
+	is.EqualError(err3, "error")
 }
 
 func TestProvide_race(t *testing.T) {
@@ -447,13 +555,118 @@ func TestOverrideNamedValue(t *testing.T) {
 func TestOverrideTransient(t *testing.T) {
 	t.Parallel()
 	testWithTimeout(t, 100*time.Millisecond)
-	// @TODO
+	is := assert.New(t)
+
+	type test struct {
+		foobar int
+	}
+
+	i := New()
+
+	// Provide initial transient service
+	ProvideTransient(i, func(i Injector) (*test, error) {
+		return &test{42}, nil
+	})
+
+	// Test initial service
+	instance1, err1 := Invoke[*test](i)
+	is.Nil(err1)
+	is.Equal(42, instance1.foobar)
+
+	instance2, err2 := Invoke[*test](i)
+	is.Nil(err2)
+	is.Equal(42, instance2.foobar)
+
+	// Transient services should return different instances
+	is.NotSame(instance1, instance2, "Transient services should return different instances")
+
+	// Override with new transient provider
+	OverrideTransient(i, func(i Injector) (*test, error) {
+		return &test{100}, nil
+	})
+
+	// Test overridden service
+	instance3, err3 := Invoke[*test](i)
+	is.Nil(err3)
+	is.Equal(100, instance3.foobar)
+
+	instance4, err4 := Invoke[*test](i)
+	is.Nil(err4)
+	is.Equal(100, instance4.foobar)
+
+	// Overridden transient services should still return different instances
+	is.NotSame(instance3, instance4, "Overridden transient services should return different instances")
+
+	// Test OverrideNamedTransient
+	OverrideNamedTransient(i, NameOf[*test](), func(i Injector) (*test, error) {
+		return &test{200}, nil
+	})
+
+	// Test final overridden service
+	instance5, err5 := Invoke[*test](i)
+	is.Nil(err5)
+	is.Equal(200, instance5.foobar)
 }
 
 func TestOverrideNamedTransient(t *testing.T) {
 	t.Parallel()
 	testWithTimeout(t, 100*time.Millisecond)
-	// @TODO
+	is := assert.New(t)
+
+	type test struct {
+		foobar int
+	}
+
+	i := New()
+
+	// Provide initial named transient service
+	ProvideNamedTransient(i, "test-service", func(i Injector) (*test, error) {
+		return &test{42}, nil
+	})
+
+	// Test initial service
+	instance1, err1 := InvokeNamed[*test](i, "test-service")
+	is.Nil(err1)
+	is.Equal(42, instance1.foobar)
+
+	instance2, err2 := InvokeNamed[*test](i, "test-service")
+	is.Nil(err2)
+	is.Equal(42, instance2.foobar)
+
+	// Named transient services should return different instances
+	is.NotSame(instance1, instance2, "Named transient services should return different instances")
+
+	// Override with new named transient provider
+	OverrideNamedTransient(i, "test-service", func(i Injector) (*test, error) {
+		return &test{100}, nil
+	})
+
+	// Test overridden service
+	instance3, err3 := InvokeNamed[*test](i, "test-service")
+	is.Nil(err3)
+	is.Equal(100, instance3.foobar)
+
+	instance4, err4 := InvokeNamed[*test](i, "test-service")
+	is.Nil(err4)
+	is.Equal(100, instance4.foobar)
+
+	// Overridden named transient services should still return different instances
+	is.NotSame(instance3, instance4, "Overridden named transient services should return different instances")
+
+	// Test override with different service name
+	OverrideNamedTransient(i, "another-service", func(i Injector) (*test, error) {
+		return &test{200}, nil
+	})
+
+	// Test that original service is still available
+	instance5, err5 := InvokeNamed[*test](i, "test-service")
+	is.Nil(err5)
+	is.Equal(100, instance5.foobar)
+
+	// Test new service
+	instance6, err6 := InvokeNamed[*test](i, "another-service")
+	is.Nil(err6)
+	is.Equal(200, instance6.foobar)
 }
 
 func TestInvoke(t *testing.T) {
@@ -740,7 +953,51 @@ func TestAs(t *testing.T) {
 
 func TestMustAs(t *testing.T) {
 	testWithTimeout(t, 100*time.Millisecond)
-	// @TODO
+	is := assert.New(t)
+
+	i := New()
+	Provide(i, func(i Injector) (*lazyTestHeathcheckerOK, error) { return &lazyTestHeathcheckerOK{}, nil })
+
+	// Test successful alias creation
+	is.NotPanics(func() {
+		MustAs[*lazyTestHeathcheckerOK, Healthchecker](i)
+	})
+
+	// Test that the alias was created and can be invoked
+	hc, err := Invoke[Healthchecker](i)
+	is.Nil(err)
+	is.NotNil(hc)
+
+	// Test panic on invalid interface implementation
+	is.Panics(func() {
+		MustAs[*lazyTestShutdownerOK, Healthchecker](i)
+	})
+
+	// Test panic on service not declared
+	is.Panics(func() {
+		MustAs[*lazyTestHeathcheckerKO, Healthchecker](i)
+	})
+
+	// Test panic on self-reference
+	is.Panics(func() {
+		MustAs[*lazyTestShutdownerOK, *lazyTestShutdownerOK](i)
+	})
+
+	// Test with interface-to-interface
+	i = New()
+	type iTestHeathchecker interface {
+		HealthCheck() error
+	}
+	Provide(i, func(i Injector) (iTestHeathchecker, error) { return &lazyTestHeathcheckerOK{}, nil })
+
+	is.NotPanics(func() {
+		MustAs[iTestHeathchecker, Healthchecker](i)
+	})
+
+	// Test that the interface alias works
+	hc2, err2 := Invoke[Healthchecker](i)
+	is.Nil(err2)
+	is.NotNil(hc2)
 }
 
 func TestAsNamed(t *testing.T) {
@@ -762,7 +1019,60 @@ func TestAsNamed(t *testing.T) {
 
 func TestMustAsNamed(t *testing.T) {
 	testWithTimeout(t, 100*time.Millisecond)
-	// @TODO
+	is := assert.New(t)
+
+	i := New()
+	Provide(i, func(i Injector) (*lazyTestHeathcheckerOK, error) { return &lazyTestHeathcheckerOK{}, nil })
+
+	// Test successful named alias creation
+	is.NotPanics(func() {
+		MustAsNamed[*lazyTestHeathcheckerOK, Healthchecker](i, "*github.com/samber/do/v2.lazyTestHeathcheckerOK", "github.com/samber/do/v2.Healthchecker")
+	})
+
+	// Test that the named alias was created and can be invoked
+	hc, err := InvokeNamed[Healthchecker](i, "github.com/samber/do/v2.Healthchecker")
+	is.Nil(err)
+	is.NotNil(hc)
+
+	// Test panic on invalid interface implementation
+	is.Panics(func() {
+		MustAsNamed[*lazyTestShutdownerOK, Healthchecker](i, "*github.com/samber/do/v2.lazyTestShutdownerOK", "github.com/samber/do/v2.Healthchecker")
+	})
+
+	// Test panic on service not declared
+	is.Panics(func() {
+		MustAsNamed[*lazyTestHeathcheckerKO, Healthchecker](i, "*github.com/samber/do/v2.lazyTestHeathcheckerKO", "github.com/samber/do/v2.Healthchecker")
+	})
+
+	// Test panic on self-reference
+	is.Panics(func() {
+		MustAsNamed[*lazyTestShutdownerOK, *lazyTestShutdownerOK](i, "*github.com/samber/do/v2.lazyTestShutdownerOK", "*github.com/samber/do/v2.lazyTestShutdownerOK")
+	})
+
+	// Test with interface-to-interface named alias
+	i = New()
+	type iTestHeathchecker interface {
+		HealthCheck() error
+	}
+	Provide(i, func(i Injector) (iTestHeathchecker, error) { return &lazyTestHeathcheckerOK{}, nil })
+
+	is.NotPanics(func() {
+		MustAsNamed[iTestHeathchecker, Healthchecker](i, "github.com/samber/do/v2.iTestHeathchecker", "github.com/samber/do/v2.Healthchecker")
+	})
+
+	// Test that the interface named alias works
+	hc2, err2 := InvokeNamed[Healthchecker](i, "github.com/samber/do/v2.Healthchecker")
+	is.Nil(err2)
+	is.NotNil(hc2)
+
+	// Test custom named services
+	is.NotPanics(func() {
+		MustAsNamed[iTestHeathchecker, Healthchecker](i, "custom-source", "custom-target")
+	})
+
+	hc3, err3 := InvokeNamed[Healthchecker](i, "custom-target")
+	is.Nil(err3)
+	is.NotNil(hc3)
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -796,7 +1106,56 @@ func TestInvokeAs(t *testing.T) {
 
 func TestMustInvokeAs(t *testing.T) {
 	testWithTimeout(t, 100*time.Millisecond)
-	// @TODO
+	is := assert.New(t)
+
+	i := New()
+	Provide(i, func(i Injector) (*lazyTestHeathcheckerOK, error) {
+		return &lazyTestHeathcheckerOK{foobar: "hello world"}, nil
+	})
+
+	// Test successful invocation by concrete type
+	is.NotPanics(func() {
+		svc := MustInvokeAs[*lazyTestHeathcheckerOK](i)
+		is.EqualValues(&lazyTestHeathcheckerOK{foobar: "hello world"}, svc)
+	})
+
+	// Test successful invocation by interface
+	is.NotPanics(func() {
+		svc := MustInvokeAs[Healthchecker](i)
+		is.EqualValues(&lazyTestHeathcheckerOK{foobar: "hello world"}, svc)
+	})
+
+	// Test panic on interface not found
+	is.Panics(func() {
+		_ = MustInvokeAs[Shutdowner](i)
+	})
+
+	// Test panic on concrete type not found
+	is.Panics(func() {
+		_ = MustInvokeAs[*lazyTestShutdownerOK](i)
+	})
+
+	// Test with multiple services that implement the same interface
+	Provide(i, func(i Injector) (*lazyTestHeathcheckerKO, error) {
+		return &lazyTestHeathcheckerKO{foobar: "ko service"}, nil
+	})
+
+	// Should still work and return the first compatible service
+	is.NotPanics(func() {
+		svc := MustInvokeAs[Healthchecker](i)
+		is.NotNil(svc)
+		// Note: The implementation determines which service is returned when multiple match
+	})
+
+	// Test with no services at all
+	emptyInjector := New()
+	is.Panics(func() {
+		_ = MustInvokeAs[Healthchecker](emptyInjector)
+	})
+
+	is.Panics(func() {
+		_ = MustInvokeAs[*lazyTestHeathcheckerOK](emptyInjector)
+	})
 }
 
 /////////////////////////////////////////////////////////////////////////////

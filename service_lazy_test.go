@@ -91,6 +91,29 @@ func (t *lazyTestShutdownerKOCtx) Shutdown(ctx context.Context) error {
 	return assert.AnError
 }
 
+// Test services for context value propagation in service lazy
+type contextValueHealthcheckerLazy struct {
+}
+
+func (c *contextValueHealthcheckerLazy) HealthCheck(ctx context.Context) error {
+	value := ctx.Value("test-key")
+	if value != "healthcheck-value" {
+		return fmt.Errorf("test-key not found or value is incorrect")
+	}
+	return nil
+}
+
+type contextValueShutdownerLazy struct {
+}
+
+func (c *contextValueShutdownerLazy) Shutdown(ctx context.Context) error {
+	value := ctx.Value("test-key")
+	if value != "shutdown-value" {
+		return fmt.Errorf("test-key not found or value is incorrect")
+	}
+	return nil
+}
+
 func TestNewServiceLazy(t *testing.T) {
 	testWithTimeout(t, 100*time.Millisecond)
 	// @TODO
@@ -706,4 +729,34 @@ func TestServiceLazy_source(t *testing.T) {
 
 	_, invocationFrames11 := errorService.source()
 	is.NotEmpty(invocationFrames11, "Should have invocation frames even after error (frame collected before error)")
+}
+
+// Test context value propagation for service lazy
+func TestServiceLazy_ContextValuePropagation(t *testing.T) {
+	t.Parallel()
+	testWithTimeout(t, 100*time.Millisecond)
+	is := assert.New(t)
+
+	// Create service lazy instances with providers that return context-aware services
+	healthcheckLazy := newServiceLazy("healthcheck-lazy", func(i Injector) (*contextValueHealthcheckerLazy, error) {
+		return &contextValueHealthcheckerLazy{}, nil
+	})
+
+	shutdownLazy := newServiceLazy("shutdown-lazy", func(i Injector) (*contextValueShutdownerLazy, error) {
+		return &contextValueShutdownerLazy{}, nil
+	})
+
+	// Test context value propagation for healthcheck
+	ctx1 := context.WithValue(context.Background(), "test-key", "healthcheck-value")
+	err := healthcheckLazy.healthcheck(ctx1)
+	is.Nil(err)
+
+	// Test context value propagation for shutdown
+	ctx2 := context.WithValue(context.Background(), "test-key", "shutdown-value")
+	err = shutdownLazy.shutdown(ctx2)
+	is.Nil(err)
+
+	// Test that lazy service properly delegates to the underlying instance
+	// The lazy service should not store context values itself, but pass them through
+	// to the underlying service instance created by the provider
 }

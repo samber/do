@@ -2,6 +2,7 @@ package do
 
 import (
 	"context"
+	"fmt"
 	"testing"
 	"time"
 
@@ -53,9 +54,130 @@ func (t *eagerTestShutdownerKO) Shutdown() error {
 	return assert.AnError
 }
 
+var _ HealthcheckerWithContext = (*eagerTestHeathcheckerWithContext)(nil)
+
+type eagerTestHeathcheckerWithContext struct {
+	foobar     string
+	shouldFail bool
+}
+
+func (h *eagerTestHeathcheckerWithContext) HealthCheck(ctx context.Context) error {
+	if h.shouldFail {
+		return assert.AnError
+	}
+	return nil
+}
+
+var _ ShutdownerWithContext = (*eagerTestShutdownerWithContext)(nil)
+
+type eagerTestShutdownerWithContext struct {
+	foobar string
+}
+
+func (s *eagerTestShutdownerWithContext) Shutdown(ctx context.Context) {
+	// Void return
+}
+
+var _ Shutdowner = (*eagerTestShutdownerVoid)(nil)
+
+type eagerTestShutdownerVoid struct {
+	foobar string
+}
+
+func (s *eagerTestShutdownerVoid) Shutdown() {
+	// Void return, no context
+}
+
+// Test services for context value propagation in service eager
+type contextValueHealthcheckerEager struct {
+}
+
+func (c *contextValueHealthcheckerEager) HealthCheck(ctx context.Context) error {
+	value := ctx.Value("test-key")
+	if value != "healthcheck-value" {
+		return fmt.Errorf("test-key not found or value is incorrect")
+	}
+	return nil
+}
+
+type contextValueShutdownerEager struct {
+}
+
+func (c *contextValueShutdownerEager) Shutdown(ctx context.Context) error {
+	value := ctx.Value("test-key")
+	if value != "shutdown-value" {
+		return fmt.Errorf("test-key not found or value is incorrect")
+	}
+	return nil
+}
+
 func TestNewServiceEager(t *testing.T) {
+	t.Parallel()
 	testWithTimeout(t, 100*time.Millisecond)
-	// @TODO
+	is := assert.New(t)
+
+	// Test with string instance
+	service1 := newServiceEager("string-service", "test-value")
+	is.Equal("string-service", service1.name)
+	is.Equal("string", service1.typeName)
+	is.Equal("test-value", service1.instance)
+	is.NotEmpty(service1.providerFrame.File, "Provider frame should be set")
+	is.Greater(service1.providerFrame.Line, 0, "Provider frame should have line number")
+	is.Empty(service1.invokationFrames, "Invocation frames should be empty initially")
+	is.Equal(uint32(0), service1.invokationFramesCounter, "Invocation frames counter should be 0")
+
+	// Test with int instance
+	service2 := newServiceEager("int-service", 42)
+	is.Equal("int-service", service2.name)
+	is.Equal("int", service2.typeName)
+	is.Equal(42, service2.instance)
+
+	// Test with struct instance
+	testStruct := eagerTest{foobar: "test"}
+	service3 := newServiceEager("struct-service", testStruct)
+	is.Equal("struct-service", service3.name)
+	is.Equal("github.com/samber/do/v2.eagerTest", service3.typeName)
+	is.Equal(testStruct, service3.instance)
+
+	// Test with pointer instance
+	testPtr := &eagerTest{foobar: "pointer-test"}
+	service4 := newServiceEager("pointer-service", testPtr)
+	is.Equal("pointer-service", service4.name)
+	is.Equal("*github.com/samber/do/v2.eagerTest", service4.typeName)
+	is.Equal(testPtr, service4.instance)
+
+	// Test with interface instance
+	var healthchecker Healthchecker = &eagerTestHeathcheckerOK{foobar: "healthchecker"}
+	service5 := newServiceEager("interface-service", healthchecker)
+	is.Equal("interface-service", service5.name)
+	is.Equal("*github.com/samber/do/v2.eagerTestHeathcheckerOK", service5.typeName)
+	is.Equal(healthchecker, service5.instance)
+
+	// Test with nil instance
+	service6 := newServiceEager[*eagerTest]("nil-service", nil)
+	is.Equal("nil-service", service6.name)
+	is.Equal("*github.com/samber/do/v2.eagerTest", service6.typeName)
+	is.Nil(service6.instance)
+
+	// Test with boolean instance
+	service7 := newServiceEager("bool-service", true)
+	is.Equal("bool-service", service7.name)
+	is.Equal("bool", service7.typeName)
+	is.True(service7.instance)
+
+	// Test with slice instance
+	slice := []string{"a", "b", "c"}
+	service8 := newServiceEager("slice-service", slice)
+	is.Equal("slice-service", service8.name)
+	is.Equal("[]string", service8.typeName)
+	is.Equal(slice, service8.instance)
+
+	// Test with map instance
+	m := map[string]int{"key": 42}
+	service9 := newServiceEager("map-service", m)
+	is.Equal("map-service", service9.name)
+	is.Equal("map[string]int", service9.typeName)
+	is.Equal(m, service9.instance)
 }
 
 func TestServiceEager_getName(t *testing.T) {
@@ -177,7 +299,6 @@ func TestServiceEager_isHealthchecker(t *testing.T) {
 	is.True(service3.isHealthchecker())
 }
 
-// @TODO: missing tests for context
 func TestServiceEager_healthcheck(t *testing.T) {
 	t.Parallel()
 	testWithTimeout(t, 100*time.Millisecond)
@@ -201,6 +322,47 @@ func TestServiceEager_healthcheck(t *testing.T) {
 	is.NotNil(err3)
 	is.Error(err3)
 	is.Equal(err3, assert.AnError)
+
+	// Test with canceled context
+	canceledCtx, cancel := context.WithCancel(context.Background())
+	cancel() // Cancel immediately
+
+	service4 := newServiceEager("foobar", &eagerTestHeathcheckerOK{foobar: "foobar"})
+	err4 := service4.healthcheck(canceledCtx)
+	is.Error(err4)
+	is.Equal(context.Canceled, err4)
+
+	// Test with timeout context that expires
+	timeoutCtx, cancel := context.WithTimeout(context.Background(), 1*time.Nanosecond)
+	defer cancel()
+	time.Sleep(2 * time.Millisecond) // Ensure timeout expires
+
+	service5 := newServiceEager("foobar", &eagerTestHeathcheckerOK{foobar: "foobar"})
+	err5 := service5.healthcheck(timeoutCtx)
+	is.Error(err5)
+	is.Equal(context.DeadlineExceeded, err5)
+
+	// Test with context that has deadline but hasn't expired
+	futureCtx, cancel := context.WithTimeout(context.Background(), 100*time.Millisecond)
+	defer cancel()
+
+	service6 := newServiceEager("foobar", &eagerTestHeathcheckerOK{foobar: "foobar"})
+	err6 := service6.healthcheck(futureCtx)
+	is.Nil(err6) // Should succeed since context hasn't expired
+
+	// Test HealthcheckerWithContext type
+	healthcheckerWithCtx := &eagerTestHeathcheckerWithContext{foobar: "test", shouldFail: false}
+	service7 := newServiceEager("foobar", healthcheckerWithCtx)
+
+	// Test HealthcheckerWithContext interface
+	err7 := service7.healthcheck(ctx)
+	is.Nil(err7) // Should work with normal context
+
+	// Test context error handling with canceled context and error healthchecker
+	service8 := newServiceEager("foobar", &eagerTestHeathcheckerKO{foobar: "foobar"})
+	err8 := service8.healthcheck(canceledCtx)
+	is.Error(err8)
+	is.Equal(context.Canceled, err8) // Context error takes precedence
 }
 
 func TestServiceEager_isShutdowner(t *testing.T) {
@@ -221,7 +383,6 @@ func TestServiceEager_isShutdowner(t *testing.T) {
 	is.True(service3.isShutdowner())
 }
 
-// @TODO: missing tests for context
 func TestServiceEager_shutdown(t *testing.T) {
 	t.Parallel()
 	testWithTimeout(t, 100*time.Millisecond)
@@ -245,6 +406,68 @@ func TestServiceEager_shutdown(t *testing.T) {
 	is.NotNil(err3)
 	is.Error(err3)
 	is.Equal(err3, assert.AnError)
+
+	// Test with canceled context
+	canceledCtx, cancel := context.WithCancel(context.Background())
+	cancel() // Cancel immediately
+
+	service4 := newServiceEager("foobar", &eagerTestShutdownerOK{foobar: "foobar"})
+	err4 := service4.shutdown(canceledCtx)
+	is.Error(err4)
+	is.Equal(context.Canceled, err4)
+
+	// Test with timeout context that expires
+	timeoutCtx, cancel := context.WithTimeout(context.Background(), 1*time.Nanosecond)
+	defer cancel()
+	time.Sleep(2 * time.Millisecond) // Ensure timeout expires
+
+	service5 := newServiceEager("foobar", &eagerTestShutdownerOK{foobar: "foobar"})
+	err5 := service5.shutdown(timeoutCtx)
+	is.Error(err5)
+	is.Equal(context.DeadlineExceeded, err5)
+
+	// Test with context that has deadline but hasn't expired
+	futureCtx, cancel := context.WithTimeout(context.Background(), 100*time.Millisecond)
+	defer cancel()
+
+	service6 := newServiceEager("foobar", &eagerTestShutdownerOK{foobar: "foobar"})
+	err6 := service6.shutdown(futureCtx)
+	is.Nil(err6) // Should succeed since context hasn't expired
+
+	// Test different shutdowner types with context
+
+	// Test ShutdownerWithContextAndError (already tested above)
+	service7 := newServiceEager("foobar", &eagerTestShutdownerOK{foobar: "foobar"})
+	err7 := service7.shutdown(ctx)
+	is.Nil(err7)
+
+	// Test ShutdownerWithError with canceled context
+	service8 := newServiceEager("foobar", &eagerTestShutdownerKO{foobar: "foobar"})
+	err8 := service8.shutdown(canceledCtx)
+	is.Error(err8)
+	is.Equal(context.Canceled, err8) // Context error takes precedence
+
+	// Test ShutdownerWithContext type (void return)
+	shutdownerWithCtx := &eagerTestShutdownerWithContext{foobar: "test"}
+	service9 := newServiceEager("foobar", shutdownerWithCtx)
+
+	// Test ShutdownerWithContext interface
+	err9 := service9.shutdown(ctx)
+	is.Nil(err9) // Should work with normal context
+
+	// Test Shutdowner type (void return, no context)
+	shutdownerVoid := &eagerTestShutdownerVoid{foobar: "test"}
+	service10 := newServiceEager("foobar", shutdownerVoid)
+
+	// Test Shutdowner interface
+	err10 := service10.shutdown(ctx)
+	is.Nil(err10) // Should work
+
+	// Test context error handling with canceled context and different shutdowner types
+	service11 := newServiceEager("foobar", shutdownerWithCtx)
+	err11 := service11.shutdown(canceledCtx)
+	is.Error(err11)
+	is.Equal(context.Canceled, err11) // Context error takes precedence
 }
 
 func TestServiceEager_clone(t *testing.T) {
@@ -383,4 +606,33 @@ func TestServiceEager_source(t *testing.T) {
 	// Original frames should not be affected
 	is.Len(originalFrames, 2, "Original frames should not be affected by internal changes")
 	is.Len(invocationFrames8, 3, "New frames should include the additional frame")
+}
+
+// Test context value propagation for service eager
+func TestServiceEager_ContextValuePropagation(t *testing.T) {
+	t.Parallel()
+	testWithTimeout(t, 100*time.Millisecond)
+	is := assert.New(t)
+
+	// Create test services that capture context values
+	healthcheckService := &contextValueHealthcheckerEager{}
+	shutdownService := &contextValueShutdownerEager{}
+
+	// Create service eager instances
+	healthcheckEager := newServiceEager("healthcheck-eager", healthcheckService)
+	shutdownEager := newServiceEager("shutdown-eager", shutdownService)
+
+	// Test context value propagation for healthcheck
+	ctx1 := context.WithValue(context.Background(), "test-key", "healthcheck-value")
+	err := healthcheckEager.healthcheck(ctx1)
+	is.Nil(err)
+
+	// Test context value propagation for shutdown
+	ctx2 := context.WithValue(context.Background(), "test-key", "shutdown-value")
+	err = shutdownEager.shutdown(ctx2)
+	is.Nil(err)
+
+	// Test that eager service properly delegates to the underlying instance
+	// The eager service should not store context values itself, but pass them through
+	// to the underlying service instance
 }
