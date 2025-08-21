@@ -298,12 +298,14 @@ func TestProvideTransient(t *testing.T) {
 	testWithTimeout(t, 100*time.Millisecond)
 	is := assert.New(t)
 
-	type test struct{}
+	type test struct {
+		ID int
+	}
 
 	i := New()
 
 	ProvideTransient(i, func(i Injector) (*test, error) {
-		return &test{}, nil
+		return &test{ID: 1}, nil
 	})
 
 	ProvideTransient(i, func(i Injector) (test, error) {
@@ -366,12 +368,14 @@ func TestProvideNamedTransient(t *testing.T) {
 	testWithTimeout(t, 100*time.Millisecond)
 	is := assert.New(t)
 
-	type test struct{}
+	type test struct {
+		ID int
+	}
 
 	i := New()
 
 	ProvideNamedTransient(i, "*foobar", func(i Injector) (*test, error) {
-		return &test{}, nil
+		return &test{ID: 1}, nil
 	})
 
 	ProvideNamedTransient(i, "foobar", func(i Injector) (test, error) {
@@ -1066,6 +1070,8 @@ func TestMustAsNamed(t *testing.T) {
 	is.NotNil(hc2)
 
 	// Test custom named services
+	ProvideNamed(i, "custom-source", func(i Injector) (iTestHeathchecker, error) { return &lazyTestHeathcheckerOK{}, nil })
+
 	is.NotPanics(func() {
 		MustAsNamed[iTestHeathchecker, Healthchecker](i, "custom-source", "custom-target")
 	})
