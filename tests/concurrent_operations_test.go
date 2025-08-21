@@ -737,7 +737,7 @@ type concurrentTestShutdowner struct {
 
 func (t *concurrentTestShutdowner) Shutdown(ctx context.Context) error {
 	if t.shouldBlock {
-		// Block indefinitely or until context is cancelled
+		// Block indefinitely or until context is canceled
 		select {
 		case <-ctx.Done():
 			return ctx.Err()

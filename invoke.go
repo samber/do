@@ -216,7 +216,7 @@ func invokeByGenericType[T any](i Injector) (T, error) {
 //
 // @TODO: When implicitAliasing is enabled and the tag name is empty, fallback by type may select an arbitrary
 // matching service depending on iteration order; consider stable ordering or explicit disambiguation.
-func invokeByTags(i Injector, structName string, structValue reflect.Value, implicitAliasing bool) error {
+func invokeByTags(i Injector, structName string, structValue reflect.Value, implicitAliasing bool) error { //nolint:gocyclo
 	injector := getInjectorOrDefault(i)
 
 	// Ensure that servicePtr is a pointer to a struct
@@ -247,7 +247,7 @@ func invokeByTags(i Injector, structName string, structValue reflect.Value, impl
 			// When a field is not exported, we override it.
 			// See https://stackoverflow.com/questions/42664837/how-to-access-unexported-struct-fields/43918797#43918797
 			// bearer:disable go_gosec_unsafe_unsafe
-			fieldValue = reflect.NewAt(fieldValue.Type(), unsafe.Pointer(fieldValue.UnsafeAddr())).Elem() //nolint:gosec
+			fieldValue = reflect.NewAt(fieldValue.Type(), unsafe.Pointer(fieldValue.UnsafeAddr())).Elem()
 		}
 
 		if serviceName == "" {
