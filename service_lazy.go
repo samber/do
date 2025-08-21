@@ -70,18 +70,20 @@ func (s *serviceLazy[T]) getInstanceAny(i Injector) (any, error) {
 }
 
 func (s *serviceLazy[T]) getInstance(i Injector) (T, error) {
-	s.mu.Lock()
-	defer s.mu.Unlock()
-
 	// Collect up to 100 invokation frames.
 	// In the future, we can implement a LFU list, to evict the oldest
 	// frames and keep the most recent ones, but it would be much more costly.
 	if atomic.AddUint32(&s.invokationFramesCounter, 1) < MaxInvocationFrames {
 		frame, ok := stacktrace.NewFrameFromCaller()
 		if ok {
+			s.mu.Lock()
 			s.invokationFrames[frame] = struct{}{}
+			s.mu.Unlock()
 		}
 	}
+
+	s.mu.Lock()
+	defer s.mu.Unlock()
 
 	if !s.built {
 		err := s.build(i)

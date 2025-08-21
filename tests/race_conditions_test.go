@@ -237,12 +237,9 @@ func TestRaceConditionShutdownInvocation(t *testing.T) {
 
 	wg.Wait()
 
-	// Some operations may fail due to shutdown, which is expected
-	// We just verify that the operations complete without panicking
-	for i := 0; i < numOperations; i++ {
-		// Operations should complete without panicking
-		is.NotNil(invokeErrors[i] != nil || shutdownErrors[i] != nil)
-	}
+	// After concurrent shutdown/invocation, the service should no longer be invokable
+	_, finalErr := do.InvokeNamed[*raceShutdowner](root, "shutdown-race-service")
+	is.Error(finalErr)
 }
 
 // TestRaceConditionSlowServiceInvocation tests race conditions with slow service resolution

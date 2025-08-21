@@ -28,7 +28,7 @@ func TestHealthCheck(t *testing.T) {
 
 	is.Nil(HealthCheck[*lazyTest](i))
 	is.Nil(HealthCheck[*lazyTestHeathcheckerOK](i))
-	is.Error(assert.AnError, HealthCheck[*lazyTestHeathcheckerKO](i))
+	is.Equal(assert.AnError, HealthCheck[*lazyTestHeathcheckerKO](i))
 }
 
 func TestHealthCheckWithContext(t *testing.T) {
@@ -44,7 +44,7 @@ func TestHealthCheckWithContext(t *testing.T) {
 	is.Nil(HealthCheckWithContext[*lazyTestHeathcheckerKOCtx](ctx, i))
 	_, _ = Invoke[*lazyTestHeathcheckerKOCtx](i)
 
-	is.Error(assert.AnError, HealthCheckWithContext[*lazyTestHeathcheckerKOCtx](ctx, i))
+	is.Equal(assert.AnError, HealthCheckWithContext[*lazyTestHeathcheckerKOCtx](ctx, i))
 }
 
 func TestHealthCheckNamed(t *testing.T) {
@@ -57,7 +57,7 @@ func TestHealthCheckNamed(t *testing.T) {
 	is.Nil(HealthCheckNamed(i, "foobar"))
 	_, _ = InvokeNamed[*lazyTestHeathcheckerKO](i, "foobar")
 
-	is.Error(assert.AnError, HealthCheckNamed(i, "foobar"))
+	is.Equal(assert.AnError, HealthCheckNamed(i, "foobar"))
 }
 
 func TestHealthCheckNamedWithContext(t *testing.T) {
@@ -73,7 +73,7 @@ func TestHealthCheckNamedWithContext(t *testing.T) {
 	is.Nil(HealthCheckNamedWithContext(ctx, i, "foobar"))
 	_, _ = InvokeNamed[*lazyTestHeathcheckerKOCtx](i, "foobar")
 
-	is.Error(assert.AnError, HealthCheckNamedWithContext(ctx, i, "foobar"))
+	is.Equal(assert.AnError, HealthCheckNamedWithContext(ctx, i, "foobar"))
 }
 
 func TestShutdown(t *testing.T) {
@@ -118,7 +118,7 @@ func TestShutdownWithContext(t *testing.T) {
 	is.Nil(ShutdownWithContext[*lazyTestShutdownerKOCtx](ctx, i))
 	_, _ = Invoke[*lazyTestShutdownerKOCtx](i)
 
-	is.Error(assert.AnError, ShutdownWithContext[*lazyTestShutdownerKOCtx](ctx, i))
+	is.EqualError(ShutdownWithContext[*lazyTestShutdownerKOCtx](ctx, i), "DI: could not find service `*github.com/samber/do/v2.lazyTestShutdownerKOCtx`, no service available")
 }
 
 func TestMustShutdown(t *testing.T) {

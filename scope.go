@@ -474,12 +474,18 @@ func (s *Scope) shutdownServicesWithoutDependenciesInParallel(ctx context.Contex
 func (s *Scope) clone(root *RootScope, parent *Scope) *Scope {
 	clone := newScope(s.name, root, parent)
 
-	s.mu.Lock()
-	defer s.mu.Unlock()
-
+	s.mu.RLock()
+	services := make(map[string]any, len(s.services))
+	childScopes := make(map[string]*Scope, len(s.childScopes))
 	for name, serviceAny := range s.services {
-		s.rootScope.opts.onBeforeRegistration(clone, name)
+		services[name] = serviceAny
+	}
+	for name, childScope := range s.childScopes {
+		childScopes[name] = childScope
+	}
+	s.mu.RUnlock()
 
+	for name, serviceAny := range services {
 		if service, ok := serviceAny.(serviceWrapperClone); ok {
 			clone.services[name] = service.clone(clone)
 		} else {
@@ -489,7 +495,7 @@ func (s *Scope) clone(root *RootScope, parent *Scope) *Scope {
 		s.rootScope.opts.onAfterRegistration(clone, name)
 	}
 
-	for name, index := range s.childScopes {
+	for name, index := range childScopes {
 		clone.childScopes[name] = index.clone(root, clone)
 	}
 
@@ -708,9 +714,14 @@ func (s *Scope) serviceHealthCheck(ctx context.Context, name string) error {
 // Returns an error if the shutdown fails, or nil if the shutdown was successful.
 // Panics if the service doesn't implement the Shutdowner interface.
 func (s *Scope) serviceShutdown(ctx context.Context, name string) error {
-	s.mu.RLock()
+	s.mu.Lock()
 	serviceAny, ok := s.services[name]
-	s.mu.RUnlock()
+	if ok {
+		delete(s.services, name) // service is removed from DI container
+		delete(s.orderedInvocation, name)
+		s.RootScope().dag.removeService(s.id, s.name, name)
+	}
+	s.mu.Unlock()
 
 	if !ok {
 		return serviceNotFound(s, ErrServiceNotFound, []string{name})
@@ -729,12 +740,6 @@ func (s *Scope) serviceShutdown(ctx context.Context, name string) error {
 		// Should never happen.
 		panic(fmt.Errorf("DI: service `%s` is not shutdowner", name))
 	}
-
-	s.mu.Lock()
-	delete(s.services, name) // service is removed from DI container
-	delete(s.orderedInvocation, name)
-	s.RootScope().dag.removeService(s.id, s.name, name)
-	s.mu.Unlock()
 
 	return err
 }
