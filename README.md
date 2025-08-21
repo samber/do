@@ -13,20 +13,16 @@
 
 This library implements the Dependency Injection design pattern. It may replace the fantastic `uber/dig` package. `samber/do` uses Go 1.18+ generics and therefore offers a type‑safe API.
 
+![image](https://github.com/user-attachments/assets/81b91fa7-cdb4-4094-94ba-a0179abc6bf7)
+
 **See also:**
 
 - [samber/lo](https://github.com/samber/lo): A Lodash-style Go library based on Go 1.18+ Generics
 - [samber/mo](https://github.com/samber/mo): Monads based on Go 1.18+ Generics (Option, Result, Either...)
 
-![image](https://github.com/user-attachments/assets/81b91fa7-cdb4-4094-94ba-a0179abc6bf7)
-
 **Why this name?**
 
 I love the **short name** for such a utility library. This name is the sum of `DI` and `Go` and no Go package uses this name.
-
-## 🔥 Migration from v1 to v2
-
-[Documentation here](https://do.samber.dev/docs/upgrading/from-v1-x-to-v2)
 
 ## 💡 Features
 
@@ -78,6 +74,10 @@ This library is v2 and follows SemVer strictly.
 No breaking changes will be made to exported APIs before v3.0.0.
 
 This library has no dependencies except the Go std lib.
+
+### 🔥 Migration from v1 to v2
+
+[Documentation here](https://do.samber.dev/docs/upgrading/from-v1-x-to-v2)
 
 ## 🤠 Documentation
 
