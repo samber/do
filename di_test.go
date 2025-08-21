@@ -490,7 +490,7 @@ func TestInvoke(t *testing.T) {
 
 	_, err2 := Invoke[*test](i)
 	is.NotNil(err2)
-	is.Errorf(err2, "do: service not found")
+	is.EqualError(err2, "DI: could not find service `*github.com/samber/do/v2.test`, available services: `github.com/samber/do/v2.test`")
 
 	ProvideNamedValue(i, NameOf[any](), 0)
 
