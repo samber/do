@@ -4,7 +4,7 @@ import (
 	"fmt"
 )
 
-// AuditService represents a service that only needs read access
+// AuditService represents a service that only needs read access.
 type AuditService struct {
 	DB ReadOnlyDatabase
 }
@@ -14,7 +14,7 @@ func (a *AuditService) AuditUserAccess(userID string) {
 	fmt.Printf("Audit result: %s\n", result)
 }
 
-// ConnectionManager represents a service that manages database connections
+// ConnectionManager represents a service that manages database connections.
 type ConnectionManager struct {
 	DB WriteDatabase
 }

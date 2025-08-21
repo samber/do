@@ -10,10 +10,12 @@ import (
 	"github.com/samber/do/v2/stacktrace"
 )
 
-var _ serviceWrapper[int] = (*serviceLazy[int])(nil)
-var _ serviceWrapperHealthcheck = (*serviceLazy[int])(nil)
-var _ serviceWrapperShutdown = (*serviceLazy[int])(nil)
-var _ serviceWrapperClone = (*serviceLazy[int])(nil)
+var (
+	_ serviceWrapper[int]       = (*serviceLazy[int])(nil)
+	_ serviceWrapperHealthcheck = (*serviceLazy[int])(nil)
+	_ serviceWrapperShutdown    = (*serviceLazy[int])(nil)
+	_ serviceWrapperClone       = (*serviceLazy[int])(nil)
+)
 
 type serviceLazy[T any] struct {
 	mu       sync.RWMutex
@@ -131,13 +133,14 @@ func (s *serviceLazy[T]) healthcheck(ctx context.Context) error {
 		return nil
 	}
 
-	if instance, ok := any(s.instance).(HealthcheckerWithContext); ok {
+	switch instance := any(s.instance).(type) {
+	case HealthcheckerWithContext:
 		if ctx.Err() != nil {
 			return ctx.Err()
 		}
 
 		return instance.HealthCheck(ctx)
-	} else if instance, ok := any(s.instance).(Healthchecker); ok {
+	case Healthchecker:
 		if ctx.Err() != nil {
 			return ctx.Err()
 		}
@@ -177,32 +180,31 @@ func (s *serviceLazy[T]) shutdown(ctx context.Context) error {
 		return nil
 	}
 
-	if instance, ok := any(s.instance).(ShutdownerWithContextAndError); ok {
+	switch instance := any(s.instance).(type) {
+	case ShutdownerWithContextAndError:
 		if ctx.Err() != nil {
 			return ctx.Err()
 		}
 
 		return instance.Shutdown(ctx)
-	} else if instance, ok := any(s.instance).(ShutdownerWithError); ok {
+	case ShutdownerWithError:
 		if ctx.Err() != nil {
 			return ctx.Err()
 		}
 
 		return instance.Shutdown()
-	} else if instance, ok := any(s.instance).(ShutdownerWithContext); ok {
+	case ShutdownerWithContext:
 		if ctx.Err() != nil {
 			return ctx.Err()
 		}
 
 		instance.Shutdown(ctx)
-		return nil
-	} else if instance, ok := any(s.instance).(Shutdowner); ok {
+	case Shutdowner:
 		if ctx.Err() != nil {
 			return ctx.Err()
 		}
 
 		instance.Shutdown()
-		return nil
 	}
 
 	return nil
@@ -225,7 +227,6 @@ func (s *serviceLazy[T]) clone(newScope Injector) any {
 	}
 }
 
-//nolint:unused
 func (s *serviceLazy[T]) source() (stacktrace.Frame, []stacktrace.Frame) {
 	s.mu.RLock()
 	invokationFrames := make([]stacktrace.Frame, 0, len(s.invokationFrames))

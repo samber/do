@@ -4,7 +4,7 @@ import (
 	"fmt"
 )
 
-// UserService represents a user service
+// UserService represents a user service.
 type UserService struct {
 	DB     Database
 	Cache  Cache

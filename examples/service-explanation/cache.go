@@ -1,6 +1,6 @@
 package main
 
-// Cache represents a cache service
+// Cache represents a cache service.
 type Cache struct {
 	Data map[string]interface{}
 }

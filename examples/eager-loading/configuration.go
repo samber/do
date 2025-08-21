@@ -4,7 +4,7 @@ import (
 	"time"
 )
 
-// Configuration represents application configuration
+// Configuration represents application configuration.
 type Configuration struct {
 	AppName   string
 	Port      int

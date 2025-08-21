@@ -5,7 +5,7 @@ import (
 	"time"
 )
 
-// Logger represents a logging service
+// Logger represents a logging service.
 type Logger struct {
 	Level string
 }
@@ -14,7 +14,7 @@ func (l *Logger) Log(message string) {
 	fmt.Printf("[%s] %s\n", l.Level, message)
 }
 
-// UserService represents a user service
+// UserService represents a user service.
 type UserService struct {
 	EventBus *EventBus
 	Logger   *Logger
@@ -39,7 +39,7 @@ func (u *UserService) CreateUser(username, email string) error {
 	return u.EventBus.Publish(event)
 }
 
-// OrderService represents an order service
+// OrderService represents an order service.
 type OrderService struct {
 	EventBus *EventBus
 	Logger   *Logger
@@ -64,7 +64,7 @@ func (o *OrderService) CreateOrder(userID string, amount float64) error {
 	return o.EventBus.Publish(event)
 }
 
-// PaymentService represents a payment service
+// PaymentService represents a payment service.
 type PaymentService struct {
 	EventBus *EventBus
 	Logger   *Logger

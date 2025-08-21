@@ -4,7 +4,7 @@ import (
 	"fmt"
 )
 
-// Application represents the main application
+// Application represents the main application.
 type Application struct {
 	EventBus       *EventBus
 	UserService    *UserService

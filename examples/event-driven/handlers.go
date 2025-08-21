@@ -4,7 +4,7 @@ import (
 	"fmt"
 )
 
-// UserEventHandler handles user-related events
+// UserEventHandler handles user-related events.
 type UserEventHandler struct {
 	Logger *Logger
 }
@@ -29,7 +29,7 @@ func (h *UserEventHandler) GetEventType() string {
 	return "user.created"
 }
 
-// OrderEventHandler handles order-related events
+// OrderEventHandler handles order-related events.
 type OrderEventHandler struct {
 	Logger *Logger
 }
@@ -54,7 +54,7 @@ func (h *OrderEventHandler) GetEventType() string {
 	return "order.created"
 }
 
-// PaymentEventHandler handles payment-related events
+// PaymentEventHandler handles payment-related events.
 type PaymentEventHandler struct {
 	Logger *Logger
 }

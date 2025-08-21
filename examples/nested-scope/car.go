@@ -7,8 +7,7 @@ import (
 /**
  * Seat
  */
-type Seat struct {
-}
+type Seat struct{}
 
 func (s *Seat) Warm() {
 	println("🔥🔥🔥")
@@ -21,8 +20,7 @@ func (s *Seat) Shutdown() {
 /**
  * Wheel
  */
-type Wheel struct {
-}
+type Wheel struct{}
 
 func (w *Wheel) Shutdown() {
 	println("stopping wheel")

@@ -4,7 +4,7 @@ import (
 	"github.com/samber/do/v2"
 )
 
-// ApplicationPackage is the global package for the main application
+// ApplicationPackage is the global package for the main application.
 var ApplicationPackage = do.Package(
 	do.Lazy(func(i do.Injector) (*Application, error) {
 		return &Application{

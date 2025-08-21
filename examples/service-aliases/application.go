@@ -4,7 +4,7 @@ import (
 	"fmt"
 )
 
-// Application represents the main application
+// Application represents the main application.
 type Application struct {
 	UserRepo      *UserRepository
 	OrderRepo     *OrderRepository
@@ -16,7 +16,7 @@ func (app *Application) Run() {
 	fmt.Println("=== Starting Application ===")
 
 	// Initialize connection
-	app.ConnectionMgr.Initialize()
+	_ = app.ConnectionMgr.Initialize()
 
 	// Use repositories
 	fmt.Println("User data:", app.UserRepo.GetUser("123"))

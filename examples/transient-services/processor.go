@@ -4,7 +4,7 @@ import (
 	"fmt"
 )
 
-// OrderProcessor represents the main service that coordinates order processing
+// OrderProcessor represents the main service that coordinates order processing.
 type OrderProcessor struct {
 	UserService    *UserService
 	OrderService   *OrderService
@@ -19,7 +19,7 @@ func (op *OrderProcessor) ProcessOrder() {
 	fmt.Println("=== Order Processed ===")
 }
 
-// RequestHandler represents a handler for HTTP requests
+// RequestHandler represents a handler for HTTP requests.
 type RequestHandler struct {
 	Processor *OrderProcessor
 }

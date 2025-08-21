@@ -9,10 +9,12 @@ import (
 	"github.com/samber/do/v2/stacktrace"
 )
 
-var _ serviceWrapper[int] = (*serviceEager[int])(nil)
-var _ serviceWrapperHealthcheck = (*serviceEager[int])(nil)
-var _ serviceWrapperShutdown = (*serviceEager[int])(nil)
-var _ serviceWrapperClone = (*serviceEager[int])(nil)
+var (
+	_ serviceWrapper[int]       = (*serviceEager[int])(nil)
+	_ serviceWrapperHealthcheck = (*serviceEager[int])(nil)
+	_ serviceWrapperShutdown    = (*serviceEager[int])(nil)
+	_ serviceWrapperClone       = (*serviceEager[int])(nil)
+)
 
 type serviceEager[T any] struct {
 	name     string
@@ -109,32 +111,31 @@ func (s *serviceEager[T]) isShutdowner() bool {
 }
 
 func (s *serviceEager[T]) shutdown(ctx context.Context) error {
-	if instance, ok := any(s.instance).(ShutdownerWithContextAndError); ok {
+	switch instance := any(s.instance).(type) {
+	case ShutdownerWithContextAndError:
 		if ctx.Err() != nil {
 			return ctx.Err()
 		}
 
 		return instance.Shutdown(ctx)
-	} else if instance, ok := any(s.instance).(ShutdownerWithError); ok {
+	case ShutdownerWithError:
 		if ctx.Err() != nil {
 			return ctx.Err()
 		}
 
 		return instance.Shutdown()
-	} else if instance, ok := any(s.instance).(ShutdownerWithContext); ok {
+	case ShutdownerWithContext:
 		if ctx.Err() != nil {
 			return ctx.Err()
 		}
 
 		instance.Shutdown(ctx)
-		return nil
-	} else if instance, ok := any(s.instance).(Shutdowner); ok {
+	case Shutdowner:
 		if ctx.Err() != nil {
 			return ctx.Err()
 		}
 
 		instance.Shutdown()
-		return nil
 	}
 
 	return nil
@@ -153,7 +154,6 @@ func (s *serviceEager[T]) clone(newScope Injector) any {
 	}
 }
 
-// nolint:unused
 func (s *serviceEager[T]) source() (stacktrace.Frame, []stacktrace.Frame) {
 	s.invokationFramesMu.RLock()
 	invokationFrames := make([]stacktrace.Frame, 0, len(s.invokationFrames))

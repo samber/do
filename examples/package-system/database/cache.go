@@ -1,6 +1,6 @@
 package database
 
-// Cache represents a caching service
+// Cache represents a caching service.
 type Cache struct {
 	Data map[string]interface{}
 }

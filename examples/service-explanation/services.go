@@ -4,7 +4,7 @@ import (
 	"fmt"
 )
 
-// UserService represents a user service
+// UserService represents a user service.
 type UserService struct {
 	DB     *Database
 	Cache  *Cache
@@ -28,7 +28,7 @@ func (u *UserService) GetUser(id string) string {
 	return result
 }
 
-// OrderService represents an order service
+// OrderService represents an order service.
 type OrderService struct {
 	DB     *Database
 	Cache  *Cache

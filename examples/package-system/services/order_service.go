@@ -4,7 +4,7 @@ import (
 	"fmt"
 )
 
-// OrderService represents an order service
+// OrderService represents an order service.
 type OrderService struct {
 	DB     Database
 	Cache  Cache

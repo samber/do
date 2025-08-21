@@ -5,7 +5,7 @@ import (
 	"net/http"
 )
 
-// UserHandler represents HTTP handler for user operations
+// UserHandler represents HTTP handler for user operations.
 type UserHandler struct {
 	UserService *UserService
 	Logger      *Logger
@@ -21,10 +21,10 @@ func (h *UserHandler) GetUser(w http.ResponseWriter, r *http.Request) {
 	h.Logger.Log(fmt.Sprintf("HTTP request: GET /users/%s", userID))
 
 	userData := h.UserService.GetUser(userID)
-	fmt.Fprintf(w, "User data: %s", userData)
+	fmt.Fprintf(w, "User data: %s", userData) //nolint:errcheck
 }
 
-// OrderHandler represents HTTP handler for order operations
+// OrderHandler represents HTTP handler for order operations.
 type OrderHandler struct {
 	OrderService *OrderService
 	Logger       *Logger
@@ -37,10 +37,10 @@ func (h *OrderHandler) GetOrder(w http.ResponseWriter, r *http.Request) {
 	}
 
 	result := h.OrderService.GetOrder(orderID)
-	fmt.Fprintf(w, "Order: %s", result)
+	fmt.Fprintf(w, "Order: %s", result) //nolint:errcheck
 }
 
-// HealthHandler represents HTTP handler for health checks
+// HealthHandler represents HTTP handler for health checks.
 type HealthHandler struct {
 	DB     *Database
 	Cache  *Cache
@@ -66,5 +66,5 @@ func (h *HealthHandler) HealthCheck(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	fmt.Fprintf(w, "All services healthy")
+	fmt.Fprintf(w, "All services healthy") //nolint:errcheck
 }

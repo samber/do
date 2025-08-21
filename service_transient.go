@@ -7,10 +7,12 @@ import (
 	"github.com/samber/do/v2/stacktrace"
 )
 
-var _ serviceWrapper[int] = (*serviceTransient[int])(nil)
-var _ serviceWrapperHealthcheck = (*serviceTransient[int])(nil)
-var _ serviceWrapperShutdown = (*serviceTransient[int])(nil)
-var _ serviceWrapperClone = (*serviceTransient[int])(nil)
+var (
+	_ serviceWrapper[int]       = (*serviceTransient[int])(nil)
+	_ serviceWrapperHealthcheck = (*serviceTransient[int])(nil)
+	_ serviceWrapperShutdown    = (*serviceTransient[int])(nil)
+	_ serviceWrapperClone       = (*serviceTransient[int])(nil)
+)
 
 type serviceTransient[T any] struct {
 	name     string
@@ -82,7 +84,6 @@ func (s *serviceTransient[T]) clone(newScope Injector) any {
 	}
 }
 
-//nolint:unused
 func (s *serviceTransient[T]) source() (stacktrace.Frame, []stacktrace.Frame) {
 	// @TODO: implement stacktrace ?
 	// It requires to store each instance of service, which is not good because of memory leaks.

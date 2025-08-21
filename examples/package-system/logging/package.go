@@ -4,7 +4,7 @@ import (
 	"github.com/samber/do/v2"
 )
 
-// LoggingPackage is the global package for logging-related services
+// LoggingPackage is the global package for logging-related services.
 var LoggingPackage = do.Package(
 	do.Lazy(func(i do.Injector) (*Logger, error) {
 		config := do.MustInvokeAs[Configuration](i)

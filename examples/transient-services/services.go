@@ -4,7 +4,7 @@ import (
 	"fmt"
 )
 
-// UserService represents a service that handles user operations
+// UserService represents a service that handles user operations.
 type UserService struct {
 	Context *RequestContext
 }
@@ -14,7 +14,7 @@ func (u *UserService) GetUserInfo() {
 		u.Context.UserID, u.Context.Session, u.Context.ID.ID)
 }
 
-// OrderService represents a service that handles order operations
+// OrderService represents a service that handles order operations.
 type OrderService struct {
 	Context *RequestContext
 }
@@ -24,7 +24,7 @@ func (o *OrderService) CreateOrder() {
 		o.Context.UserID, o.Context.Session, o.Context.ID.ID)
 }
 
-// PaymentService represents a service that handles payment operations
+// PaymentService represents a service that handles payment operations.
 type PaymentService struct {
 	Context *RequestContext
 }

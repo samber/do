@@ -13,42 +13,42 @@ type transientTest struct {
 	foobar string
 }
 
-// nolint:unused
+//nolint:unused
 type transientTestHeathcheckerOK struct {
 	foobar string
 }
 
-// nolint:unused
+//nolint:unused
 func (t *transientTestHeathcheckerOK) HealthCheck() error {
 	return nil
 }
 
-// nolint:unused
+//nolint:unused
 type transientTestHeathcheckerKO struct {
 	foobar string
 }
 
-// nolint:unused
+//nolint:unused
 func (t *transientTestHeathcheckerKO) HealthCheck() error {
 	return assert.AnError
 }
 
-// nolint:unused
+//nolint:unused
 type transientTestShutdownerOK struct {
 	foobar string
 }
 
-// nolint:unused
+//nolint:unused
 func (t *transientTestShutdownerOK) Shutdown() error {
 	return nil
 }
 
-// nolint:unused
+//nolint:unused
 type transientTestShutdownerKO struct {
 	foobar string
 }
 
-// nolint:unused
+//nolint:unused
 func (t *transientTestShutdownerKO) Shutdown() error {
 	return assert.AnError
 }

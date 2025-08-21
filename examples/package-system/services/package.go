@@ -4,7 +4,7 @@ import (
 	"github.com/samber/do/v2"
 )
 
-// ServicesPackage is the global package for business logic services
+// ServicesPackage is the global package for business logic services.
 var ServicesPackage = do.Package(
 	do.Lazy(func(i do.Injector) (*UserService, error) {
 		return &UserService{

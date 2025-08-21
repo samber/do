@@ -6,7 +6,7 @@ import (
 	"github.com/samber/do/v2"
 )
 
-// DatabasePackage is the global package for database-related services
+// DatabasePackage is the global package for database-related services.
 var DatabasePackage = do.Package(
 	do.Lazy(func(i do.Injector) (*Database, error) {
 		config := do.MustInvokeAs[Configuration](i)

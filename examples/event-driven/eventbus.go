@@ -5,13 +5,13 @@ import (
 	"sync"
 )
 
-// EventHandler represents an event handler interface
+// EventHandler represents an event handler interface.
 type EventHandler interface {
 	Handle(event Event) error
 	GetEventType() string
 }
 
-// EventBus represents an event bus for publishing and subscribing to events
+// EventBus represents an event bus for publishing and subscribing to events.
 type EventBus struct {
 	handlers map[string][]EventHandler
 	mu       sync.RWMutex

@@ -130,7 +130,7 @@ func ProvideNamedTransient[T any](i Injector, name string, provider Provider[T])
 // - The injector is properly initialized
 // - No duplicate service names are registered
 // - The service is properly created and stored
-// - Logging is performed for successful registration
+// - Logging is performed for successful registration.
 func provide[T any, A any](i Injector, name string, valueOrProvider A, serviceCtor func(string, A) serviceWrapper[T]) {
 	_i := getInjectorOrDefault(i)
 	if _i.serviceExist(name) {
