@@ -150,7 +150,7 @@ func TestNewServiceEager(t *testing.T) {
 	var healthchecker Healthchecker = &eagerTestHeathcheckerOK{foobar: "healthchecker"}
 	service5 := newServiceEager("interface-service", healthchecker)
 	is.Equal("interface-service", service5.name)
-	is.Equal("*github.com/samber/do/v2.eagerTestHeathcheckerOK", service5.typeName)
+	is.Equal("github.com/samber/do/v2.Healthchecker", service5.typeName)
 	is.Equal(healthchecker, service5.instance)
 
 	// Test with nil instance

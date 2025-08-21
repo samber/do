@@ -101,7 +101,7 @@ func TestNewServiceTransient(t *testing.T) {
 	}
 	service5 := newServiceTransient("interface-service", provider5)
 	is.Equal("interface-service", service5.name)
-	is.Equal("*github.com/samber/do/v2.lazyTestHeathcheckerOK", service5.typeName)
+	is.Equal("github.com/samber/do/v2.Healthchecker", service5.typeName)
 	is.NotNil(service5.provider)
 
 	// Test with slice provider
@@ -628,7 +628,7 @@ func TestServiceTransient_clone(t *testing.T) {
 	service6, ok := service5.clone(nil).(*serviceTransient[Healthchecker])
 	is.True(ok)
 	is.Equal("interface-service", service6.getName())
-	is.Equal("*github.com/samber/do/v2.lazyTestHeathcheckerOK", service6.getTypeName())
+	is.Equal("github.com/samber/do/v2.Healthchecker", service6.getTypeName())
 
 	// Test that cloned services can be used independently
 	i := New()
@@ -666,6 +666,7 @@ func TestServiceTransient_source(t *testing.T) {
 
 // Test services for context value propagation in service transient
 type contextValueHealthcheckerTransient struct {
+	ID int
 }
 
 func (c *contextValueHealthcheckerTransient) HealthCheck(ctx context.Context) error {
@@ -677,6 +678,7 @@ func (c *contextValueHealthcheckerTransient) HealthCheck(ctx context.Context) er
 }
 
 type contextValueShutdownerTransient struct {
+	ID int
 }
 
 func (c *contextValueShutdownerTransient) Shutdown(ctx context.Context) error {
@@ -695,12 +697,14 @@ func TestServiceTransient_ContextValuePropagation(t *testing.T) {
 	is := assert.New(t)
 
 	// Create service transient instances with providers that return context-aware services
+	callCount := 0
 	healthcheckTransient := newServiceTransient("healthcheck-transient", func(i Injector) (*contextValueHealthcheckerTransient, error) {
-		return &contextValueHealthcheckerTransient{}, nil
+		callCount++
+		return &contextValueHealthcheckerTransient{ID: callCount}, nil
 	})
 
 	shutdownTransient := newServiceTransient("shutdown-transient", func(i Injector) (*contextValueShutdownerTransient, error) {
-		return &contextValueShutdownerTransient{}, nil
+		return &contextValueShutdownerTransient{ID: 1}, nil
 	})
 
 	// Test that transient services don't support healthcheck (should return nil)

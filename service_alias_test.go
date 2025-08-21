@@ -280,14 +280,14 @@ func TestServiceAlias_isShutdowner(t *testing.T) {
 
 	// shutdown ko
 	i3 := New()
-	Provide(i3, func(i Injector) (*lazyTestShutdownerKO, error) {
-		return &lazyTestShutdownerKO{foobar: "foobar"}, nil
+	Provide(i3, func(i Injector) (*contextValueShutdownerAlias, error) {
+		return &contextValueShutdownerAlias{}, nil
 	})
-	is.Nil(As[*lazyTestShutdownerKO, ShutdownerWithError](i3))
-	service3, _ := i3.serviceGet("github.com/samber/do/v2.ShutdownerWithError")
-	is.False(service3.(serviceWrapper[ShutdownerWithError]).isShutdowner())
-	_, _ = service3.(serviceWrapper[ShutdownerWithError]).getInstance(i3)
-	is.True(service3.(serviceWrapper[ShutdownerWithError]).isShutdowner())
+	is.Nil(As[*contextValueShutdownerAlias, ShutdownerWithContextAndError](i3))
+	service3, _ := i3.serviceGet("github.com/samber/do/v2.ShutdownerWithContextAndError")
+	is.False(service3.(serviceWrapper[ShutdownerWithContextAndError]).isShutdowner())
+	_, _ = service3.(serviceWrapper[ShutdownerWithContextAndError]).getInstance(i3)
+	is.True(service3.(serviceWrapper[ShutdownerWithContextAndError]).isShutdowner())
 
 	// service not found (wrong type)
 	i4 := New()
@@ -333,14 +333,14 @@ func TestServiceAlias_shutdown(t *testing.T) {
 
 	// shutdown ko
 	i3 := New()
-	Provide(i3, func(i Injector) (*lazyTestShutdownerKO, error) {
-		return &lazyTestShutdownerKO{foobar: "foobar"}, nil
+	Provide(i3, func(i Injector) (*contextValueShutdownerAlias, error) {
+		return &contextValueShutdownerAlias{}, nil
 	})
-	is.Nil(As[*lazyTestShutdownerKO, ShutdownerWithError](i3))
-	service3, _ := i3.serviceGet("github.com/samber/do/v2.ShutdownerWithError")
-	is.Nil(service3.(serviceWrapper[ShutdownerWithError]).shutdown(ctx))
-	_, _ = service3.(serviceWrapper[ShutdownerWithError]).getInstance(i3)
-	is.Equal(assert.AnError, service3.(serviceWrapper[ShutdownerWithError]).shutdown(ctx))
+	is.Nil(As[*contextValueShutdownerAlias, ShutdownerWithContextAndError](i3))
+	service3, _ := i3.serviceGet("github.com/samber/do/v2.ShutdownerWithContextAndError")
+	is.Nil(service3.(serviceWrapper[ShutdownerWithContextAndError]).shutdown(ctx))
+	_, _ = service3.(serviceWrapper[ShutdownerWithContextAndError]).getInstance(i3)
+	is.Error(service3.(serviceWrapper[ShutdownerWithContextAndError]).shutdown(ctx))
 
 	// service not found (wrong type)
 	i4 := New()
@@ -583,8 +583,8 @@ func TestServiceAlias_ContextValuePropagation(t *testing.T) {
 	ProvideNamedValue(injector, "target-shutdown", shutdownService)
 
 	// Create service aliases
-	healthcheckAlias := newServiceAlias[*contextValueHealthcheckerAlias, Healthchecker]("healthcheck-alias", injector, "target-healthcheck")
-	shutdownAlias := newServiceAlias[*contextValueShutdownerAlias, Shutdowner]("shutdown-alias", injector, "target-shutdown")
+	healthcheckAlias := newServiceAlias[*contextValueHealthcheckerAlias, *contextValueHealthcheckerAlias]("healthcheck-alias", injector, "target-healthcheck")
+	shutdownAlias := newServiceAlias[*contextValueShutdownerAlias, *contextValueShutdownerAlias]("shutdown-alias", injector, "target-shutdown")
 
 	// Invoke services to make them healthcheckable/shutdownable
 	_, err1 := healthcheckAlias.getInstance(injector)
