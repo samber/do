@@ -224,7 +224,7 @@ func (s *RootScope) queueServiceHealthcheck(ctx context.Context, scope *Scope, s
 				err <- e
 				close(err)
 			case <-ctx.Done():
-				err <- fmt.Errorf("%w: %w", ErrHealthCheckTimeout, ctx.Err())
+				err <- fmt.Errorf("%w: %s", ErrHealthCheckTimeout, ctx.Err()) //nolint:errorlint
 				close(err)
 			}
 		}()
