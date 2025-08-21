@@ -222,7 +222,7 @@ func raceWithTimeout(ctx context.Context, fn func(context.Context) error) error 
 	case e := <-err:
 		return e
 	case <-ctx.Done():
-		return fmt.Errorf("%w: %w", ErrHealthCheckTimeout, ctx.Err())
+		return fmt.Errorf("%w: %s", ErrHealthCheckTimeout, ctx.Err()) //nolint:errorlint
 	}
 }
 

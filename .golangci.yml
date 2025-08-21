@@ -1,6 +1,6 @@
 # inspired by https://gist.github.com/maratori/47a4d00457a92aa426dbd48a18776322
 
-version: 2
+version: "2"
 
 run:
   timeout: 5m                 # Stop after 5 minutes
@@ -99,19 +99,19 @@ linters:
 
 
 
-linters-settings:
-  gocyclo:
-    min-complexity: 12   # Threshold before warning (default is 30, so stricter)
-  goconst:
-    min-len: 3           # Minimum length of repeated string to report
-    min-occurrences: 2   # Minimum occurrences before reporting
-  misspell:
-    locale: US           # Use US English dictionary
-  gosec:
-    severity: medium     # Report at least medium severity issues
-    confidence: medium   # Require at least medium confidence
-  prealloc:
-    for-loops: true      # Also detect opportunities in for-loops
+  settings:
+    gocyclo:
+      min-complexity: 12   # Threshold before warning (default is 30, so stricter)
+    goconst:
+      min-len: 3           # Minimum length of repeated string to report
+      min-occurrences: 2   # Minimum occurrences before reporting
+    misspell:
+      locale: US           # Use US English dictionary
+    gosec:
+      severity: medium     # Report at least medium severity issues
+      confidence: medium   # Require at least medium confidence
+    prealloc:
+      for-loops: true      # Also detect opportunities in for-loops
 
 
 
@@ -120,7 +120,3 @@ linters-settings:
 issues:
   max-issues-per-linter: 0   # No artificial limit
   max-same-issues: 0         # No artificial limit for identical issues
-  exclude-use-default: false # Do not use the built-in default excludes
-
-  # 👇 Add exclusions here
-  exclusions:
