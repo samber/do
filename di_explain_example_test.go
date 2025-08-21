@@ -3,6 +3,8 @@ package do
 import (
 	"fmt"
 	"time"
+
+	"github.com/samber/do/v2/stacktrace"
 )
 
 type explainTestService struct {
@@ -37,6 +39,11 @@ func ExampleExplainService() {
 	// to prevent flakiness
 	explanation.ScopeID = "980e2f60-d340-4776-86dd-6aa1d3c27860"
 	explanation.ServiceBuildTime = 10 * time.Millisecond
+	explanation.Invoked = &stacktrace.Frame{
+		Function: "newExplainTestService",
+		File:     "di_explain_example_test.go", // remove absolute path
+		Line:     42,
+	}
 
 	fmt.Println(found)
 	fmt.Println(explanation.ServiceName)
@@ -53,7 +60,7 @@ func ExampleExplainService() {
 	// Service name: *github.com/samber/do/v2.explainTestService
 	// Service type: lazy
 	// Service build time: 10ms
-	// Invoked: /Users/samber/project/github.com/samber/do/di_explain_example_test.go:newExplainTestService:21
+	// Invoked: di_explain_example_test.go:newExplainTestService:42
 	//
 	// Dependencies:
 	// * value from scope [root]
@@ -73,6 +80,11 @@ func ExampleExplainNamedService() {
 	// to prevent flakiness
 	explanation.ScopeID = "980e2f60-d340-4776-86dd-6aa1d3c27860"
 	explanation.ServiceBuildTime = 10 * time.Millisecond
+	explanation.Invoked = &stacktrace.Frame{
+		Function: "newExplainTestService",
+		File:     "di_explain_example_test.go", // remove absolute path
+		Line:     42,
+	}
 
 	fmt.Println(found)
 	fmt.Println(explanation.ServiceName)
@@ -89,7 +101,7 @@ func ExampleExplainNamedService() {
 	// Service name: my-service
 	// Service type: lazy
 	// Service build time: 10ms
-	// Invoked: /Users/samber/project/github.com/samber/do/di_explain_example_test.go:newExplainTestService:21
+	// Invoked: di_explain_example_test.go:newExplainTestService:42
 	//
 	// Dependencies:
 	// * value from scope [root]
