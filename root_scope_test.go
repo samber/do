@@ -290,5 +290,5 @@ func TestRootScope_ShutdownOnSignalsWithContext(t *testing.T) {
 	// Note: This test cannot be fully automated because it waits for OS signals (SIGINT, SIGTERM)
 	// which require user input or external process termination. In a real scenario, this method
 	// would block until the application receives a termination signal from the OS or the context
-	// is cancelled.
+	// is canceled.
 }

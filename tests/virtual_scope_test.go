@@ -94,7 +94,7 @@ func TestVirtualScopeConcurrentAccess(t *testing.T) {
 	}
 }
 
-// TestVirtualScopeContextCancellation tests virtual scope behavior when context is cancelled
+// TestVirtualScopeContextCancellation tests virtual scope behavior when context is canceled
 func TestVirtualScopeContextCancellation(t *testing.T) {
 	testWithTimeout(t, 450*time.Millisecond)
 	is := assert.New(t)

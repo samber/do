@@ -43,8 +43,8 @@ func (h *OrderEventHandler) Handle(event Event) error {
 			h.Logger.Log(fmt.Sprintf("Order created: ID=%s, UserID=%s, Amount=%.2f",
 				orderData.OrderID, orderData.UserID, orderData.Amount))
 		}
-	case "order.cancelled":
-		h.Logger.Log("Order cancelled event received")
+	case "order.canceled":
+		h.Logger.Log("Order canceled event received")
 	}
 
 	return nil
