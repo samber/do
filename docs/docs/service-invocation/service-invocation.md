@@ -30,7 +30,6 @@ Circular dependencies are not allowed. Services must be invoked in a Directed Ac
 
 :::
 
-
 ## Example
 
 ```go
@@ -38,16 +37,18 @@ type MyService struct {
     IP string
 }
 
-i := do.New()
+func main() {
+    i := do.New()
 
-do.ProvideNamedValue(i, "config.ip", "127.0.0.1")
-do.Provide(i, func(i do.Injector) (*MyService, error) {
-    return &MyService{
-        IP: do.MustInvokeNamed[string](i, "config.ip"),
-    }, nil
-})
+    do.ProvideNamedValue(i, "config.ip", "127.0.0.1")
+    do.Provide(i, func(i do.Injector) (*MyService, error) {
+        return &MyService{
+            IP: do.MustInvokeNamed[string](i, "config.ip"),
+        }, nil
+    })
 
-myService, err := do.Invoke[*MyService](i)
+    myService, err := do.Invoke[*MyService](i)
+}
 ```
 
 ## Auto-magically load a service
@@ -77,17 +78,17 @@ do.Provide[*MyService](injector, func (i do.Injector) (*MyService, error) {
 })
 // or
 do.Provide[*MyService](i, do.InvokeStruct[MyService])
- 
+```
+
 ### Implicit aliasing behavior with InvokeStruct
 
-When a field uses an empty tag value (eg: `` `do:""` ``) and no service is registered under the inferred name, the injector falls back to finding the first service whose type is assignable to the field type (same resolution strategy as `do.InvokeAs[T]`).
+When a field uses an empty tag value (eg: `do:""`) and no service is registered under the field type, the injector falls back to finding the first service whose type is assignable to the field type (same resolution strategy as `do.InvokeAs[T]`).
 
 Implications:
 
 - Prefer explicit names when multiple assignable services exist to avoid ambiguity.
 - This fallback only applies when the tag key is present and empty; a missing tag does nothing.
 - The struct tag key can be customized via `do.InjectorOpts.StructTagKey`.
-```
 
 :::info
 
@@ -107,9 +108,11 @@ Any panic during lazy loading is converted into a Go `error`.
 
 An error is returned on missing service.
 
-## Invoke once
+## Invoke from Provider
 
 A service might rely on other services. In that case, you should invoke dependencies in the service provider instead of storing the injector for later.
+
+In this way, if a service is not found, the resolution will report an error on application start, instead of runtime.
 
 ```go
 // ❌ bad

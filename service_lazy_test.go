@@ -6,6 +6,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/samber/do/v2/stacktrace"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -560,6 +561,149 @@ func TestServiceLazy_clone(t *testing.T) {
 }
 
 func TestServiceLazy_source(t *testing.T) {
+	t.Parallel()
 	testWithTimeout(t, 100*time.Millisecond)
-	// @TODO
+	is := assert.New(t)
+
+	// Create a service lazy
+	service := newServiceLazy("test-lazy", func(i Injector) (lazyTest, error) {
+		return lazyTest{foobar: "test-value"}, nil
+	})
+
+	// Test initial state - should have provider frame but no invocation frames
+	providerFrame, invocationFrames := service.source()
+
+	// Provider frame should be set (from newServiceLazy)
+	is.NotEmpty(providerFrame.File, "Provider frame should have a file")
+	is.Greater(providerFrame.Line, 0, "Provider frame should have a line number")
+
+	// Initially no invocation frames
+	is.Empty(invocationFrames, "Should have no invocation frames initially")
+
+	// Test after getting instance (which should add invocation frames)
+	_, err := service.getInstance(nil)
+	is.NoError(err, "Should be able to get instance")
+
+	// Check source after invocation
+	providerFrame2, invocationFrames2 := service.source()
+
+	// Provider frame should remain the same
+	is.Equal(providerFrame, providerFrame2, "Provider frame should remain unchanged")
+
+	// Should now have invocation frames
+	is.NotEmpty(invocationFrames2, "Should have invocation frames after getInstance")
+	is.Len(invocationFrames2, 1, "Should have exactly one invocation frame")
+
+	// Test multiple invocations
+	_, err = service.getInstance(nil)
+	is.NoError(err)
+
+	_, invocationFrames3 := service.source()
+	is.Len(invocationFrames3, 1, "Should still have only one unique invocation frame (duplicates are ignored)")
+
+	// Test with different service types
+	service2 := newServiceLazy("healthchecker-lazy", func(i Injector) (*lazyTestHeathcheckerOK, error) {
+		return &lazyTestHeathcheckerOK{foobar: "healthchecker-value"}, nil
+	})
+
+	// Get instance multiple times
+	_, err = service2.getInstance(nil)
+	is.NoError(err)
+	_, err = service2.getInstance(nil)
+	is.NoError(err)
+
+	providerFrame3, invocationFrames4 := service2.source()
+	is.NotEmpty(providerFrame3.File, "Provider frame should be set")
+	is.Len(invocationFrames4, 1, "Should have one unique invocation frame")
+
+	// Test concurrent access to source method
+	done := make(chan bool, 10)
+	for i := 0; i < 10; i++ {
+		go func() {
+			_, _ = service.source()
+			done <- true
+		}()
+	}
+
+	// Wait for all goroutines to complete
+	for i := 0; i < 10; i++ {
+		<-done
+	}
+
+	// Source should still work correctly after concurrent access
+	providerFrame4, invocationFrames5 := service.source()
+	is.Equal(providerFrame, providerFrame4, "Provider frame should remain consistent under concurrent access")
+	is.Len(invocationFrames5, 1, "Invocation frames should remain consistent under concurrent access")
+
+	// Test that invocation frames are properly collected from different call sites
+	// Add a frame manually to simulate different call sites
+	service.mu.Lock()
+	service.invokationFrames[stacktrace.Frame{File: "different_file.go", Line: 42}] = struct{}{}
+	service.mu.Unlock()
+
+	_, invocationFrames6 := service.source()
+	is.Len(invocationFrames6, 2, "Should have two invocation frames after adding different call site")
+
+	// Verify the frames are different
+	frameFiles := make(map[string]bool)
+	for _, frame := range invocationFrames6 {
+		frameFiles[frame.File] = true
+	}
+	is.Len(frameFiles, 2, "Should have frames from two different files")
+
+	// Test with primitive types
+	intService := newServiceLazy("int-lazy", func(i Injector) (int, error) {
+		return 42, nil
+	})
+	_, err = intService.getInstance(nil)
+	is.NoError(err)
+
+	providerFrame5, invocationFrames7 := intService.source()
+	is.NotEmpty(providerFrame5.File, "Provider frame should be set for primitive types")
+	is.Len(invocationFrames7, 1, "Should have invocation frames for primitive types")
+
+	// Test that the returned frames are copies, not references
+	// This ensures thread safety
+	originalFrames := make([]stacktrace.Frame, len(invocationFrames6))
+	copy(originalFrames, invocationFrames6)
+
+	// Modify the service's internal frames
+	service.mu.Lock()
+	service.invokationFrames[stacktrace.Frame{File: "new_file.go", Line: 100}] = struct{}{}
+	service.mu.Unlock()
+
+	// Get frames again
+	_, invocationFrames8 := service.source()
+
+	// Original frames should not be affected
+	is.Len(originalFrames, 2, "Original frames should not be affected by internal changes")
+	is.Len(invocationFrames8, 3, "New frames should include the additional frame")
+
+	// Test that source works correctly after service is built and reset
+	// This tests the lazy service's unique behavior
+	_, err = service.getInstance(nil)
+	is.NoError(err)
+	is.True(service.built, "Service should be built")
+
+	providerFrame6, invocationFrames9 := service.source()
+	is.Equal(providerFrame, providerFrame6, "Provider frame should remain unchanged after build")
+	is.Len(invocationFrames9, 3, "Should have all invocation frames after build")
+
+	// Test with error provider
+	errorService := newServiceLazy("error-lazy", func(i Injector) (lazyTest, error) {
+		return lazyTest{}, assert.AnError
+	})
+
+	// Even with error, source should still work
+	providerFrame7, invocationFrames10 := errorService.source()
+	is.NotEmpty(providerFrame7.File, "Provider frame should be set even for error providers")
+	is.Empty(invocationFrames10, "Should have no invocation frames for error providers initially")
+
+	// After attempting to get instance (which fails), should still have invocation frames
+	// because the frame is collected before the error occurs
+	_, err = errorService.getInstance(nil)
+	is.Error(err, "Should get error from error provider")
+
+	_, invocationFrames11 := errorService.source()
+	is.NotEmpty(invocationFrames11, "Should have invocation frames even after error (frame collected before error)")
 }
