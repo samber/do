@@ -287,7 +287,8 @@ func TestUserService(t *testing.T) {
 
 After migration, consider exploring these `samber/do` features:
 
-- [Service Lifecycle Management](../service-lifecycle/service-lifecycle.md)
-- [Scoped Services](../container/scope.md)
-- [Health Checks](../service-lifecycle/health-checkable.md)
-- [Graceful Shutdown](../service-lifecycle/shutdownable.md)
+- [Interface binding](/docs/service-invocation/accept-interfaces-return-structs.md)
+- [Scoped Services](/docs/container/scope.md)
+- [Health Checks](/docs/service-lifecycle/healthchecker.md)
+- [Graceful Shutdown](/docs/service-lifecycle/shutdowner.md)
+- [Dependency resolution troubleshooting](/docs/troubleshooting/scope-tree.md)

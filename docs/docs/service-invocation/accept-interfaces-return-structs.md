@@ -4,7 +4,7 @@ description: Accept interfaces, return structs
 sidebar_position: 2
 ---
 
-# Service aliasing
+# Interface binding
 
 You have probably already heard the Go proverb "Accept interfaces, return structs". The basic idea is to let the consumer define the interfaces it uses while the producer returns concrete types.
 
