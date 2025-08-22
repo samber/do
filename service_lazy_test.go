@@ -115,8 +115,60 @@ func (c *contextValueShutdownerLazy) Shutdown(ctx context.Context) error {
 }
 
 func TestNewServiceLazy(t *testing.T) {
+	t.Parallel()
 	testWithTimeout(t, 100*time.Millisecond)
-	// @TODO
+	is := assert.New(t)
+
+	// Test creating a lazy service with int provider
+	provider1 := func(i Injector) (int, error) {
+		return 42, nil
+	}
+	service1 := newServiceLazy("test-service-1", provider1)
+	is.NotNil(service1)
+	is.Equal("test-service-1", service1.getName())
+	is.Equal("int", service1.getTypeName())
+	is.Equal(ServiceTypeLazy, service1.getServiceType())
+	is.False(service1.built)
+	is.Equal(0, service1.instance) // Zero value for int
+
+	// Test creating a lazy service with struct provider
+	testStruct := lazyTest{foobar: "test"}
+	provider2 := func(i Injector) (lazyTest, error) {
+		return testStruct, nil
+	}
+	service2 := newServiceLazy("test-service-2", provider2)
+	is.NotNil(service2)
+	is.Equal("test-service-2", service2.getName())
+	is.Equal("github.com/samber/do/v2.lazyTest", service2.getTypeName())
+	is.Equal(ServiceTypeLazy, service2.getServiceType())
+	is.False(service2.built)
+	is.Equal(lazyTest{}, service2.instance) // Zero value for struct
+
+	// Test creating a lazy service with pointer provider
+	provider3 := func(i Injector) (*lazyTest, error) {
+		return &testStruct, nil
+	}
+	service3 := newServiceLazy("test-service-3", provider3)
+	is.NotNil(service3)
+	is.Equal("test-service-3", service3.getName())
+	is.Equal("*github.com/samber/do/v2.lazyTest", service3.getTypeName())
+	is.Equal(ServiceTypeLazy, service3.getServiceType())
+
+	// Test creating a lazy service with interface provider
+	provider4 := func(i Injector) (Healthchecker, error) {
+		return &lazyTestHeathcheckerOK{foobar: "health"}, nil
+	}
+	service4 := newServiceLazy("test-service-4", provider4)
+	is.NotNil(service4)
+	is.Equal("test-service-4", service4.getName())
+	is.Equal("github.com/samber/do/v2.Healthchecker", service4.getTypeName())
+	is.Equal(ServiceTypeLazy, service4.getServiceType())
+
+	// Test that services are not built initially
+	is.False(service1.built)
+	is.False(service2.built)
+	is.False(service3.built)
+	is.False(service4.built)
 }
 
 func TestServiceLazy_getName(t *testing.T) {
@@ -480,6 +532,41 @@ func TestServiceLazy_healthcheck(t *testing.T) {
 	is.Nil(service3.healthcheck(ctx))
 	_, _ = service3.getInstance(nil)
 	is.Equal(assert.AnError, service3.healthcheck(ctx))
+
+	// Test with context scenarios
+	// Test with canceled context
+	canceledCtx, cancel := context.WithCancel(context.Background())
+	cancel()
+	service4 := newServiceLazy("foobar", func(i Injector) (*lazyTestHeathcheckerOK, error) {
+		return &lazyTestHeathcheckerOK{foobar: "foobar"}, nil
+	})
+	_, _ = service4.getInstance(nil)
+	err := service4.healthcheck(canceledCtx)
+	is.Error(err)
+	is.ErrorContains(err, "context canceled")
+
+	// Test with timeout context
+	timeoutCtx, cancel2 := context.WithTimeout(context.Background(), 1*time.Nanosecond)
+	defer cancel2()
+	time.Sleep(2 * time.Millisecond)
+	err2 := service4.healthcheck(timeoutCtx)
+	is.Error(err2)
+	is.ErrorContains(err2, "context deadline exceeded")
+
+	// Test with value context - verify context value is received
+	valueCtx := context.WithValue(context.Background(), "test-key", "healthcheck-value")
+	serviceWithContext := newServiceLazy("foobar", func(i Injector) (*contextValueHealthcheckerLazy, error) {
+		return &contextValueHealthcheckerLazy{}, nil
+	})
+	_, _ = serviceWithContext.getInstance(nil)
+	err3 := serviceWithContext.healthcheck(valueCtx)
+	is.Nil(err3) // Should work normally when context value is correct
+
+	// Test with incorrect context value - verify context value is checked
+	incorrectValueCtx := context.WithValue(context.Background(), "test-key", "wrong-value")
+	err4 := serviceWithContext.healthcheck(incorrectValueCtx)
+	is.Error(err4) // Should fail when context value is incorrect
+	is.ErrorContains(err4, "test-key not found or value is incorrect")
 }
 
 // @TODO: missing tests for context
@@ -551,6 +638,66 @@ func TestServiceLazy_shutdown(t *testing.T) {
 	is.True(service3.built)
 	is.Equal(assert.AnError, service3.shutdown(ctx))
 	is.False(service3.built)
+
+	// Test with context scenarios
+	// Test with canceled context
+	canceledCtx, cancel := context.WithCancel(context.Background())
+	cancel()
+	service4 := newServiceLazy("foobar", func(i Injector) (*lazyTestShutdownerOK, error) {
+		return &lazyTestShutdownerOK{foobar: "foobar"}, nil
+	})
+	_, _ = service4.getInstance(nil)
+	err := service4.shutdown(canceledCtx)
+	is.Error(err)
+	is.ErrorContains(err, "context canceled")
+
+	// Test with timeout context
+	timeoutCtx, cancel2 := context.WithTimeout(context.Background(), 1*time.Nanosecond)
+	defer cancel2()
+	time.Sleep(2 * time.Millisecond)
+	service5 := newServiceLazy("foobar", func(i Injector) (*lazyTestShutdownerOK, error) {
+		return &lazyTestShutdownerOK{foobar: "foobar"}, nil
+	})
+	_, _ = service5.getInstance(nil)
+	err2 := service5.shutdown(timeoutCtx)
+	is.Error(err2)
+	is.ErrorContains(err2, "context deadline exceeded")
+
+	// Test with value context - verify context value is received
+	valueCtx := context.WithValue(context.Background(), "test-key", "shutdown-value")
+	serviceWithContext := newServiceLazy("foobar", func(i Injector) (*contextValueShutdownerLazy, error) {
+		return &contextValueShutdownerLazy{}, nil
+	})
+	_, _ = serviceWithContext.getInstance(nil)
+	err3 := serviceWithContext.shutdown(valueCtx)
+	is.Nil(err3) // Should work normally when context value is correct
+
+	// Test with incorrect context value - verify context value is checked
+	incorrectValueCtx := context.WithValue(context.Background(), "test-key", "wrong-value")
+	serviceWithIncorrectContext := newServiceLazy("foobar", func(i Injector) (*contextValueShutdownerLazy, error) {
+		return &contextValueShutdownerLazy{}, nil
+	})
+	_, _ = serviceWithIncorrectContext.getInstance(nil)
+	err6 := serviceWithIncorrectContext.shutdown(incorrectValueCtx)
+	is.Error(err6) // Should fail when context value is incorrect
+	is.ErrorContains(err6, "test-key not found or value is incorrect")
+
+	// Test with non-shutdownable service (should return nil even with canceled context)
+	nonShutdownableService := newServiceLazy("foobar", func(i Injector) (int, error) {
+		return 42, nil
+	})
+	_, _ = nonShutdownableService.getInstance(nil)
+	err4 := nonShutdownableService.shutdown(canceledCtx)
+	is.Nil(err4) // Non-shutdownable services return nil regardless of context
+
+	// Test with service that implements ShutdownerWithError (should return context error when context is canceled)
+	errorService := newServiceLazy("foobar", func(i Injector) (*lazyTestShutdownerKO, error) {
+		return &lazyTestShutdownerKO{foobar: "foobar"}, nil
+	})
+	_, _ = errorService.getInstance(nil)
+	err5 := errorService.shutdown(canceledCtx)
+	is.Error(err5)
+	is.ErrorContains(err5, "context canceled") // Should return context error when context is canceled
 }
 
 func TestServiceLazy_clone(t *testing.T) {
