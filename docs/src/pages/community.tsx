@@ -58,7 +58,7 @@ function Community() {
                   <i className={classnames(styles.icon, styles.twitter)}></i>
                 </div>
                 <div className="card__body">
-                  <p>Mention &#64;samuelberthe on Twitter</p>
+                  <p>Follow &#64;samuelberthe on Twitter</p>
                 </div>
                 <div className="card__footer">
                   <Link to="https://twitter.com/samuelberthe" className="button button--outline button--primary button--block">Follow &#64;SamuelBerthe</Link>
