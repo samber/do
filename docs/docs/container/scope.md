@@ -1,10 +1,10 @@
 ---
-title: "Scopes (a.k.a. modules)"
+title: "Scopes"
 description: Group services into independent modules
 sidebar_position: 1
 ---
 
-# Scopes (a.k.a. modules)
+# Scopes
 
 A `Scope` can be viewed as a module of an application with restricted visibility. We advocate having a `RootScope` for common code and moving business logic to dedicated `Scopes`.
 
@@ -19,6 +19,42 @@ A chain of service invocations instantiates multiple virtual scopes to track dep
 Scopes are almost invisible to developers: services use the Injector API without awareness of whether the underlying implementation is a root scope, a regular scope, or an internal virtual scope used for dependency tracking.
 
 The `do.Injector` interface is implemented by `*do.RootScope` and `*do.Scope`. `*do.virtualScope` are internal implementation details.
+
+```mermaid
+graph TD
+    A[Root Scope] --> B[Engine Service]
+    A --> C[Config Service]
+    A --> D[Logger Service]
+    
+    A --> E[Driver Scope]
+    A --> F[Passengers Scope]
+    
+    E --> G[SteeringWheel Service]
+    E --> H[Driver Service]
+    
+    F --> I[Passenger-1 Service]
+    F --> J[Passenger-2 Service]
+    F --> K[Passenger-3 Service]
+    
+    G --> B
+    H --> B
+    I --> C
+    J --> C
+    K --> C
+    
+    style A fill:#e1f5fe
+    style E fill:#e8f5e8
+    style F fill:#e8f5e8
+
+    style G fill:#fff3e0
+    style B fill:#fff3e0
+    style C fill:#fff3e0
+    style D fill:#fff3e0
+    style I fill:#fff3e0
+    style J fill:#fff3e0
+    style K fill:#fff3e0
+    style H fill:#fff3e0
+```
 
 ## New scope
 

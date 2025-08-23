@@ -17,9 +17,53 @@ const config: Config = {
   // If you aren't using GitHub pages, you don't need these.
   organizationName: 'samber', // Usually your GitHub org/user name.
   projectName: 'do', // Usually your repo name.
+  
+  // Optional: deployment branch
+  // deploymentBranch: 'gh-pages',
+  
+  // Optional: remove trailing slash for better SEO
+  trailingSlash: false,
 
   onBrokenLinks: 'throw',
   onBrokenMarkdownLinks: 'warn',
+  onBrokenAnchors: 'warn',
+
+  markdown: {
+    anchors: {
+      maintainCase: true,
+    },
+    mermaid: true,
+  },
+
+  future: {
+    experimental_faster: {
+      swcJsLoader: true,
+      swcJsMinimizer: true,
+      swcHtmlMinimizer: true,
+      lightningCssMinimizer: true,
+      rspackBundler: true,
+      mdxCrossCompilerCache: true,
+    },
+    experimental_storage: {
+      type: 'localStorage',
+      namespace: false,
+    },
+    v4: {
+      useCssCascadeLayers: true,
+    },
+  },
+
+  // Storage configuration for better performance
+  staticDirectories: ['static'],
+  
+  // Optional: Enable hash router for offline support (experimental)
+  // Uncomment if you need offline browsing capability
+  // router: 'hash',
+  
+  // Future-proofing configurations
+  clientModules: [
+    require.resolve('./src/theme/prism-include-languages.js'),
+  ],
 
   // Even if you don't use internationalization, you can use this field to set
   // useful metadata like html lang. For example, if your site is Chinese, you
@@ -30,12 +74,63 @@ const config: Config = {
   },
 
   headTags: [
+    // DNS prefetch for better performance
     {
-      tagName: 'script',
-      attributes:{
-        type: "application/javascript",
+      tagName: 'link',
+      attributes: {
+        rel: 'dns-prefetch',
+        href: '//fonts.googleapis.com',
       },
-      innerHTML: ``,
+    },
+    {
+      tagName: 'link',
+      attributes: {
+        rel: 'preconnect',
+        href: 'https://fonts.gstatic.com',
+        crossorigin: 'anonymous',
+      },
+    },
+    {
+      tagName: 'meta',
+      attributes: {
+        name: 'keywords',
+        content: 'go, golang, dependency injection, DI, IoC, container, generics, type-safe, framework, library, samber',
+      },
+    },
+    {
+      tagName: 'meta',
+      attributes: {
+        property: 'og:image',
+        content: 'https://do.samber.dev/img/cover.png',
+      },
+    },
+    {
+      tagName: 'meta',
+      attributes: {
+        name: 'twitter:card',
+        content: 'summary_large_image',
+      },
+    },
+    {
+      tagName: 'meta',
+      attributes: {
+        name: 'twitter:image',
+        content: 'https://do.samber.dev/img/cover.png',
+      },
+    },
+    {
+      tagName: 'meta',
+      attributes: {
+        name: 'twitter:creator',
+        content: '@samuelberthe',
+      },
+    },
+    {
+      tagName: 'link',
+      attributes: {
+        rel: 'canonical',
+        href: 'https://do.samber.dev',
+      },
     },
   ],
 
@@ -49,6 +144,42 @@ const config: Config = {
           // Remove this to remove the "edit this page" links.
           editUrl:
             'https://github.com/samber/do/tree/master/docs/',
+          showLastUpdateAuthor: true,
+          showLastUpdateTime: true,
+          // Enhanced docs features from 3.8+
+          breadcrumbs: true,
+          sidebarCollapsed: false,
+          numberPrefixParser: false,
+          // Enable admonitions
+          admonitions: {
+            keywords: ['note', 'tip', 'info', 'danger', 'warning'],
+            extendDefaults: true,
+          },
+          // Enhanced markdown features
+          remarkPlugins: [],
+          rehypePlugins: [],
+        },
+        sitemap: {
+          lastmod: 'date',
+          changefreq: 'weekly',
+          priority: 0.7,
+          ignorePatterns: ['/tags/**'],
+          filename: 'sitemap.xml',
+          // Enhanced sitemap features from 3.8+
+          createSitemapItems: async (params) => {
+            const {defaultCreateSitemapItems, ...rest} = params ;
+            const items = await defaultCreateSitemapItems(rest);
+            // Add custom priority for specific pages
+            return items.map((item) => {
+              if (item.url.includes('/docs/getting-started')) {
+                return {...item, priority: 1.0};
+              }
+              if (item.url.includes('/docs/')) {
+                return {...item, priority: 0.8};
+              }
+              return item;
+            });
+          },
         },
         theme: {
           customCss: './src/css/custom.css',
@@ -63,20 +194,36 @@ const config: Config = {
 
   themeConfig: {
     // Replace with your project's social card
-    // image: 'img/docusaurus-social-card.jpg',
+    image: 'img/cover.png',
+    
+    // Mermaid configuration
+    mermaid: {
+      theme: {light: 'neutral', dark: 'dark'},
+      options: {
+        maxTextSize: 50000,
+      },
+    },
+    
+    // Enhanced metadata
+    metadata: [
+      {name: 'og:type', content: 'website'},
+    ],
     navbar: {
-      title: '⚙️ do',
-      // logo: {
-      //   alt: 'My Site Logo',
-      //   src: 'img/logo.svg',
-      // },
+      title: '⚙️ samber/do',
+      logo: {
+        alt: 'do - Dependency Injection for Go',
+        src: 'img/icon.png',
+        width: 32,
+        height: 32,
+      },
+      hideOnScroll: false,
       items: [
         {
           type: 'docSidebar',
           sidebarId: 'docSidebar',
           position: 'left',
-          label: 'Guides',
-          // label: 'Docs',
+          // label: 'Guides',
+          label: 'Doc',
         },
         {
           to: 'examples',
@@ -99,11 +246,14 @@ const config: Config = {
           position: 'right',
         },
         {
-          to: 'https://github.com/samber/do',
-          // label: 'GitHub',
+          href: 'https://github.com/samber/do',
           position: 'right',
           className: 'header-github-link',
           'aria-label': 'GitHub repository',
+        },
+        {
+          type: 'search',
+          position: 'right',
         },
       ],
     },
@@ -158,6 +308,25 @@ const config: Config = {
     prism: {
       theme: prismThemes.github,
       darkTheme: prismThemes.dracula,
+      defaultLanguage: 'go',
+      additionalLanguages: ['bash', 'diff', 'json', 'yaml', 'go'],
+      magicComments: [
+        {
+          className: 'theme-code-block-highlighted-line',
+          line: 'highlight-next-line',
+          block: {start: 'highlight-start', end: 'highlight-end'},
+        },
+        {
+          className: 'code-block-error-line',
+          line: 'error-next-line',
+          block: {start: 'error-start', end: 'error-end'},
+        },
+      ],
+    },
+    colorMode: {
+      defaultMode: 'light',
+      disableSwitch: false,
+      respectPrefersColorScheme: true,
     },
     algolia: {
       appId: '9Q5MHPPFJM',
@@ -166,10 +335,36 @@ const config: Config = {
       externalUrlRegex: 'do\\.samber\\.dev',
       indexName: 'do',
       contextualSearch: true,
+      searchParameters: {
+        // facetFilters: ['type:lvl1'],
+      },
+      searchPagePath: 'search',
+      // Enhanced search features from 3.8+
+      insights: false,
     },
   } satisfies Preset.ThemeConfig,
 
+  themes: ['@docusaurus/theme-mermaid'],
+  
   plugins: [
+    // Add ideal image plugin for better image optimization
+    [
+      '@docusaurus/plugin-ideal-image',
+      {
+        quality: 70,
+        max: 1030,
+        min: 640,
+        steps: 2,
+        disableInDev: false,
+      },
+    ],
+    [
+      'vercel-analytics',
+      {
+        debug: true,
+        mode: 'auto',
+      },
+    ],
   ],
 };
 
