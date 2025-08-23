@@ -52,6 +52,33 @@ Dependents:
   * SERVICE-G from scope scope-child
 ```
 
+```mermaid
+graph TD
+    A[SERVICE-E] --> B[SERVICE-D]
+    A --> C[SERVICE-F]
+    
+    B --> D[SERVICE-C1]
+    B --> E[SERVICE-C2]
+    
+    D --> F[SERVICE-B]
+    E --> F
+    
+    F --> G[SERVICE-A1]
+    F --> H[SERVICE-A2]
+    
+    C --> I[SERVICE-G]
+    
+    style A fill:#e1f5fe
+    style B fill:#e8f5e8
+    style C fill:#e8f5e8
+    style D fill:#f3e5f5
+    style E fill:#f3e5f5
+    style F fill:#fff3e0
+    style I fill:#f3e5f5
+
+
+```
+
 ### Print dependencies or dependents
 
 ```go

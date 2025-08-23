@@ -34,6 +34,25 @@ injector := do.New()
 
 Services can be declared as a singleton or a factory. In this example, we create two services, `Car` and `Engine`, with a simple dependency relationship.
 
+```mermaid
+---
+config:
+  theme: 'base'
+  themeVariables:
+    edgeLabelBackground: 'transparent'
+    primaryColor: '#007D9C'
+    primaryTextColor: '#fff'
+    primaryBorderColor: '#7C0000'
+    lineColor: '#F8B229'
+---
+graph LR
+    B[Engine provider] -- Register ---> A{DI Container}
+    C[Car provider] -- Register --> A
+    A -- Invoke --> D[Engine Instance]
+    A -- Invoke --> E[Car Instance]
+    D -- Invoke --> E
+```
+
 Engine:
 
 ```go
