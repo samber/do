@@ -1,45 +1,166 @@
 package do
 
-type ServiceEager[T any] struct {
+import (
+	"context"
+	"reflect"
+	"sync"
+	"sync/atomic"
+
+	"github.com/samber/do/v2/stacktrace"
+)
+
+var (
+	_ serviceWrapper[int]       = (*serviceEager[int])(nil)
+	_ serviceWrapperHealthcheck = (*serviceEager[int])(nil)
+	_ serviceWrapperShutdown    = (*serviceEager[int])(nil)
+	_ serviceWrapperClone       = (*serviceEager[int])(nil)
+)
+
+type serviceEager[T any] struct {
 	name     string
+	typeName string
 	instance T
+
+	providerFrame           stacktrace.Frame
+	invokationFrames        map[stacktrace.Frame]struct{} // map garanties uniqueness
+	invokationFramesMu      sync.RWMutex
+	invokationFramesCounter uint32
 }
 
-func newServiceEager[T any](name string, instance T) Service[T] {
-	return &ServiceEager[T]{
+func newServiceEager[T any](name string, instance T) *serviceEager[T] {
+	providerFrame, _ := stacktrace.NewFrameFromCaller()
+
+	return &serviceEager[T]{
 		name:     name,
+		typeName: inferServiceName[T](),
 		instance: instance,
+
+		providerFrame:           providerFrame,
+		invokationFrames:        map[stacktrace.Frame]struct{}{},
+		invokationFramesMu:      sync.RWMutex{},
+		invokationFramesCounter: 0,
 	}
 }
 
-//nolint:unused
-func (s *ServiceEager[T]) getName() string {
+func (s *serviceEager[T]) getName() string {
 	return s.name
 }
 
-//nolint:unused
-func (s *ServiceEager[T]) getInstance(i *Injector) (T, error) {
+func (s *serviceEager[T]) getTypeName() string {
+	return s.typeName
+}
+
+func (s *serviceEager[T]) getServiceType() ServiceType {
+	return ServiceTypeEager
+}
+
+func (s *serviceEager[T]) getReflectType() reflect.Type {
+	return reflect.TypeOf((*T)(nil)).Elem() // if T is a pointer or interface, it will return a typed nil
+}
+
+func (s *serviceEager[T]) getInstanceAny(i Injector) (any, error) {
+	return s.getInstance(i)
+}
+
+func (s *serviceEager[T]) getInstance(i Injector) (T, error) {
+	// Collect up to 100 invokation frames.
+	// In the future, we can implement a LFU list, to evict the oldest
+	// frames and keep the most recent ones, but it would be much more costly.
+	if atomic.AddUint32(&s.invokationFramesCounter, 1) < MaxInvocationFrames {
+		s.invokationFramesMu.Lock()
+		frame, ok := stacktrace.NewFrameFromCaller()
+		if ok {
+			s.invokationFrames[frame] = struct{}{}
+		}
+		s.invokationFramesMu.Unlock()
+	}
+
 	return s.instance, nil
 }
 
-func (s *ServiceEager[T]) healthcheck() error {
-	instance, ok := any(s.instance).(Healthcheckable)
-	if ok {
+func (s *serviceEager[T]) isHealthchecker() bool {
+	_, ok1 := any(s.instance).(HealthcheckerWithContext)
+	_, ok2 := any(s.instance).(Healthchecker)
+	return ok1 || ok2
+}
+
+func (s *serviceEager[T]) healthcheck(ctx context.Context) error {
+	if instance, ok := any(s.instance).(HealthcheckerWithContext); ok {
+		if ctx.Err() != nil {
+			return ctx.Err()
+		}
+
+		return instance.HealthCheck(ctx)
+	} else if instance, ok := any(s.instance).(Healthchecker); ok {
+		if ctx.Err() != nil {
+			return ctx.Err()
+		}
+
 		return instance.HealthCheck()
 	}
 
 	return nil
 }
 
-func (s *ServiceEager[T]) shutdown() error {
-	instance, ok := any(s.instance).(Shutdownable)
-	if ok {
+func (s *serviceEager[T]) isShutdowner() bool {
+	_, ok1 := any(s.instance).(ShutdownerWithContextAndError)
+	_, ok2 := any(s.instance).(ShutdownerWithError)
+	_, ok3 := any(s.instance).(ShutdownerWithContext)
+	_, ok4 := any(s.instance).(Shutdowner)
+	return ok1 || ok2 || ok3 || ok4
+}
+
+func (s *serviceEager[T]) shutdown(ctx context.Context) error {
+	switch instance := any(s.instance).(type) {
+	case ShutdownerWithContextAndError:
+		if ctx.Err() != nil {
+			return ctx.Err()
+		}
+
+		return instance.Shutdown(ctx)
+	case ShutdownerWithError:
+		if ctx.Err() != nil {
+			return ctx.Err()
+		}
+
 		return instance.Shutdown()
+	case ShutdownerWithContext:
+		if ctx.Err() != nil {
+			return ctx.Err()
+		}
+
+		instance.Shutdown(ctx)
+	case Shutdowner:
+		if ctx.Err() != nil {
+			return ctx.Err()
+		}
+
+		instance.Shutdown()
 	}
 
 	return nil
 }
 
-func (s *ServiceEager[T]) clone() any {
-	return s
+func (s *serviceEager[T]) clone(newScope Injector) any {
+	return &serviceEager[T]{
+		name:     s.name,
+		typeName: s.typeName,
+		instance: s.instance,
+
+		providerFrame:           s.providerFrame,
+		invokationFrames:        map[stacktrace.Frame]struct{}{},
+		invokationFramesMu:      sync.RWMutex{},
+		invokationFramesCounter: 0,
+	}
+}
+
+func (s *serviceEager[T]) source() (stacktrace.Frame, []stacktrace.Frame) {
+	s.invokationFramesMu.RLock()
+	invokationFrames := make([]stacktrace.Frame, 0, len(s.invokationFrames))
+	for frame := range s.invokationFrames {
+		invokationFrames = append(invokationFrames, frame)
+	}
+	s.invokationFramesMu.RUnlock()
+
+	return s.providerFrame, invokationFrames
 }
