@@ -21,9 +21,6 @@ const config: Config = {
   // Optional: deployment branch
   // deploymentBranch: 'gh-pages',
   
-  // Optional: remove trailing slash for better SEO
-  trailingSlash: false,
-
   onBrokenLinks: 'throw',
   onBrokenMarkdownLinks: 'warn',
   onBrokenAnchors: 'warn',
