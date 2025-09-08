@@ -1,13 +1,14 @@
 package do
 
 import (
+	"context"
 	"fmt"
 )
 
 func Provide[T any](i *Injector, provider Provider[T]) {
-	name := generateServiceName[T]()
+	name := generateServiceNameFromInjector[T](i)
 
-	ProvideNamed[T](i, name, provider)
+	ProvideNamed(i, name, provider)
 }
 
 func ProvideNamed[T any](i *Injector, name string, provider Provider[T]) {
@@ -23,9 +24,9 @@ func ProvideNamed[T any](i *Injector, name string, provider Provider[T]) {
 }
 
 func ProvideValue[T any](i *Injector, value T) {
-	name := generateServiceName[T]()
+	name := generateServiceNameFromInjector[T](i)
 
-	ProvideNamedValue[T](i, name, value)
+	ProvideNamedValue(i, name, value)
 }
 
 func ProvideNamedValue[T any](i *Injector, name string, value T) {
@@ -41,9 +42,9 @@ func ProvideNamedValue[T any](i *Injector, name string, value T) {
 }
 
 func Override[T any](i *Injector, provider Provider[T]) {
-	name := generateServiceName[T]()
+	name := generateServiceNameFromInjector[T](i)
 
-	OverrideNamed[T](i, name, provider)
+	OverrideNamed(i, name, provider)
 }
 
 func OverrideNamed[T any](i *Injector, name string, provider Provider[T]) {
@@ -56,9 +57,9 @@ func OverrideNamed[T any](i *Injector, name string, provider Provider[T]) {
 }
 
 func OverrideValue[T any](i *Injector, value T) {
-	name := generateServiceName[T]()
+	name := generateServiceNameFromInjector[T](i)
 
-	OverrideNamedValue[T](i, name, value)
+	OverrideNamedValue(i, name, value)
 }
 
 func OverrideNamedValue[T any](i *Injector, name string, value T) {
@@ -71,7 +72,7 @@ func OverrideNamedValue[T any](i *Injector, name string, value T) {
 }
 
 func Invoke[T any](i *Injector) (T, error) {
-	name := generateServiceName[T]()
+	name := generateServiceNameFromInjector[T](i)
 	return InvokeNamed[T](i, name)
 }
 
@@ -117,7 +118,7 @@ func invokeImplem[T any](i *Injector, name string) (T, error) {
 }
 
 func HealthCheck[T any](i *Injector) error {
-	name := generateServiceName[T]()
+	name := generateServiceNameFromInjector[T](i)
 	return getInjectorOrDefault(i).healthcheckImplem(name)
 }
 
@@ -126,12 +127,12 @@ func HealthCheckNamed(i *Injector, name string) error {
 }
 
 func Shutdown[T any](i *Injector) error {
-	name := generateServiceName[T]()
+	name := generateServiceNameFromInjector[T](i)
 	return getInjectorOrDefault(i).shutdownImplem(name)
 }
 
 func MustShutdown[T any](i *Injector) {
-	name := generateServiceName[T]()
+	name := generateServiceNameFromInjector[T](i)
 	must(getInjectorOrDefault(i).shutdownImplem(name))
 }
 
@@ -141,4 +142,22 @@ func ShutdownNamed(i *Injector, name string) error {
 
 func MustShutdownNamed(i *Injector, name string) {
 	must(getInjectorOrDefault(i).shutdownImplem(name))
+}
+
+func ShutdownContext[T any](ctx context.Context, i *Injector) error {
+	name := generateServiceNameFromInjector[T](i)
+	return getInjectorOrDefault(i).shutdownContextImplem(ctx, name)
+}
+
+func MustShutdownContext[T any](ctx context.Context, i *Injector) {
+	name := generateServiceNameFromInjector[T](i)
+	must(getInjectorOrDefault(i).shutdownContextImplem(ctx, name))
+}
+
+func ShutdownNamedContext(ctx context.Context, i *Injector, name string) error {
+	return getInjectorOrDefault(i).shutdownContextImplem(ctx, name)
+}
+
+func MustShutdownNamedContext(ctx context.Context, i *Injector, name string) {
+	must(getInjectorOrDefault(i).shutdownContextImplem(ctx, name))
 }
