@@ -92,18 +92,17 @@ func (s *eagerTestShutdownerVoid) Shutdown() {
 type contextValueHealthcheckerEager struct{}
 
 func (c *contextValueHealthcheckerEager) HealthCheck(ctx context.Context) error {
-	value := ctx.Value("test-key")
+	value := ctx.Value(ctxTestKey)
 	if value != "healthcheck-value" {
 		return fmt.Errorf("test-key not found or value is incorrect")
 	}
 	return nil
 }
 
-type contextValueShutdownerEager struct {
-}
+type contextValueShutdownerEager struct{}
 
 func (c *contextValueShutdownerEager) Shutdown(ctx context.Context) error {
-	value := ctx.Value("test-key")
+	value := ctx.Value(ctxTestKey)
 	if value != "shutdown-value" {
 		return fmt.Errorf("test-key not found or value is incorrect")
 	}
@@ -622,12 +621,12 @@ func TestServiceEager_ContextValuePropagation(t *testing.T) {
 	shutdownEager := newServiceEager("shutdown-eager", shutdownService)
 
 	// Test context value propagation for healthcheck
-	ctx1 := context.WithValue(context.Background(), "test-key", "healthcheck-value")
+	ctx1 := context.WithValue(context.Background(), ctxTestKey, "healthcheck-value")
 	err := healthcheckEager.healthcheck(ctx1)
 	is.Nil(err)
 
 	// Test context value propagation for shutdown
-	ctx2 := context.WithValue(context.Background(), "test-key", "shutdown-value")
+	ctx2 := context.WithValue(context.Background(), ctxTestKey, "shutdown-value")
 	err = shutdownEager.shutdown(ctx2)
 	is.Nil(err)
 

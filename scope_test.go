@@ -515,7 +515,7 @@ func TestScope_HealthCheckWithContext(t *testing.T) {
 	is.Len(results4, 4) // child1-a, child2a-a, child2a-b, root-a
 
 	// Test with value context - should return original errors
-	valueCtx := context.WithValue(context.Background(), "test-key", "test-value")
+	valueCtx := context.WithValue(context.Background(), ctxTestKey, "test-value")
 	results5 := child2a.HealthCheckWithContext(valueCtx)
 	is.EqualValues(map[string]error{"child1-a": nil, "child2a-a": nil, "child2a-b": assert.AnError, "root-a": assert.AnError}, results5)
 }
@@ -655,7 +655,7 @@ func TestScope_ShutdownWithContext(t *testing.T) {
 	_, _ = invokeByName[*lazyTestShutdownerOK](child2a_5, "child2a-a")
 	_, _ = invokeByName[*lazyTestShutdownerKO](child2a_5, "child2a-b")
 
-	valueCtx := context.WithValue(context.Background(), "test-key", "test-value")
+	valueCtx := context.WithValue(context.Background(), ctxTestKey, "test-value")
 	results5 := child2a_5.ShutdownWithContext(valueCtx)
 	is.NotNil(results5)
 	is.Len(results5.Errors, 1) // child2a-b should fail
