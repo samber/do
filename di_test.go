@@ -902,11 +902,11 @@ func TestInvokeStruct(t *testing.T) {
 
 	test10, err := InvokeStruct[*serviceWithInterface](i)
 	is.Nil(err)
-	is.NotNil((*test10).eagerTest)
+	is.NotNil((*test10).eagerTest) //nolint:gocritic
 
 	test11, err := InvokeStruct[****serviceWithInterface](i)
 	is.Nil(err)
-	is.NotNil((****test11).eagerTest)
+	is.NotNil((****test11).eagerTest) //nolint:gocritic
 }
 
 func TestMustInvokeStruct(t *testing.T) {
