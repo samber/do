@@ -135,10 +135,9 @@ func inferServiceName[T any]() string {
 func inferServiceProviderStacktrace(service serviceWrapperAny) (stacktrace.Frame, bool) {
 	if service.getServiceType() == ServiceTypeTransient {
 		return stacktrace.Frame{}, false
-	} else {
-		providerFrame, _ := service.source()
-		return providerFrame, true
 	}
+	providerFrame, _ := service.source()
+	return providerFrame, true
 }
 
 type serviceInfo struct {
