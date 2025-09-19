@@ -701,8 +701,7 @@ func TestServiceAlias_source(t *testing.T) {
 }
 
 // Test services for context value propagation in service alias
-type contextValueHealthcheckerAlias struct {
-}
+type contextValueHealthcheckerAlias struct{}
 
 func (c *contextValueHealthcheckerAlias) HealthCheck(ctx context.Context) error {
 	value := ctx.Value("test-key")
@@ -712,8 +711,7 @@ func (c *contextValueHealthcheckerAlias) HealthCheck(ctx context.Context) error 
 	return nil
 }
 
-type contextValueShutdownerAlias struct {
-}
+type contextValueShutdownerAlias struct{}
 
 func (c *contextValueShutdownerAlias) Shutdown(ctx context.Context) error {
 	value := ctx.Value("test-key")

@@ -89,8 +89,7 @@ func (s *eagerTestShutdownerVoid) Shutdown() {
 }
 
 // Test services for context value propagation in service eager
-type contextValueHealthcheckerEager struct {
-}
+type contextValueHealthcheckerEager struct{}
 
 func (c *contextValueHealthcheckerEager) HealthCheck(ctx context.Context) error {
 	value := ctx.Value("test-key")
