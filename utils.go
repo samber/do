@@ -22,7 +22,7 @@ func deepEmpty[T any]() T {
 	t := reflect.TypeOf(o)
 
 	v := deepEmptyMakeValue(t) // reflect.Value with the desired shape
-	return v.Interface().(T)
+	return v.Interface().(T)   //nolint:errcheck,forcetypeassert
 }
 
 func deepEmptyMakeValue(t reflect.Type) reflect.Value {
