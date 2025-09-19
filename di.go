@@ -10,7 +10,7 @@ import (
 // to specify which service should be injected.
 const DefaultStructTagKey = "do"
 
-// Provider[T] is a function type that creates and returns a service instance of type T.
+// Provider is a function type that creates and returns a service instance of type T.
 // This is the core abstraction for service creation in the dependency injection container.
 //
 // The provider function receives an Injector instance that can be used to resolve

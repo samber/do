@@ -8,6 +8,7 @@ import (
 )
 
 var (
+	//nolint:revive
 	ErrServiceNotFound    = errors.New("DI: could not find service")
 	ErrServiceNotMatch    = errors.New("DI: could not find service satisfying interface")
 	ErrCircularDependency = errors.New("DI: circular dependency detected")

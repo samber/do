@@ -13,7 +13,7 @@ const DefaultRootScopeName = "[root]"
 
 // DefaultRootScope is a global instance of the root scope that can be used
 // for simple dependency injection scenarios without creating a custom scope.
-var DefaultRootScope *RootScope = New()
+var DefaultRootScope = New()
 
 // noOpLogf is a no-operation logging function used as a default when no logger is provided.
 var noOpLogf = func(format string, args ...any) {}
