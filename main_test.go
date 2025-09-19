@@ -10,6 +10,12 @@ import (
 	"go.uber.org/goleak"
 )
 
+type ctxTestkey string
+
+const (
+	ctxTestKey ctxTestkey = "test-key"
+)
+
 func TestMain(m *testing.M) {
 	goleak.VerifyTestMain(m)
 }

@@ -95,7 +95,7 @@ func (t *lazyTestShutdownerKOCtx) Shutdown(ctx context.Context) error {
 type contextValueHealthcheckerLazy struct{}
 
 func (c *contextValueHealthcheckerLazy) HealthCheck(ctx context.Context) error {
-	value := ctx.Value("test-key")
+	value := ctx.Value(ctxTestKey)
 	if value != "healthcheck-value" {
 		return fmt.Errorf("test-key not found or value is incorrect")
 	}
@@ -105,7 +105,7 @@ func (c *contextValueHealthcheckerLazy) HealthCheck(ctx context.Context) error {
 type contextValueShutdownerLazy struct{}
 
 func (c *contextValueShutdownerLazy) Shutdown(ctx context.Context) error {
-	value := ctx.Value("test-key")
+	value := ctx.Value(ctxTestKey)
 	if value != "shutdown-value" {
 		return fmt.Errorf("test-key not found or value is incorrect")
 	}
@@ -552,7 +552,7 @@ func TestServiceLazy_healthcheck(t *testing.T) {
 	is.ErrorContains(err2, "context deadline exceeded")
 
 	// Test with value context - verify context value is received
-	valueCtx := context.WithValue(context.Background(), "test-key", "healthcheck-value")
+	valueCtx := context.WithValue(context.Background(), ctxTestKey, "healthcheck-value")
 	serviceWithContext := newServiceLazy("foobar", func(i Injector) (*contextValueHealthcheckerLazy, error) {
 		return &contextValueHealthcheckerLazy{}, nil
 	})
@@ -561,7 +561,7 @@ func TestServiceLazy_healthcheck(t *testing.T) {
 	is.Nil(err3) // Should work normally when context value is correct
 
 	// Test with incorrect context value - verify context value is checked
-	incorrectValueCtx := context.WithValue(context.Background(), "test-key", "wrong-value")
+	incorrectValueCtx := context.WithValue(context.Background(), ctxTestKey, "wrong-value")
 	err4 := serviceWithContext.healthcheck(incorrectValueCtx)
 	is.Error(err4) // Should fail when context value is incorrect
 	is.ErrorContains(err4, "test-key not found or value is incorrect")
@@ -662,7 +662,7 @@ func TestServiceLazy_shutdown(t *testing.T) {
 	is.ErrorContains(err2, "context deadline exceeded")
 
 	// Test with value context - verify context value is received
-	valueCtx := context.WithValue(context.Background(), "test-key", "shutdown-value")
+	valueCtx := context.WithValue(context.Background(), ctxTestKey, "shutdown-value")
 	serviceWithContext := newServiceLazy("foobar", func(i Injector) (*contextValueShutdownerLazy, error) {
 		return &contextValueShutdownerLazy{}, nil
 	})
@@ -671,7 +671,7 @@ func TestServiceLazy_shutdown(t *testing.T) {
 	is.Nil(err3) // Should work normally when context value is correct
 
 	// Test with incorrect context value - verify context value is checked
-	incorrectValueCtx := context.WithValue(context.Background(), "test-key", "wrong-value")
+	incorrectValueCtx := context.WithValue(context.Background(), ctxTestKey, "wrong-value")
 	serviceWithIncorrectContext := newServiceLazy("foobar", func(i Injector) (*contextValueShutdownerLazy, error) {
 		return &contextValueShutdownerLazy{}, nil
 	})
@@ -892,12 +892,12 @@ func TestServiceLazy_ContextValuePropagation(t *testing.T) {
 	})
 
 	// Test context value propagation for healthcheck
-	ctx1 := context.WithValue(context.Background(), "test-key", "healthcheck-value")
+	ctx1 := context.WithValue(context.Background(), ctxTestKey, "healthcheck-value")
 	err := healthcheckLazy.healthcheck(ctx1)
 	is.Nil(err)
 
 	// Test context value propagation for shutdown
-	ctx2 := context.WithValue(context.Background(), "test-key", "shutdown-value")
+	ctx2 := context.WithValue(context.Background(), ctxTestKey, "shutdown-value")
 	err = shutdownLazy.shutdown(ctx2)
 	is.Nil(err)
 

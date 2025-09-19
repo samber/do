@@ -670,7 +670,7 @@ type contextValueHealthcheckerTransient struct {
 }
 
 func (c *contextValueHealthcheckerTransient) HealthCheck(ctx context.Context) error {
-	value := ctx.Value("test-key")
+	value := ctx.Value(ctxTestKey)
 	if value != "healthcheck-value" {
 		return fmt.Errorf("test-key not found or value is incorrect")
 	}
@@ -682,7 +682,7 @@ type contextValueShutdownerTransient struct {
 }
 
 func (c *contextValueShutdownerTransient) Shutdown(ctx context.Context) error {
-	value := ctx.Value("test-key")
+	value := ctx.Value(ctxTestKey)
 	if value != "shutdown-value" {
 		return fmt.Errorf("test-key not found or value is incorrect")
 	}
@@ -708,12 +708,12 @@ func TestServiceTransient_ContextValuePropagation(t *testing.T) {
 	})
 
 	// Test that transient services don't support healthcheck (should return nil)
-	ctx1 := context.WithValue(context.Background(), "test-key", "healthcheck-value")
+	ctx1 := context.WithValue(context.Background(), ctxTestKey, "healthcheck-value")
 	err := healthcheckTransient.healthcheck(ctx1)
 	is.Nil(err) // Transient services return nil for healthcheck
 
 	// Test that transient services don't support shutdown (should return nil)
-	ctx2 := context.WithValue(context.Background(), "test-key", "shutdown-value")
+	ctx2 := context.WithValue(context.Background(), ctxTestKey, "shutdown-value")
 	err = shutdownTransient.shutdown(ctx2)
 	is.Nil(err) // Transient services return nil for shutdown
 

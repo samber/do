@@ -331,7 +331,7 @@ func TestServiceAlias_healthcheck(t *testing.T) {
 	is.ErrorContains(err2, "context deadline exceeded")
 
 	// Test with value context - verify context value is received
-	valueCtx := context.WithValue(context.Background(), "test-key", "healthcheck-value")
+	valueCtx := context.WithValue(context.Background(), ctxTestKey, "healthcheck-value")
 	i6 := New()
 	Provide(i6, func(i Injector) (*contextValueHealthcheckerAlias, error) {
 		return &contextValueHealthcheckerAlias{}, nil
@@ -342,7 +342,7 @@ func TestServiceAlias_healthcheck(t *testing.T) {
 	is.Nil(err3) // Should work normally when context value is correct
 
 	// Test with incorrect context value - verify context value is checked
-	incorrectValueCtx := context.WithValue(context.Background(), "test-key", "wrong-value")
+	incorrectValueCtx := context.WithValue(context.Background(), ctxTestKey, "wrong-value")
 	err4 := serviceWithContext.healthcheck(incorrectValueCtx)
 	is.Error(err4) // Should fail when context value is incorrect
 	is.ErrorContains(err4, "test-key not found or value is incorrect")
@@ -466,7 +466,7 @@ func TestServiceAlias_shutdown(t *testing.T) {
 	is.ErrorContains(err2, "context deadline exceeded")
 
 	// Test with value context - verify context value is received
-	valueCtx := context.WithValue(context.Background(), "test-key", "shutdown-value")
+	valueCtx := context.WithValue(context.Background(), ctxTestKey, "shutdown-value")
 	i8 := New()
 	Provide(i8, func(i Injector) (*contextValueShutdownerAlias, error) {
 		return &contextValueShutdownerAlias{}, nil
@@ -477,7 +477,7 @@ func TestServiceAlias_shutdown(t *testing.T) {
 	is.Nil(err3) // Should work normally when context value is correct
 
 	// Test with incorrect context value - verify context value is checked
-	incorrectValueCtx := context.WithValue(context.Background(), "test-key", "wrong-value")
+	incorrectValueCtx := context.WithValue(context.Background(), ctxTestKey, "wrong-value")
 	i9 := New()
 	Provide(i9, func(i Injector) (*contextValueShutdownerAlias, error) {
 		return &contextValueShutdownerAlias{}, nil
@@ -560,6 +560,8 @@ func TestServiceAlias_clone(t *testing.T) {
 	originalService.mu.Lock()
 	clonedService.mu.Lock()
 	// If mutexes were shared, this would deadlock
+	//nolint:ineffassign,staticcheck
+	ok = !ok // fake stuff to avoid staticcheck warning below
 	clonedService.mu.Unlock()
 	originalService.mu.Unlock()
 
@@ -704,7 +706,7 @@ func TestServiceAlias_source(t *testing.T) {
 type contextValueHealthcheckerAlias struct{}
 
 func (c *contextValueHealthcheckerAlias) HealthCheck(ctx context.Context) error {
-	value := ctx.Value("test-key")
+	value := ctx.Value(ctxTestKey)
 	if value != "healthcheck-value" {
 		return fmt.Errorf("test-key not found or value is incorrect")
 	}
@@ -714,7 +716,7 @@ func (c *contextValueHealthcheckerAlias) HealthCheck(ctx context.Context) error 
 type contextValueShutdownerAlias struct{}
 
 func (c *contextValueShutdownerAlias) Shutdown(ctx context.Context) error {
-	value := ctx.Value("test-key")
+	value := ctx.Value(ctxTestKey)
 	if value != "shutdown-value" {
 		return fmt.Errorf("test-key not found or value is incorrect")
 	}
@@ -749,12 +751,12 @@ func TestServiceAlias_ContextValuePropagation(t *testing.T) {
 	is.Nil(err2)
 
 	// Test context value propagation for healthcheck
-	ctx1 := context.WithValue(context.Background(), "test-key", "healthcheck-value")
+	ctx1 := context.WithValue(context.Background(), ctxTestKey, "healthcheck-value")
 	err := healthcheckAlias.healthcheck(ctx1)
 	is.Nil(err)
 
 	// Test context value propagation for shutdown
-	ctx2 := context.WithValue(context.Background(), "test-key", "shutdown-value")
+	ctx2 := context.WithValue(context.Background(), ctxTestKey, "shutdown-value")
 	err = shutdownAlias.shutdown(ctx2)
 	is.Nil(err)
 
