@@ -92,8 +92,7 @@ func (t *lazyTestShutdownerKOCtx) Shutdown(ctx context.Context) error {
 }
 
 // Test services for context value propagation in service lazy
-type contextValueHealthcheckerLazy struct {
-}
+type contextValueHealthcheckerLazy struct{}
 
 func (c *contextValueHealthcheckerLazy) HealthCheck(ctx context.Context) error {
 	value := ctx.Value("test-key")
@@ -103,8 +102,7 @@ func (c *contextValueHealthcheckerLazy) HealthCheck(ctx context.Context) error {
 	return nil
 }
 
-type contextValueShutdownerLazy struct {
-}
+type contextValueShutdownerLazy struct{}
 
 func (c *contextValueShutdownerLazy) Shutdown(ctx context.Context) error {
 	value := ctx.Value("test-key")

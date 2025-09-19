@@ -147,6 +147,7 @@ func TestFilter(t *testing.T) {
 
 	is.Equal(r2, []string{"foo", "bar"})
 }
+
 func TestUtilsOrderedUniq(t *testing.T) {
 	t.Parallel()
 	is := assert.New(t)
