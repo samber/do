@@ -1,347 +1,157 @@
 package do
 
 import (
-	"fmt"
-	"reflect"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 )
 
-func TestInjectorNew(t *testing.T) {
+func TestGetInjectorOrDefault(t *testing.T) {
+	// t.Parallel() // parallel forbidden by write on DefaultRootScope
+	testWithTimeout(t, 100*time.Millisecond)
 	is := assert.New(t)
 
-	i := New()
-	is.NotNil(i)
-	is.Empty(i.services)
+	is.Equal(DefaultRootScope, getInjectorOrDefault(nil))
+	is.NotEqual(DefaultRootScope, getInjectorOrDefault(New()))
+
+	type test struct {
+		foobar string
+	}
+
+	DefaultRootScope = New()
+
+	Provide(nil, func(i Injector) (*test, error) {
+		return &test{foobar: "42"}, nil
+	})
+
+	is.Len(DefaultRootScope.self.services, 1)
 }
 
-func TestInjectorNewWithOpts(t *testing.T) {
+func TestInjectorOpts_addHook(t *testing.T) {
+	t.Parallel()
+	testWithTimeout(t, 100*time.Millisecond)
 	is := assert.New(t)
 
-	count := 0
+	hookBeforeRegistration := func(scope *Scope, serviceName string) {}
+	hookAfterRegistration := func(scope *Scope, serviceName string) {}
+	hookBeforeInvocation := func(scope *Scope, serviceName string) {}
+	hookAfterInvocation := func(scope *Scope, serviceName string, err error) {}
+	hookBeforeShutdown := func(scope *Scope, serviceName string) {}
+	hookAfterShutdown := func(scope *Scope, serviceName string, err error) {}
+
+	i := New()
+
+	//
+	is.Empty(i.opts.HookBeforeRegistration)
+	is.Empty(i.opts.HookAfterRegistration)
+	is.Empty(i.opts.HookBeforeInvocation)
+	is.Empty(i.opts.HookAfterInvocation)
+	is.Empty(i.opts.HookBeforeShutdown)
+	is.Empty(i.opts.HookAfterShutdown)
+
+	//
+	i.AddBeforeRegistrationHook(hookBeforeRegistration)
+	is.Len(i.opts.HookBeforeRegistration, 1)
+	is.Empty(i.opts.HookAfterRegistration)
+	is.Empty(i.opts.HookBeforeInvocation)
+	is.Empty(i.opts.HookAfterInvocation)
+	is.Empty(i.opts.HookBeforeShutdown)
+	is.Empty(i.opts.HookAfterShutdown)
+
+	//
+	i.AddAfterRegistrationHook(hookAfterRegistration)
+	is.Len(i.opts.HookBeforeRegistration, 1)
+	is.Len(i.opts.HookAfterRegistration, 1)
+	is.Empty(i.opts.HookBeforeInvocation)
+	is.Empty(i.opts.HookAfterInvocation)
+	is.Empty(i.opts.HookBeforeShutdown)
+	is.Empty(i.opts.HookAfterShutdown)
+
+	//
+	i.AddBeforeInvocationHook(hookBeforeInvocation)
+	is.Len(i.opts.HookBeforeRegistration, 1)
+	is.Len(i.opts.HookAfterRegistration, 1)
+	is.Len(i.opts.HookBeforeInvocation, 1)
+	is.Empty(i.opts.HookAfterInvocation)
+	is.Empty(i.opts.HookBeforeShutdown)
+	is.Empty(i.opts.HookAfterShutdown)
+
+	//
+	i.AddAfterInvocationHook(hookAfterInvocation)
+	is.Len(i.opts.HookBeforeRegistration, 1)
+	is.Len(i.opts.HookAfterRegistration, 1)
+	is.Len(i.opts.HookBeforeInvocation, 1)
+	is.Len(i.opts.HookAfterInvocation, 1)
+	is.Empty(i.opts.HookBeforeShutdown)
+	is.Empty(i.opts.HookAfterShutdown)
+
+	//
+	i.AddBeforeShutdownHook(hookBeforeShutdown)
+	is.Len(i.opts.HookBeforeRegistration, 1)
+	is.Len(i.opts.HookAfterRegistration, 1)
+	is.Len(i.opts.HookBeforeInvocation, 1)
+	is.Len(i.opts.HookAfterInvocation, 1)
+	is.Len(i.opts.HookBeforeShutdown, 1)
+	is.Empty(i.opts.HookAfterShutdown)
+
+	//
+	i.AddAfterShutdownHook(hookAfterShutdown)
+	is.Len(i.opts.HookBeforeRegistration, 1)
+	is.Len(i.opts.HookAfterRegistration, 1)
+	is.Len(i.opts.HookBeforeInvocation, 1)
+	is.Len(i.opts.HookAfterInvocation, 1)
+	is.Len(i.opts.HookBeforeShutdown, 1)
+	is.Len(i.opts.HookAfterShutdown, 1)
+}
+
+func TestInjectorOpts_onEvent(t *testing.T) {
+	t.Parallel()
+	testWithTimeout(t, 100*time.Millisecond)
+	is := assert.New(t)
+
+	result := ""
+
+	hookBeforeRegistration := func(scope *Scope, serviceName string) { result += "a" }
+	hookAfterRegistration := func(scope *Scope, serviceName string) { result += "b" }
+	hookBeforeInvocation := func(scope *Scope, serviceName string) { result += "c" }
+	hookAfterInvocation := func(scope *Scope, serviceName string, err error) { result += "d" }
+	hookBeforeShutdown := func(scope *Scope, serviceName string) { result += "e" }
+	hookAfterShutdown := func(scope *Scope, serviceName string, err error) { result += "f" }
 
 	i := NewWithOpts(&InjectorOpts{
-		HookAfterRegistration: func(injector *Injector, serviceName string) {
-			is.Equal("foobar", serviceName)
-			count++
-		},
-		HookAfterShutdown: func(injector *Injector, serviceName string) {
-			is.Equal("foobar", serviceName)
-			count++
-		},
+		HookBeforeRegistration: []func(scope *Scope, serviceName string){hookBeforeRegistration},
+		HookAfterRegistration:  []func(scope *Scope, serviceName string){hookAfterRegistration},
+		HookBeforeInvocation:   []func(scope *Scope, serviceName string){hookBeforeInvocation},
+		HookAfterInvocation:    []func(scope *Scope, serviceName string, err error){hookAfterInvocation},
+		HookBeforeShutdown:     []func(scope *Scope, serviceName string){hookBeforeShutdown},
+		HookAfterShutdown:      []func(scope *Scope, serviceName string, err error){hookAfterShutdown},
 	})
 
-	ProvideNamedValue(i, "foobar", 42)
-
-	is.NotPanics(func() {
-		MustInvokeNamed[int](i, "foobar")
-	})
-
-	err := i.Shutdown()
-	is.Nil(err)
-
-	is.Equal(2, count)
-}
-
-func TestInjectorListProvidedServices(t *testing.T) {
-	is := assert.New(t)
-
-	i := New()
-
-	is.NotPanics(func() {
-		ProvideValue[int](i, 42)
-		ProvideValue[float64](i, 21)
-	})
-
-	is.NotPanics(func() {
-		services := i.ListProvidedServices()
-		is.ElementsMatch([]string{"int", "float64"}, services)
-	})
-}
-
-func TestInjectorListInvokedServices(t *testing.T) {
-	is := assert.New(t)
-
-	i := New()
-
-	is.NotPanics(func() {
-		ProvideValue[int](i, 42)
-		ProvideValue[float64](i, 21)
-		MustInvoke[int](i)
-	})
-
-	is.NotPanics(func() {
-		services := i.ListInvokedServices()
-		is.Equal([]string{"int"}, services)
-	})
-}
-
-type testHealthCheck struct {
-}
-
-func (t *testHealthCheck) HealthCheck() error {
-	return fmt.Errorf("broken")
-}
-
-func TestInjectorHealthCheck(t *testing.T) {
-	is := assert.New(t)
-
-	i := New()
-
-	is.NotPanics(func() {
-		ProvideValue[int](i, 42)
-		ProvideNamed(i, "testHealthCheck", func(i *Injector) (*testHealthCheck, error) {
-			return &testHealthCheck{}, nil
-		})
-	})
-
-	// before invocation
-	is.NotPanics(func() {
-		got := i.HealthCheck()
-		expected := map[string]error{
-			"int":             nil,
-			"testHealthCheck": nil,
-		}
-
-		is.Equal(expected, got)
-	})
-
-	is.NotPanics(func() {
-		MustInvokeNamed[int](i, "int")
-		MustInvokeNamed[*testHealthCheck](i, "testHealthCheck")
-	})
-
-	// after invocation
-	is.NotPanics(func() {
-		got := i.HealthCheck()
-		expected := map[string]error{
-			"int":             nil,
-			"testHealthCheck": fmt.Errorf("broken"),
-		}
-
-		is.Equal(expected, got)
-	})
-}
-
-func TestInjectorExists(t *testing.T) {
-	is := assert.New(t)
-
-	i := New()
-
-	service := &ServiceEager[int]{
-		name:     "foobar",
-		instance: 42,
-	}
-	i.services["foobar"] = service
-
-	is.True(i.exists("foobar"))
-	is.False(i.exists("foobaz"))
-}
-
-func TestInjectorGet(t *testing.T) {
-	is := assert.New(t)
-
-	i := New()
-
-	service := &ServiceEager[int]{
-		name:     "foobar",
-		instance: 42,
-	}
-	i.services["foobar"] = service
-
-	// existing service
-	{
-		s1, ok1 := i.get("foobar")
-		is.True(ok1)
-		is.NotEmpty(s1)
-		if ok1 {
-			s, ok := s1.(Service[int])
-			is.True(ok)
-
-			v, err := s.getInstance(i)
-			is.Nil(err)
-			is.Equal(42, v)
-		}
-	}
-
-	// not existing service
-	{
-		s2, ok2 := i.get("foobaz")
-		is.False(ok2)
-		is.Empty(s2)
-	}
-}
-
-func TestInjectorSet(t *testing.T) {
-	is := assert.New(t)
-
-	i := New()
-
-	service1 := &ServiceEager[int]{
-		name:     "foobar",
-		instance: 42,
-	}
-
-	service2 := &ServiceEager[int]{
-		name:     "foobar",
-		instance: 21,
-	}
-
-	i.set("foobar", service1)
-	is.Len(i.services, 1)
-
-	s1, ok1 := i.services["foobar"]
-	is.True(ok1)
-	is.True(reflect.DeepEqual(service1, s1))
-
-	// erase
-	i.set("foobar", service2)
-	is.Len(i.services, 1)
-
-	s2, ok2 := i.services["foobar"]
-	is.True(ok2)
-	is.True(reflect.DeepEqual(service2, s2))
-}
-
-func TestInjectorRemove(t *testing.T) {
-	is := assert.New(t)
-
-	i := New()
-
-	service := &ServiceEager[int]{
-		name:     "foobar",
-		instance: 42,
-	}
-
-	i.set("foobar", service)
-	is.Len(i.services, 1)
-	i.remove("foobar")
-	is.Len(i.services, 0)
-}
-
-func TestInjectorForEach(t *testing.T) {
-	is := assert.New(t)
-
-	i := New()
-
-	service := &ServiceEager[int]{
-		name:     "foobar",
-		instance: 42,
-	}
-	i.set("foobar", service)
-
-	count := 0
-
-	i.forEach(func(name string, service any) {
-		is.Equal("foobar", name)
-		count++
-	})
-
-	is.Equal(1, count)
-}
-
-func TestInjectorServiceNotFound(t *testing.T) {
-	is := assert.New(t)
-
-	i := New()
-
-	service1 := &ServiceEager[int]{
-		name:     "foo",
-		instance: 42,
-	}
-
-	service2 := &ServiceEager[int]{
-		name:     "bar",
-		instance: 21,
-	}
-
-	i.set("foo", service1)
-	i.set("bar", service2)
-	is.Len(i.services, 2)
-
-	err := i.serviceNotFound("hello")
-	is.ErrorContains(err, "DI: could not find service `hello`, available services:")
-	is.ErrorContains(err, "`foo`")
-	is.ErrorContains(err, "`bar`")
-}
-
-func TestInjectorOnServiceInvoke(t *testing.T) {
-	is := assert.New(t)
-
-	i := New()
-
-	i.onServiceInvoke("foo")
-	i.onServiceInvoke("bar")
-
-	is.Equal(0, i.orderedInvocation["foo"])
-	is.Equal(1, i.orderedInvocation["bar"])
-	is.Equal(2, i.orderedInvocationIndex)
-}
-
-func TestInjectorCloneEager(t *testing.T) {
-	is := assert.New(t)
-
-	count := 0
-
-	// setup original container
-	i1 := New()
-	ProvideNamedValue(i1, "foobar", 42)
-	is.NotPanics(func() {
-		value := MustInvokeNamed[int](i1, "foobar")
-		is.Equal(42, value)
-	})
-
-	// clone container
-	i2 := i1.Clone()
-	// invoked instance is not reused
-	s1, err := InvokeNamed[int](i2, "foobar")
-	is.NoError(err)
-	is.Equal(42, s1)
-
-	// service can be overridden
-	OverrideNamed(i2, "foobar", func(_ *Injector) (int, error) {
-		count++
-		return 6 * 9, nil
-	})
-	s2, err := InvokeNamed[int](i2, "foobar")
-	is.NoError(err)
-	is.Equal(54, s2)
-	is.Equal(1, count)
-}
-
-func TestInjectorCloneLazy(t *testing.T) {
-	is := assert.New(t)
-
-	count := 0
-
-	// setup original container
-	i1 := New()
-	ProvideNamed(i1, "foobar", func(_ *Injector) (int, error) {
-		count++
-		return 42, nil
-	})
-	is.NotPanics(func() {
-		value := MustInvokeNamed[int](i1, "foobar")
-		is.Equal(42, value)
-	})
-	is.Equal(1, count)
-
-	// clone container
-	i2 := i1.Clone()
-	// invoked instance is not reused
-	s1, err := InvokeNamed[int](i2, "foobar")
-	is.NoError(err)
-	is.Equal(42, s1)
-	is.Equal(2, count)
-
-	// service can be overridden
-	OverrideNamed(i2, "foobar", func(_ *Injector) (int, error) {
-		count++
-		return 6 * 9, nil
-	})
-	s2, err := InvokeNamed[int](i2, "foobar")
-	is.NoError(err)
-	is.Equal(54, s2)
-	is.Equal(3, count)
+	i.opts.onBeforeRegistration(&Scope{id: "id", name: "name"}, "name")
+	i.opts.onAfterRegistration(&Scope{id: "id", name: "name"}, "name")
+	i.opts.onBeforeInvocation(&Scope{id: "id", name: "name"}, "name")
+	i.opts.onAfterInvocation(&Scope{id: "id", name: "name"}, "name", nil)
+	i.opts.onBeforeShutdown(&Scope{id: "id", name: "name"}, "name")
+	i.opts.onAfterShutdown(&Scope{id: "id", name: "name"}, "name", nil)
+
+	is.Equal("abcdef", result)
+
+	i.AddBeforeRegistrationHook(func(scope *Scope, serviceName string) { result += "1" })
+	i.AddAfterRegistrationHook(func(scope *Scope, serviceName string) { result += "2" })
+	i.AddBeforeInvocationHook(func(scope *Scope, serviceName string) { result += "3" })
+	i.AddAfterInvocationHook(func(scope *Scope, serviceName string, err error) { result += "4" })
+	i.AddBeforeShutdownHook(func(scope *Scope, serviceName string) { result += "5" })
+	i.AddAfterShutdownHook(func(scope *Scope, serviceName string, err error) { result += "6" })
+
+	result = ""
+
+	i.opts.onBeforeRegistration(&Scope{id: "id", name: "name"}, "name")
+	i.opts.onAfterRegistration(&Scope{id: "id", name: "name"}, "name")
+	i.opts.onBeforeInvocation(&Scope{id: "id", name: "name"}, "name")
+	i.opts.onAfterInvocation(&Scope{id: "id", name: "name"}, "name", nil)
+	i.opts.onBeforeShutdown(&Scope{id: "id", name: "name"}, "name")
+	i.opts.onAfterShutdown(&Scope{id: "id", name: "name"}, "name", nil)
+
+	is.Equal("a1b2c3d4e5f6", result)
 }
