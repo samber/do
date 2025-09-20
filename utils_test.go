@@ -96,7 +96,7 @@ func TestUtilsMap(t *testing.T) {
 	is := assert.New(t)
 
 	result1 := mAp([]int{1, 2, 3, 4}, func(x int, index int) string {
-		is.Equal(int(x-1), index)
+		is.Equal(x-1, index)
 		return "Hello"
 	})
 	result2 := mAp([]int64{1, 2, 3, 4}, func(x int64, index int) string {
@@ -228,7 +228,7 @@ func TestUtilsTypeCanCastToGeneric(t *testing.T) {
 	// // nil without type
 	is.False(typeCanCastToGeneric[iTest1](reflect.TypeOf(nil)))
 	is.False(typeCanCastToGeneric[test1](reflect.TypeOf(nil)))
-	is.False(typeCanCastToGeneric[iTest1](reflect.TypeOf((iTest1)(nil)))) // no concret type, only interface
+	is.False(typeCanCastToGeneric[iTest1](reflect.TypeOf((iTest1)(nil)))) // no concrete type, only interface
 
 	// nil with type
 	is.True(typeCanCastToGeneric[*test1](reflect.TypeOf((*test1)(nil))))
