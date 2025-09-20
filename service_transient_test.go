@@ -266,13 +266,13 @@ func TestServiceTransient_getInstanceAny(t *testing.T) {
 	// basic type
 	service1 := newServiceTransient("foobar", provider1)
 	instance1, err1 := service1.getInstanceAny(i)
-	is.Nil(err1)
+	is.NoError(err1)
 	is.Equal(42, instance1)
 
 	// struct
 	service2 := newServiceTransient("hello", provider2)
 	instance2, err2 := service2.getInstanceAny(i)
-	is.Nil(err2)
+	is.NoError(err2)
 	is.Equal(test, instance2)
 
 	// provider panics, but panic is catched by getInstanceAny
@@ -285,7 +285,7 @@ func TestServiceTransient_getInstanceAny(t *testing.T) {
 	is.NotPanics(func() {
 		service4 := newServiceTransient("plop", provider4)
 		instance4, err4 := service4.getInstanceAny(i)
-		is.NotNil(err4)
+		is.Error(err4)
 		is.Empty(instance4)
 		expected := fmt.Errorf("error")
 		is.Equal(expected, err4)
@@ -295,7 +295,7 @@ func TestServiceTransient_getInstanceAny(t *testing.T) {
 	is.NotPanics(func() {
 		service5 := newServiceTransient("plop", provider5)
 		instance5, err5 := service5.getInstanceAny(i)
-		is.NotNil(err5)
+		is.Error(err5)
 		is.Empty(instance5)
 		expected := fmt.Errorf("error")
 		is.Equal(expected, err5)
@@ -330,13 +330,13 @@ func TestServiceTransient_getInstance(t *testing.T) {
 	// basic type
 	service1 := newServiceTransient("foobar", provider1)
 	instance1, err1 := service1.getInstance(i)
-	is.Nil(err1)
+	is.NoError(err1)
 	is.Equal(42, instance1)
 
 	// struct
 	service2 := newServiceTransient("hello", provider2)
 	instance2, err2 := service2.getInstance(i)
-	is.Nil(err2)
+	is.NoError(err2)
 	is.Equal(test, instance2)
 
 	// provider panics, but panic is catched by getInstance
@@ -349,7 +349,7 @@ func TestServiceTransient_getInstance(t *testing.T) {
 	is.NotPanics(func() {
 		service4 := newServiceTransient("plop", provider4)
 		instance4, err4 := service4.getInstance(i)
-		is.NotNil(err4)
+		is.Error(err4)
 		is.Empty(instance4)
 		expected := fmt.Errorf("error")
 		is.Equal(expected, err4)
@@ -359,7 +359,7 @@ func TestServiceTransient_getInstance(t *testing.T) {
 	is.NotPanics(func() {
 		service5 := newServiceTransient("plop", provider5)
 		instance5, err5 := service5.getInstance(i)
-		is.NotNil(err5)
+		is.Error(err5)
 		is.Empty(instance5)
 		expected := fmt.Errorf("error")
 		is.Equal(expected, err5)
@@ -418,25 +418,25 @@ func TestServiceTransient_healthcheck(t *testing.T) {
 	service1 := newServiceTransient("foobar", func(i Injector) (lazyTest, error) {
 		return lazyTest{foobar: "foobar"}, nil
 	})
-	is.Nil(service1.healthcheck(ctx))
+	is.NoError(service1.healthcheck(ctx))
 	_, _ = service1.getInstance(nil)
-	is.Nil(service1.healthcheck(ctx))
+	is.NoError(service1.healthcheck(ctx))
 
 	// healthcheck ok
 	service2 := newServiceTransient("foobar", func(i Injector) (*lazyTestHeathcheckerOK, error) {
 		return &lazyTestHeathcheckerOK{foobar: "foobar"}, nil
 	})
-	is.Nil(service2.healthcheck(ctx))
+	is.NoError(service2.healthcheck(ctx))
 	_, _ = service2.getInstance(nil)
-	is.Nil(service2.healthcheck(ctx))
+	is.NoError(service2.healthcheck(ctx))
 
 	// healthcheck ko
 	service3 := newServiceTransient("foobar", func(i Injector) (*lazyTestHeathcheckerKO, error) {
 		return &lazyTestHeathcheckerKO{foobar: "foobar"}, nil
 	})
-	is.Nil(service3.healthcheck(ctx))
+	is.NoError(service3.healthcheck(ctx))
 	_, _ = service3.getInstance(nil)
-	is.Nil(service3.healthcheck(ctx))
+	is.NoError(service3.healthcheck(ctx))
 
 	// Test with different context scenarios - transient services always return nil
 	canceledCtx, cancel := context.WithCancel(context.Background())
@@ -445,26 +445,26 @@ func TestServiceTransient_healthcheck(t *testing.T) {
 	service4 := newServiceTransient("foobar", func(i Injector) (lazyTest, error) {
 		return lazyTest{foobar: "foobar"}, nil
 	})
-	is.Nil(service4.healthcheck(canceledCtx))
+	is.NoError(service4.healthcheck(canceledCtx))
 
 	timeoutCtx, cancel := context.WithTimeout(context.Background(), 1*time.Nanosecond)
 	defer cancel()
 	time.Sleep(2 * time.Millisecond)
 
-	is.Nil(service4.healthcheck(timeoutCtx))
+	is.NoError(service4.healthcheck(timeoutCtx))
 
 	futureCtx, cancel := context.WithTimeout(context.Background(), 100*time.Millisecond)
 	defer cancel()
 
-	is.Nil(service4.healthcheck(futureCtx))
+	is.NoError(service4.healthcheck(futureCtx))
 
 	// Test with HealthcheckerWithContext provider
 	service5 := newServiceTransient("foobar", func(i Injector) (*eagerTestHeathcheckerWithContext, error) {
 		return &eagerTestHeathcheckerWithContext{foobar: "test", shouldFail: true}, nil
 	})
-	is.Nil(service5.healthcheck(ctx))
+	is.NoError(service5.healthcheck(ctx))
 	_, _ = service5.getInstance(nil)
-	is.Nil(service5.healthcheck(ctx)) // Should still return nil even with failing healthchecker
+	is.NoError(service5.healthcheck(ctx)) // Should still return nil even with failing healthchecker
 }
 
 func TestServiceTransient_isShutdowner(t *testing.T) {
@@ -526,25 +526,25 @@ func TestServiceTransient_shutdown(t *testing.T) {
 	service1 := newServiceTransient("foobar", func(i Injector) (lazyTest, error) {
 		return lazyTest{foobar: "foobar"}, nil
 	})
-	is.Nil(service1.shutdown(ctx))
+	is.NoError(service1.shutdown(ctx))
 	_, _ = service1.getInstance(nil)
-	is.Nil(service1.shutdown(ctx))
+	is.NoError(service1.shutdown(ctx))
 
 	// shutdown ok
 	service2 := newServiceTransient("foobar", func(i Injector) (*lazyTestShutdownerOK, error) {
 		return &lazyTestShutdownerOK{foobar: "foobar"}, nil
 	})
-	is.Nil(service2.shutdown(ctx))
+	is.NoError(service2.shutdown(ctx))
 	_, _ = service2.getInstance(nil)
-	is.Nil(service2.shutdown(ctx))
+	is.NoError(service2.shutdown(ctx))
 
 	// shutdown ko
 	service3 := newServiceTransient("foobar", func(i Injector) (*lazyTestShutdownerKO, error) {
 		return &lazyTestShutdownerKO{foobar: "foobar"}, nil
 	})
-	is.Nil(service3.shutdown(ctx))
+	is.NoError(service3.shutdown(ctx))
 	_, _ = service3.getInstance(nil)
-	is.Nil(service3.shutdown(ctx))
+	is.NoError(service3.shutdown(ctx))
 
 	// Test with different context scenarios - transient services always return nil
 	canceledCtx, cancel := context.WithCancel(context.Background())
@@ -553,33 +553,33 @@ func TestServiceTransient_shutdown(t *testing.T) {
 	service4 := newServiceTransient("foobar", func(i Injector) (lazyTest, error) {
 		return lazyTest{foobar: "foobar"}, nil
 	})
-	is.Nil(service4.shutdown(canceledCtx))
+	is.NoError(service4.shutdown(canceledCtx))
 
 	timeoutCtx, cancel := context.WithTimeout(context.Background(), 1*time.Nanosecond)
 	defer cancel()
 	time.Sleep(2 * time.Millisecond)
 
-	is.Nil(service4.shutdown(timeoutCtx))
+	is.NoError(service4.shutdown(timeoutCtx))
 
 	futureCtx, cancel := context.WithTimeout(context.Background(), 100*time.Millisecond)
 	defer cancel()
 
-	is.Nil(service4.shutdown(futureCtx))
+	is.NoError(service4.shutdown(futureCtx))
 
 	// Test with different shutdowner types
 	service5 := newServiceTransient("foobar", func(i Injector) (*eagerTestShutdownerWithContext, error) {
 		return &eagerTestShutdownerWithContext{foobar: "test"}, nil
 	})
-	is.Nil(service5.shutdown(ctx))
+	is.NoError(service5.shutdown(ctx))
 	_, _ = service5.getInstance(nil)
-	is.Nil(service5.shutdown(ctx)) // Should still return nil even with context shutdowner
+	is.NoError(service5.shutdown(ctx)) // Should still return nil even with context shutdowner
 
 	service6 := newServiceTransient("foobar", func(i Injector) (*eagerTestShutdownerVoid, error) {
 		return &eagerTestShutdownerVoid{foobar: "test"}, nil
 	})
-	is.Nil(service6.shutdown(ctx))
+	is.NoError(service6.shutdown(ctx))
 	_, _ = service6.getInstance(nil)
-	is.Nil(service6.shutdown(ctx)) // Should still return nil even with void shutdowner
+	is.NoError(service6.shutdown(ctx)) // Should still return nil even with void shutdowner
 }
 
 func TestServiceTransient_clone(t *testing.T) {
@@ -633,19 +633,19 @@ func TestServiceTransient_clone(t *testing.T) {
 	// Test that cloned services can be used independently
 	i := New()
 	instance1, err1 := service1.getInstance(i)
-	is.Nil(err1)
+	is.NoError(err1)
 	is.Equal("foobar", instance1.foobar)
 
 	instance2, err2 := service2.getInstance(i)
-	is.Nil(err2)
+	is.NoError(err2)
 	is.Equal("foobar", instance2.foobar)
 
 	instance3, err3 := service3.getInstance(i)
-	is.Nil(err3)
+	is.NoError(err3)
 	is.Equal(42, instance3)
 
 	instance4, err4 := service4.getInstance(i)
-	is.Nil(err4)
+	is.NoError(err4)
 	is.Equal(42, instance4)
 }
 
@@ -710,19 +710,19 @@ func TestServiceTransient_ContextValuePropagation(t *testing.T) {
 	// Test that transient services don't support healthcheck (should return nil)
 	ctx1 := context.WithValue(context.Background(), ctxTestKey, "healthcheck-value")
 	err := healthcheckTransient.healthcheck(ctx1)
-	is.Nil(err) // Transient services return nil for healthcheck
+	is.NoError(err) // Transient services return nil for healthcheck
 
 	// Test that transient services don't support shutdown (should return nil)
 	ctx2 := context.WithValue(context.Background(), ctxTestKey, "shutdown-value")
 	err = shutdownTransient.shutdown(ctx2)
-	is.Nil(err) // Transient services return nil for shutdown
+	is.NoError(err) // Transient services return nil for shutdown
 
 	// Verify that transient services are created fresh each time
 	instance1, err := healthcheckTransient.getInstance(nil)
-	is.Nil(err)
+	is.NoError(err)
 
 	instance2, err := healthcheckTransient.getInstance(nil)
-	is.Nil(err)
+	is.NoError(err)
 
 	// These should be different instances (transient behavior)
 	is.NotEqual(instance1, instance2)

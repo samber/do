@@ -186,7 +186,7 @@ func TestMixedServiceTypesLifecycle(t *testing.T) {
 	// Shutdown the root scope
 	report := root.Shutdown()
 	is.True(report.Succeed)
-	is.Len(report.Errors, 0)
+	is.Empty(report.Errors)
 
 	// Verify shutdown order (eager and lazy services should be shut down, but not transient)
 	is.Len(shutdownOrder, 2)

@@ -72,11 +72,11 @@ func TestProvide(t *testing.T) {
 
 	// Test that all services share the same references when invoked multiple times
 	instance1, err1 := Invoke[*test](i)
-	is.Nil(err1)
+	is.NoError(err1)
 	is.NotNil(instance1)
 
 	instance2, err2 := Invoke[*test](i)
-	is.Nil(err2)
+	is.NoError(err2)
 	is.NotNil(instance2)
 
 	// Lazy services should return the same instance (singleton behavior)
@@ -84,7 +84,7 @@ func TestProvide(t *testing.T) {
 
 	// Test that error services are handled correctly
 	instance3, err3 := Invoke[test](i)
-	is.NotNil(err3)
+	is.Error(err3)
 	is.Empty(instance3)
 	is.EqualError(err3, "error")
 }
@@ -140,11 +140,11 @@ func TestProvideNamed(t *testing.T) {
 
 	// Test that all services share the same references when invoked multiple times
 	instance1, err1 := InvokeNamed[*test](i, "*foobar")
-	is.Nil(err1)
+	is.NoError(err1)
 	is.NotNil(instance1)
 
 	instance2, err2 := InvokeNamed[*test](i, "*foobar")
-	is.Nil(err2)
+	is.NoError(err2)
 	is.NotNil(instance2)
 
 	// Lazy services should return the same instance (singleton behavior)
@@ -152,7 +152,7 @@ func TestProvideNamed(t *testing.T) {
 
 	// Test that error services are handled correctly
 	instance3, err3 := InvokeNamed[test](i, "foobar")
-	is.NotNil(err3)
+	is.Error(err3)
 	is.Empty(instance3)
 	is.EqualError(err3, "error")
 }
@@ -182,8 +182,8 @@ func TestProvideValue(t *testing.T) {
 		if ok {
 			is.Equal("int", s.getName())
 			instance, err := s.getInstance(i)
-			is.EqualValues(42, instance)
-			is.Nil(err)
+			is.Equal(42, instance)
+			is.NoError(err)
 		}
 	}
 
@@ -195,18 +195,18 @@ func TestProvideValue(t *testing.T) {
 		if ok {
 			is.Equal("github.com/samber/do/v2.test", s.getName())
 			instance, err := s.getInstance(i)
-			is.EqualValues(_test, instance)
-			is.Nil(err)
+			is.Equal(_test, instance)
+			is.NoError(err)
 		}
 	}
 
 	// Test that all services share the same references when invoked multiple times
 	instance1, err1 := Invoke[int](i)
-	is.Nil(err1)
+	is.NoError(err1)
 	is.Equal(42, instance1)
 
 	instance2, err2 := Invoke[int](i)
-	is.Nil(err2)
+	is.NoError(err2)
 	is.Equal(42, instance2)
 
 	// Eager value services should return the same value (not necessarily same reference for primitives)
@@ -214,11 +214,11 @@ func TestProvideValue(t *testing.T) {
 
 	// Test struct values
 	structInstance1, err3 := Invoke[test](i)
-	is.Nil(err3)
+	is.NoError(err3)
 	is.Equal(_test, structInstance1)
 
 	structInstance2, err4 := Invoke[test](i)
-	is.Nil(err4)
+	is.NoError(err4)
 	is.Equal(_test, structInstance2)
 
 	// Value services should return the same value
@@ -250,8 +250,8 @@ func TestProvideNamedValue(t *testing.T) {
 		if ok {
 			is.Equal("foobar", s.getName())
 			instance, err := s.getInstance(i)
-			is.EqualValues(42, instance)
-			is.Nil(err)
+			is.Equal(42, instance)
+			is.NoError(err)
 		}
 	}
 
@@ -263,18 +263,18 @@ func TestProvideNamedValue(t *testing.T) {
 		if ok {
 			is.Equal("hello", s.getName())
 			instance, err := s.getInstance(i)
-			is.EqualValues(_test, instance)
-			is.Nil(err)
+			is.Equal(_test, instance)
+			is.NoError(err)
 		}
 	}
 
 	// Test that all services share the same references when invoked multiple times
 	instance1, err1 := InvokeNamed[int](i, "foobar")
-	is.Nil(err1)
+	is.NoError(err1)
 	is.Equal(42, instance1)
 
 	instance2, err2 := InvokeNamed[int](i, "foobar")
-	is.Nil(err2)
+	is.NoError(err2)
 	is.Equal(42, instance2)
 
 	// Named value services should return the same value
@@ -282,11 +282,11 @@ func TestProvideNamedValue(t *testing.T) {
 
 	// Test struct values
 	structInstance1, err3 := InvokeNamed[test](i, "hello")
-	is.Nil(err3)
+	is.NoError(err3)
 	is.Equal(_test, structInstance1)
 
 	structInstance2, err4 := InvokeNamed[test](i, "hello")
-	is.Nil(err4)
+	is.NoError(err4)
 	is.Equal(_test, structInstance2)
 
 	// Named value services should return the same value
@@ -346,11 +346,11 @@ func TestProvideTransient(t *testing.T) {
 
 	// Test that transient services create new instances each time
 	instance1, err1 := Invoke[*test](i)
-	is.Nil(err1)
+	is.NoError(err1)
 	is.NotNil(instance1)
 
 	instance2, err2 := Invoke[*test](i)
-	is.Nil(err2)
+	is.NoError(err2)
 	is.NotNil(instance2)
 
 	// Transient services should return different instances (not the same reference)
@@ -358,7 +358,7 @@ func TestProvideTransient(t *testing.T) {
 
 	// Test that error services are handled correctly
 	instance3, err3 := Invoke[test](i)
-	is.NotNil(err3)
+	is.Error(err3)
 	is.Empty(instance3)
 	is.EqualError(err3, "error")
 }
@@ -416,11 +416,11 @@ func TestProvideNamedTransient(t *testing.T) {
 
 	// Test that named transient services create new instances each time
 	instance1, err1 := InvokeNamed[*test](i, "*foobar")
-	is.Nil(err1)
+	is.NoError(err1)
 	is.NotNil(instance1)
 
 	instance2, err2 := InvokeNamed[*test](i, "*foobar")
-	is.Nil(err2)
+	is.NoError(err2)
 	is.NotNil(instance2)
 
 	// Named transient services should return different instances (not the same reference)
@@ -428,7 +428,7 @@ func TestProvideNamedTransient(t *testing.T) {
 
 	// Test that error services are handled correctly
 	instance3, err3 := InvokeNamed[test](i, "foobar")
-	is.NotNil(err3)
+	is.Error(err3)
 	is.Empty(instance3)
 	is.EqualError(err3, "error")
 }
@@ -574,11 +574,11 @@ func TestOverrideTransient(t *testing.T) {
 
 	// Test initial service
 	instance1, err1 := Invoke[*test](i)
-	is.Nil(err1)
+	is.NoError(err1)
 	is.Equal(42, instance1.foobar)
 
 	instance2, err2 := Invoke[*test](i)
-	is.Nil(err2)
+	is.NoError(err2)
 	is.Equal(42, instance2.foobar)
 
 	// Transient services should return different instances
@@ -591,11 +591,11 @@ func TestOverrideTransient(t *testing.T) {
 
 	// Test overridden service
 	instance3, err3 := Invoke[*test](i)
-	is.Nil(err3)
+	is.NoError(err3)
 	is.Equal(100, instance3.foobar)
 
 	instance4, err4 := Invoke[*test](i)
-	is.Nil(err4)
+	is.NoError(err4)
 	is.Equal(100, instance4.foobar)
 
 	// Overridden transient services should still return different instances
@@ -608,7 +608,7 @@ func TestOverrideTransient(t *testing.T) {
 
 	// Test final overridden service
 	instance5, err5 := Invoke[*test](i)
-	is.Nil(err5)
+	is.NoError(err5)
 	is.Equal(200, instance5.foobar)
 }
 
@@ -630,11 +630,11 @@ func TestOverrideNamedTransient(t *testing.T) {
 
 	// Test initial service
 	instance1, err1 := InvokeNamed[*test](i, "test-service")
-	is.Nil(err1)
+	is.NoError(err1)
 	is.Equal(42, instance1.foobar)
 
 	instance2, err2 := InvokeNamed[*test](i, "test-service")
-	is.Nil(err2)
+	is.NoError(err2)
 	is.Equal(42, instance2.foobar)
 
 	// Named transient services should return different instances
@@ -647,11 +647,11 @@ func TestOverrideNamedTransient(t *testing.T) {
 
 	// Test overridden service
 	instance3, err3 := InvokeNamed[*test](i, "test-service")
-	is.Nil(err3)
+	is.NoError(err3)
 	is.Equal(100, instance3.foobar)
 
 	instance4, err4 := InvokeNamed[*test](i, "test-service")
-	is.Nil(err4)
+	is.NoError(err4)
 	is.Equal(100, instance4.foobar)
 
 	// Overridden named transient services should still return different instances
@@ -664,12 +664,12 @@ func TestOverrideNamedTransient(t *testing.T) {
 
 	// Test that original service is still available
 	instance5, err5 := InvokeNamed[*test](i, "test-service")
-	is.Nil(err5)
+	is.NoError(err5)
 	is.Equal(100, instance5.foobar)
 
 	// Test new service
 	instance6, err6 := InvokeNamed[*test](i, "another-service")
-	is.Nil(err6)
+	is.NoError(err6)
 	is.Equal(200, instance6.foobar)
 }
 
@@ -698,7 +698,7 @@ func TestInvoke(t *testing.T) {
 	is.False(s0b.built)
 
 	s1, err1 := Invoke[test](i)
-	is.Nil(err1)
+	is.NoError(err1)
 	if err1 == nil {
 		is.Equal("foobar", s1.foobar)
 	}
@@ -706,7 +706,7 @@ func TestInvoke(t *testing.T) {
 	is.True(s0b.built)
 
 	_, err2 := Invoke[*test](i)
-	is.NotNil(err2)
+	is.Error(err2)
 	is.EqualError(err2, "DI: could not find service `*github.com/samber/do/v2.test`, available services: `github.com/samber/do/v2.test`")
 
 	ProvideNamedValue(i, NameOf[any](), 0)
@@ -739,7 +739,7 @@ func TestMustInvoke(t *testing.T) {
 
 	is.NotPanics(func() {
 		instance1 := MustInvoke[test](i)
-		is.EqualValues(_test, instance1)
+		is.Equal(_test, instance1)
 	})
 }
 
@@ -761,29 +761,29 @@ func TestInvokeNamed(t *testing.T) {
 	is.Len(i.self.services, 2)
 
 	service0, err0 := InvokeNamed[string](i, "plop")
-	is.NotNil(err0)
+	is.Error(err0)
 	is.Empty(service0)
 
 	instance1, err1 := InvokeNamed[test](i, "hello")
-	is.Nil(err1)
-	is.EqualValues(_test, instance1)
-	is.EqualValues("foobar", instance1.foobar)
+	is.NoError(err1)
+	is.Equal(_test, instance1)
+	is.Equal("foobar", instance1.foobar)
 
 	instance1any, err2 := InvokeNamed[any](i, "hello")
-	is.Nil(err2)
+	is.NoError(err2)
 	is.Equal(instance1, instance1any)
 
 	instance2, err2 := InvokeNamed[int](i, "foobar")
-	is.Nil(err2)
-	is.EqualValues(42, instance2)
+	is.NoError(err2)
+	is.Equal(42, instance2)
 
 	instance2any, err2 := InvokeNamed[any](i, "foobar")
-	is.Nil(err2)
+	is.NoError(err2)
 	is.Equal(instance2, instance2any)
 
 	instance3, err3 := InvokeNamed[string](i, "foobar")
 	is.EqualError(err3, "DI: service found, but type mismatch: invoking `string` but registered `int`")
-	is.EqualValues("", instance3)
+	is.Empty(instance3)
 }
 
 func TestMustInvokeNamed(t *testing.T) {
@@ -807,7 +807,7 @@ func TestMustInvokeNamed(t *testing.T) {
 
 	is.NotPanics(func() {
 		instance1 := MustInvokeNamed[int](i, "foobar")
-		is.EqualValues(42, instance1)
+		is.Equal(42, instance1)
 	})
 }
 
@@ -821,7 +821,7 @@ func TestInvokeStruct(t *testing.T) {
 
 	// no dependencies
 	test0, err := InvokeStruct[eagerTest](i)
-	is.Nil(err)
+	is.NoError(err)
 	is.Empty(test0)
 
 	// not a struct
@@ -834,7 +834,7 @@ func TestInvokeStruct(t *testing.T) {
 		EagerTest *eagerTest `do:""`
 	}
 	test2, err := InvokeStruct[hasExportedEagerTestDependency](i)
-	is.Nil(err)
+	is.NoError(err)
 	is.Equal("foobar", test2.EagerTest.foobar)
 
 	// unexported field
@@ -842,7 +842,7 @@ func TestInvokeStruct(t *testing.T) {
 		eagerTest *eagerTest `do:""`
 	}
 	test3, err := InvokeStruct[hasNonExportedEagerTestDependency](i)
-	is.Nil(err)
+	is.NoError(err)
 	is.Equal("foobar", test3.eagerTest.foobar)
 
 	// not found
@@ -867,7 +867,7 @@ func TestInvokeStruct(t *testing.T) {
 		EagerTest int `do:"foobar"`
 	}
 	test6, err := InvokeStruct[namedService](i)
-	is.Nil(err)
+	is.NoError(err)
 	is.Equal(42, test6.EagerTest)
 
 	// use tag but wrong type
@@ -885,7 +885,7 @@ func TestInvokeStruct(t *testing.T) {
 		EagerTest int `hello:"foobar"`
 	}
 	test8, err := InvokeStruct[namedServiceWithCustomTag](i)
-	is.Nil(err)
+	is.NoError(err)
 	is.Equal(42, test8.EagerTest)
 
 	// assign to interface
@@ -897,15 +897,15 @@ func TestInvokeStruct(t *testing.T) {
 		eagerTest Healthchecker `do:""`
 	}
 	test9, err := InvokeStruct[serviceWithInterface](i)
-	is.Nil(err)
+	is.NoError(err)
 	is.NotNil(test9.eagerTest)
 
 	test10, err := InvokeStruct[*serviceWithInterface](i)
-	is.Nil(err)
+	is.NoError(err)
 	is.NotNil((*test10).eagerTest) //nolint:gocritic
 
 	test11, err := InvokeStruct[****serviceWithInterface](i)
-	is.Nil(err)
+	is.NoError(err)
 	is.NotNil((****test11).eagerTest) //nolint:gocritic
 }
 
@@ -942,7 +942,7 @@ func TestAs(t *testing.T) {
 	i := New()
 	Provide(i, func(i Injector) (*lazyTestHeathcheckerOK, error) { return &lazyTestHeathcheckerOK{}, nil })
 
-	is.Nil(As[*lazyTestHeathcheckerOK, Healthchecker](i))
+	is.NoError(As[*lazyTestHeathcheckerOK, Healthchecker](i))
 	is.EqualError(As[*lazyTestShutdownerOK, Healthchecker](i), "DI: `*github.com/samber/do/v2.lazyTestShutdownerOK` does not implement `github.com/samber/do/v2.Healthchecker`")
 	is.EqualError(As[*lazyTestHeathcheckerKO, Healthchecker](i), "DI: service `*github.com/samber/do/v2.lazyTestHeathcheckerKO` has not been declared")
 	is.EqualError(As[*lazyTestShutdownerOK, *lazyTestShutdownerOK](i), "DI: service `*github.com/samber/do/v2.lazyTestShutdownerOK` has not been declared")
@@ -952,7 +952,7 @@ func TestAs(t *testing.T) {
 		HealthCheck() error
 	}
 	Provide(i, func(i Injector) (iTestHeathchecker, error) { return &lazyTestHeathcheckerOK{}, nil })
-	is.Nil(As[iTestHeathchecker, Healthchecker](i))
+	is.NoError(As[iTestHeathchecker, Healthchecker](i))
 }
 
 func TestMustAs(t *testing.T) {
@@ -969,7 +969,7 @@ func TestMustAs(t *testing.T) {
 
 	// Test that the alias was created and can be invoked
 	hc, err := Invoke[Healthchecker](i)
-	is.Nil(err)
+	is.NoError(err)
 	is.NotNil(hc)
 
 	// Test panic on invalid interface implementation
@@ -1000,7 +1000,7 @@ func TestMustAs(t *testing.T) {
 
 	// Test that the interface alias works
 	hc2, err2 := Invoke[Healthchecker](i)
-	is.Nil(err2)
+	is.NoError(err2)
 	is.NotNil(hc2)
 }
 
@@ -1011,14 +1011,14 @@ func TestAsNamed(t *testing.T) {
 	i := New()
 	Provide(i, func(i Injector) (*lazyTestHeathcheckerOK, error) { return &lazyTestHeathcheckerOK{}, nil })
 
-	is.Nil(AsNamed[*lazyTestHeathcheckerOK, Healthchecker](i, "*github.com/samber/do/v2.lazyTestHeathcheckerOK", "github.com/samber/do/v2.Healthchecker"))
+	is.NoError(AsNamed[*lazyTestHeathcheckerOK, Healthchecker](i, "*github.com/samber/do/v2.lazyTestHeathcheckerOK", "github.com/samber/do/v2.Healthchecker"))
 	is.EqualError(AsNamed[*lazyTestShutdownerOK, Healthchecker](i, "*github.com/samber/do/v2.lazyTestShutdownerOK", "github.com/samber/do/v2.Healthchecker"), "DI: `*github.com/samber/do/v2.lazyTestShutdownerOK` does not implement `github.com/samber/do/v2.Healthchecker`")
 	is.EqualError(AsNamed[*lazyTestHeathcheckerKO, Healthchecker](i, "*github.com/samber/do/v2.lazyTestHeathcheckerKO", "github.com/samber/do/v2.Healthchecker"), "DI: service `*github.com/samber/do/v2.lazyTestHeathcheckerKO` has not been declared")
 	is.EqualError(AsNamed[*lazyTestShutdownerOK, *lazyTestShutdownerOK](i, "*github.com/samber/do/v2.lazyTestShutdownerOK", "*github.com/samber/do/v2.lazyTestShutdownerOK"), "DI: service `*github.com/samber/do/v2.lazyTestShutdownerOK` has not been declared")
 
 	i = New()
 	Provide(i, func(i Injector) (iTestHeathchecker, error) { return &lazyTestHeathcheckerOK{}, nil })
-	is.Nil(AsNamed[iTestHeathchecker, Healthchecker](i, "github.com/samber/do/v2.iTestHeathchecker", "github.com/samber/do/v2.Healthchecker"))
+	is.NoError(AsNamed[iTestHeathchecker, Healthchecker](i, "github.com/samber/do/v2.iTestHeathchecker", "github.com/samber/do/v2.Healthchecker"))
 }
 
 func TestMustAsNamed(t *testing.T) {
@@ -1035,7 +1035,7 @@ func TestMustAsNamed(t *testing.T) {
 
 	// Test that the named alias was created and can be invoked
 	hc, err := InvokeNamed[Healthchecker](i, "github.com/samber/do/v2.Healthchecker")
-	is.Nil(err)
+	is.NoError(err)
 	is.NotNil(hc)
 
 	// Test panic on invalid interface implementation
@@ -1066,7 +1066,7 @@ func TestMustAsNamed(t *testing.T) {
 
 	// Test that the interface named alias works
 	hc2, err2 := InvokeNamed[Healthchecker](i, "github.com/samber/do/v2.Healthchecker")
-	is.Nil(err2)
+	is.NoError(err2)
 	is.NotNil(hc2)
 
 	// Test custom named services
@@ -1077,7 +1077,7 @@ func TestMustAsNamed(t *testing.T) {
 	})
 
 	hc3, err3 := InvokeNamed[Healthchecker](i, "custom-target")
-	is.Nil(err3)
+	is.NoError(err3)
 	is.NotNil(hc3)
 }
 
@@ -1096,13 +1096,13 @@ func TestInvokeAs(t *testing.T) {
 
 	// found
 	svc0, err := InvokeAs[*lazyTestHeathcheckerOK](i)
-	is.EqualValues(&lazyTestHeathcheckerOK{foobar: "hello world"}, svc0)
-	is.Nil(err)
+	is.Equal(&lazyTestHeathcheckerOK{foobar: "hello world"}, svc0)
+	is.NoError(err)
 
 	// found via interface
 	svc1, err := InvokeAs[Healthchecker](i)
 	is.EqualValues(&lazyTestHeathcheckerOK{foobar: "hello world"}, svc1)
-	is.Nil(err)
+	is.NoError(err)
 
 	// not found
 	svc2, err := InvokeAs[Shutdowner](i)
@@ -1122,7 +1122,7 @@ func TestMustInvokeAs(t *testing.T) {
 	// Test successful invocation by concrete type
 	is.NotPanics(func() {
 		svc := MustInvokeAs[*lazyTestHeathcheckerOK](i)
-		is.EqualValues(&lazyTestHeathcheckerOK{foobar: "hello world"}, svc)
+		is.Equal(&lazyTestHeathcheckerOK{foobar: "hello world"}, svc)
 	})
 
 	// Test successful invocation by interface

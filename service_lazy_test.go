@@ -293,13 +293,13 @@ func TestServiceLazy_getInstanceAny(t *testing.T) {
 	// basic type
 	service1 := newServiceLazy("foobar", provider1)
 	instance1, err1 := service1.getInstanceAny(i)
-	is.Nil(err1)
+	is.NoError(err1)
 	is.Equal(42, instance1)
 
 	// struct
 	service2 := newServiceLazy("hello", provider2)
 	instance2, err2 := service2.getInstanceAny(i)
-	is.Nil(err2)
+	is.NoError(err2)
 	is.Equal(test, instance2)
 
 	// provider panics, but panic is catched by getInstanceAny
@@ -312,7 +312,7 @@ func TestServiceLazy_getInstanceAny(t *testing.T) {
 	is.NotPanics(func() {
 		service4 := newServiceLazy("plop", provider4)
 		instance4, err4 := service4.getInstanceAny(i)
-		is.NotNil(err4)
+		is.Error(err4)
 		is.Empty(instance4)
 		expected := fmt.Errorf("error")
 		is.Equal(expected, err4)
@@ -322,7 +322,7 @@ func TestServiceLazy_getInstanceAny(t *testing.T) {
 	is.NotPanics(func() {
 		service5 := newServiceLazy("plop", provider5)
 		instance5, err5 := service5.getInstanceAny(i)
-		is.NotNil(err5)
+		is.Error(err5)
 		is.Empty(instance5)
 		expected := fmt.Errorf("error")
 		is.Equal(expected, err5)
@@ -357,13 +357,13 @@ func TestServiceLazy_getInstance(t *testing.T) {
 	// basic type
 	service1 := newServiceLazy("foobar", provider1)
 	instance1, err1 := service1.getInstance(i)
-	is.Nil(err1)
+	is.NoError(err1)
 	is.Equal(42, instance1)
 
 	// struct
 	service2 := newServiceLazy("hello", provider2)
 	instance2, err2 := service2.getInstance(i)
-	is.Nil(err2)
+	is.NoError(err2)
 	is.Equal(test, instance2)
 
 	// provider panics, but panic is catched by getInstance
@@ -376,7 +376,7 @@ func TestServiceLazy_getInstance(t *testing.T) {
 	is.NotPanics(func() {
 		service4 := newServiceLazy("plop", provider4)
 		instance4, err4 := service4.getInstance(i)
-		is.NotNil(err4)
+		is.Error(err4)
 		is.Empty(instance4)
 		expected := fmt.Errorf("error")
 		is.Equal(expected, err4)
@@ -386,7 +386,7 @@ func TestServiceLazy_getInstance(t *testing.T) {
 	is.NotPanics(func() {
 		service5 := newServiceLazy("plop", provider5)
 		instance5, err5 := service5.getInstance(i)
-		is.NotNil(err5)
+		is.Error(err5)
 		is.Empty(instance5)
 		expected := fmt.Errorf("error")
 		is.Equal(expected, err5)
@@ -425,7 +425,7 @@ func TestServiceLazy_build(t *testing.T) {
 	err1 := service1.build(i)
 	is.True(service1.built)
 	is.NotEmpty(service1.buildTime)
-	is.Nil(err1)
+	is.NoError(err1)
 
 	// struct
 	service2 := newServiceLazy("hello", provider2)
@@ -434,7 +434,7 @@ func TestServiceLazy_build(t *testing.T) {
 	err2 := service2.build(i)
 	is.True(service2.built)
 	is.NotEmpty(service2.buildTime)
-	is.Nil(err2)
+	is.NoError(err2)
 
 	// provider panics, but panic is catched by getInstance
 	is.NotPanics(func() {
@@ -454,7 +454,7 @@ func TestServiceLazy_build(t *testing.T) {
 		err4 := service4.build(i)
 		is.False(service4.built)
 		is.Empty(service4.buildTime)
-		is.NotNil(err4)
+		is.Error(err4)
 		is.Equal(fmt.Errorf("error"), err4)
 	})
 
@@ -466,7 +466,7 @@ func TestServiceLazy_build(t *testing.T) {
 		err5 := service5.build(i)
 		is.False(service5.built)
 		is.Empty(service5.buildTime)
-		is.NotNil(err5)
+		is.Error(err5)
 		is.Equal(fmt.Errorf("error"), err5)
 	})
 }
@@ -511,23 +511,23 @@ func TestServiceLazy_healthcheck(t *testing.T) {
 	service1 := newServiceLazy("foobar", func(i Injector) (lazyTest, error) {
 		return lazyTest{foobar: "foobar"}, nil
 	})
-	is.Nil(service1.healthcheck(ctx))
+	is.NoError(service1.healthcheck(ctx))
 	_, _ = service1.getInstance(nil)
-	is.Nil(service1.healthcheck(ctx))
+	is.NoError(service1.healthcheck(ctx))
 
 	// healthcheck ok
 	service2 := newServiceLazy("foobar", func(i Injector) (*lazyTestHeathcheckerOK, error) {
 		return &lazyTestHeathcheckerOK{foobar: "foobar"}, nil
 	})
-	is.Nil(service2.healthcheck(ctx))
+	is.NoError(service2.healthcheck(ctx))
 	_, _ = service2.getInstance(nil)
-	is.Nil(service2.healthcheck(ctx))
+	is.NoError(service2.healthcheck(ctx))
 
 	// healthcheck ko
 	service3 := newServiceLazy("foobar", func(i Injector) (*lazyTestHeathcheckerKO, error) {
 		return &lazyTestHeathcheckerKO{foobar: "foobar"}, nil
 	})
-	is.Nil(service3.healthcheck(ctx))
+	is.NoError(service3.healthcheck(ctx))
 	_, _ = service3.getInstance(nil)
 	is.Equal(assert.AnError, service3.healthcheck(ctx))
 
@@ -558,7 +558,7 @@ func TestServiceLazy_healthcheck(t *testing.T) {
 	})
 	_, _ = serviceWithContext.getInstance(nil)
 	err3 := serviceWithContext.healthcheck(valueCtx)
-	is.Nil(err3) // Should work normally when context value is correct
+	is.NoError(err3) // Should work normally when context value is correct
 
 	// Test with incorrect context value - verify context value is checked
 	incorrectValueCtx := context.WithValue(context.Background(), ctxTestKey, "wrong-value")
@@ -609,10 +609,10 @@ func TestServiceLazy_shutdown(t *testing.T) {
 		return lazyTest{foobar: "foobar"}, nil
 	})
 	is.False(service1.built)
-	is.Nil(service1.shutdown(ctx))
+	is.NoError(service1.shutdown(ctx))
 	_, _ = service1.getInstance(nil)
 	is.True(service1.built)
-	is.Nil(service1.shutdown(ctx))
+	is.NoError(service1.shutdown(ctx))
 	is.False(service1.built)
 
 	// shutdown ok
@@ -620,10 +620,10 @@ func TestServiceLazy_shutdown(t *testing.T) {
 		return &lazyTestShutdownerOK{foobar: "foobar"}, nil
 	})
 	is.False(service2.built)
-	is.Nil(service2.shutdown(ctx))
+	is.NoError(service2.shutdown(ctx))
 	_, _ = service2.getInstance(nil)
 	is.True(service2.built)
-	is.Nil(service2.shutdown(ctx))
+	is.NoError(service2.shutdown(ctx))
 	is.False(service2.built)
 
 	// shutdown ko
@@ -631,7 +631,7 @@ func TestServiceLazy_shutdown(t *testing.T) {
 		return &lazyTestShutdownerKO{foobar: "foobar"}, nil
 	})
 	is.False(service3.built)
-	is.Nil(service3.shutdown(ctx))
+	is.NoError(service3.shutdown(ctx))
 	_, _ = service3.getInstance(nil)
 	is.True(service3.built)
 	is.Equal(assert.AnError, service3.shutdown(ctx))
@@ -668,7 +668,7 @@ func TestServiceLazy_shutdown(t *testing.T) {
 	})
 	_, _ = serviceWithContext.getInstance(nil)
 	err3 := serviceWithContext.shutdown(valueCtx)
-	is.Nil(err3) // Should work normally when context value is correct
+	is.NoError(err3) // Should work normally when context value is correct
 
 	// Test with incorrect context value - verify context value is checked
 	incorrectValueCtx := context.WithValue(context.Background(), ctxTestKey, "wrong-value")
@@ -686,7 +686,7 @@ func TestServiceLazy_shutdown(t *testing.T) {
 	})
 	_, _ = nonShutdownableService.getInstance(nil)
 	err4 := nonShutdownableService.shutdown(canceledCtx)
-	is.Nil(err4) // Non-shutdownable services return nil regardless of context
+	is.NoError(err4) // Non-shutdownable services return nil regardless of context
 
 	// Test with service that implements ShutdownerWithError (should return context error when context is canceled)
 	errorService := newServiceLazy("foobar", func(i Injector) (*lazyTestShutdownerKO, error) {
@@ -743,7 +743,7 @@ func TestServiceLazy_source(t *testing.T) {
 
 	// Provider frame should be set (from newServiceLazy)
 	is.NotEmpty(providerFrame.File, "Provider frame should have a file")
-	is.Greater(providerFrame.Line, 0, "Provider frame should have a line number")
+	is.Positive(providerFrame.Line, "Provider frame should have a line number")
 
 	// Initially no invocation frames
 	is.Empty(invocationFrames, "Should have no invocation frames initially")
@@ -894,12 +894,12 @@ func TestServiceLazy_ContextValuePropagation(t *testing.T) {
 	// Test context value propagation for healthcheck
 	ctx1 := context.WithValue(context.Background(), ctxTestKey, "healthcheck-value")
 	err := healthcheckLazy.healthcheck(ctx1)
-	is.Nil(err)
+	is.NoError(err)
 
 	// Test context value propagation for shutdown
 	ctx2 := context.WithValue(context.Background(), ctxTestKey, "shutdown-value")
 	err = shutdownLazy.shutdown(ctx2)
-	is.Nil(err)
+	is.NoError(err)
 
 	// Test that lazy service properly delegates to the underlying instance
 	// The lazy service should not store context values itself, but pass them through

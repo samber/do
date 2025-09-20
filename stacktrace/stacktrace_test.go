@@ -54,5 +54,5 @@ func TestFrame_String(t *testing.T) {
 	is.True(ok)
 	is.NotNil(frame)
 	is.NotEmpty(frame)
-	is.True(strings.Contains(frame.String(), "do/stacktrace/stacktrace_test.go:example1:12"))
+	is.Contains(frame.String(), "do/stacktrace/stacktrace_test.go:example1:12")
 }

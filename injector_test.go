@@ -43,39 +43,39 @@ func TestInjectorOpts_addHook(t *testing.T) {
 	i := New()
 
 	//
-	is.Len(i.opts.HookBeforeRegistration, 0)
-	is.Len(i.opts.HookAfterRegistration, 0)
-	is.Len(i.opts.HookBeforeInvocation, 0)
-	is.Len(i.opts.HookAfterInvocation, 0)
-	is.Len(i.opts.HookBeforeShutdown, 0)
-	is.Len(i.opts.HookAfterShutdown, 0)
+	is.Empty(i.opts.HookBeforeRegistration)
+	is.Empty(i.opts.HookAfterRegistration)
+	is.Empty(i.opts.HookBeforeInvocation)
+	is.Empty(i.opts.HookAfterInvocation)
+	is.Empty(i.opts.HookBeforeShutdown)
+	is.Empty(i.opts.HookAfterShutdown)
 
 	//
 	i.AddBeforeRegistrationHook(hookBeforeRegistration)
 	is.Len(i.opts.HookBeforeRegistration, 1)
-	is.Len(i.opts.HookAfterRegistration, 0)
-	is.Len(i.opts.HookBeforeInvocation, 0)
-	is.Len(i.opts.HookAfterInvocation, 0)
-	is.Len(i.opts.HookBeforeShutdown, 0)
-	is.Len(i.opts.HookAfterShutdown, 0)
+	is.Empty(i.opts.HookAfterRegistration)
+	is.Empty(i.opts.HookBeforeInvocation)
+	is.Empty(i.opts.HookAfterInvocation)
+	is.Empty(i.opts.HookBeforeShutdown)
+	is.Empty(i.opts.HookAfterShutdown)
 
 	//
 	i.AddAfterRegistrationHook(hookAfterRegistration)
 	is.Len(i.opts.HookBeforeRegistration, 1)
 	is.Len(i.opts.HookAfterRegistration, 1)
-	is.Len(i.opts.HookBeforeInvocation, 0)
-	is.Len(i.opts.HookAfterInvocation, 0)
-	is.Len(i.opts.HookBeforeShutdown, 0)
-	is.Len(i.opts.HookAfterShutdown, 0)
+	is.Empty(i.opts.HookBeforeInvocation)
+	is.Empty(i.opts.HookAfterInvocation)
+	is.Empty(i.opts.HookBeforeShutdown)
+	is.Empty(i.opts.HookAfterShutdown)
 
 	//
 	i.AddBeforeInvocationHook(hookBeforeInvocation)
 	is.Len(i.opts.HookBeforeRegistration, 1)
 	is.Len(i.opts.HookAfterRegistration, 1)
 	is.Len(i.opts.HookBeforeInvocation, 1)
-	is.Len(i.opts.HookAfterInvocation, 0)
-	is.Len(i.opts.HookBeforeShutdown, 0)
-	is.Len(i.opts.HookAfterShutdown, 0)
+	is.Empty(i.opts.HookAfterInvocation)
+	is.Empty(i.opts.HookBeforeShutdown)
+	is.Empty(i.opts.HookAfterShutdown)
 
 	//
 	i.AddAfterInvocationHook(hookAfterInvocation)
@@ -83,8 +83,8 @@ func TestInjectorOpts_addHook(t *testing.T) {
 	is.Len(i.opts.HookAfterRegistration, 1)
 	is.Len(i.opts.HookBeforeInvocation, 1)
 	is.Len(i.opts.HookAfterInvocation, 1)
-	is.Len(i.opts.HookBeforeShutdown, 0)
-	is.Len(i.opts.HookAfterShutdown, 0)
+	is.Empty(i.opts.HookBeforeShutdown)
+	is.Empty(i.opts.HookAfterShutdown)
 
 	//
 	i.AddBeforeShutdownHook(hookBeforeShutdown)
@@ -93,7 +93,7 @@ func TestInjectorOpts_addHook(t *testing.T) {
 	is.Len(i.opts.HookBeforeInvocation, 1)
 	is.Len(i.opts.HookAfterInvocation, 1)
 	is.Len(i.opts.HookBeforeShutdown, 1)
-	is.Len(i.opts.HookAfterShutdown, 0)
+	is.Empty(i.opts.HookAfterShutdown)
 
 	//
 	i.AddAfterShutdownHook(hookAfterShutdown)

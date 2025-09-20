@@ -84,9 +84,9 @@ func TestCascadingHealthCheckFailures(t *testing.T) {
 	is.Contains(healthMap, "unhealthy-service")
 	is.Error(healthMap["unhealthy-service"])
 	is.Contains(healthMap, "dependent-service")
-	is.Nil(healthMap["dependent-service"]) // dependent-service itself is healthy
+	is.NoError(healthMap["dependent-service"]) // dependent-service itself is healthy
 	is.Contains(healthMap, "healthy-service")
-	is.Nil(healthMap["healthy-service"])
+	is.NoError(healthMap["healthy-service"])
 }
 
 // TestCascadingShutdownFailures tests cascading failures during shutdown
@@ -314,8 +314,8 @@ func TestCascadingMemoryLeaks(t *testing.T) {
 	}
 
 	// Verify that we have both successes and failures
-	is.Greater(failureCount, 0)
-	is.Greater(successCount, 0)
+	is.Positive(failureCount)
+	is.Positive(successCount)
 	is.Equal(numServices, failureCount+successCount)
 
 	// Try to invoke a successful service again to ensure no memory leaks
