@@ -157,10 +157,10 @@ func inferServiceInfo(injector Injector, name string) (serviceInfo, bool) {
 
 		return serviceInfo{
 			name:             name,
-			serviceType:      serviceAny.(serviceWrapperGetServiceType).getServiceType(), //nolint:errcheck
+			serviceType:      serviceAny.(serviceWrapperGetServiceType).getServiceType(), //nolint:errcheck,forcetypeassert
 			serviceBuildTime: buildTime,
-			healthchecker:    serviceAny.(serviceWrapperIsHealthchecker).isHealthchecker(), //nolint:errcheck
-			shutdowner:       serviceAny.(serviceWrapperIsShutdowner).isShutdowner(),       //nolint:errcheck
+			healthchecker:    serviceAny.(serviceWrapperIsHealthchecker).isHealthchecker(), //nolint:errcheck,forcetypeassert
+			shutdowner:       serviceAny.(serviceWrapperIsShutdowner).isShutdowner(),       //nolint:errcheck,forcetypeassert
 		}, true
 	}
 
