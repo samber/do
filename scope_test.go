@@ -344,12 +344,24 @@ func TestScope_ListProvidedServices(t *testing.T) {
 	child2a.serviceSet("child2a-b", newServiceEager("child2a-b", 3))
 	child2b.serviceSet("child2b-a", newServiceEager("child2b-a", 4))
 	child3.serviceSet("child3-a", newServiceEager("child3-a", 5))
+	// override in child3
+	child3.serviceSet("root-a", newServiceEager("root-a", 0))
 
 	is.ElementsMatch([]EdgeService{newEdgeService(rootScope.ID(), rootScope.Name(), "root-a")}, rootScope.ListProvidedServices())
 	is.ElementsMatch([]EdgeService{newEdgeService(child1.ID(), child1.Name(), "child1-a"), newEdgeService(rootScope.ID(), rootScope.Name(), "root-a")}, child1.ListProvidedServices())
 	is.ElementsMatch([]EdgeService{newEdgeService(child2a.ID(), child2a.Name(), "child2a-a"), newEdgeService(child2a.ID(), child2a.Name(), "child2a-b"), newEdgeService(child1.ID(), child1.Name(), "child1-a"), newEdgeService(rootScope.ID(), rootScope.Name(), "root-a")}, child2a.ListProvidedServices())
 	is.ElementsMatch([]EdgeService{newEdgeService(child2b.ID(), child2b.Name(), "child2b-a"), newEdgeService(child1.ID(), child1.Name(), "child1-a"), newEdgeService(rootScope.ID(), rootScope.Name(), "root-a")}, child2b.ListProvidedServices())
-	is.ElementsMatch([]EdgeService{newEdgeService(child3.ID(), child3.Name(), "child3-a"), newEdgeService(child2a.ID(), child2a.Name(), "child2a-a"), newEdgeService(child2a.ID(), child2a.Name(), "child2a-b"), newEdgeService(child1.ID(), child1.Name(), "child1-a"), newEdgeService(rootScope.ID(), rootScope.Name(), "root-a")}, child3.ListProvidedServices())
+	is.ElementsMatch(
+		[]EdgeService{
+			newEdgeService(child3.ID(), child3.Name(), "child3-a"),
+			newEdgeService(child3.ID(), child3.Name(), "root-a"),
+			newEdgeService(child2a.ID(), child2a.Name(), "child2a-a"),
+			newEdgeService(child2a.ID(), child2a.Name(), "child2a-b"),
+			newEdgeService(child1.ID(), child1.Name(), "child1-a"),
+			newEdgeService(rootScope.ID(), rootScope.Name(), "root-a"),
+		},
+		child3.ListProvidedServices(),
+	)
 }
 
 func TestScope_ListInvokedServices(t *testing.T) {

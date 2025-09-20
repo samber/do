@@ -520,7 +520,7 @@ func newExplainInjectorScopes(ancestors []Injector, children []Injector) []Expla
 func newExplainInjectorServices(i Injector) []ExplainInjectorServiceOutput {
 	services := i.ListProvidedServices()
 	services = filter(services, func(item EdgeService, _ int) bool {
-		return i.serviceExist(item.Service)
+		return item.ScopeID == i.ID() && i.serviceExist(item.Service)
 	})
 
 	// order by id to have a deterministic output in unit tests
