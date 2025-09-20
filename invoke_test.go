@@ -19,12 +19,12 @@ func TestInvokeAnyByName(t *testing.T) {
 	i := New()
 	ProvideNamedValue(i, "foo", "baz")
 	svc, err := invokeAnyByName(i, "foo")
-	is.Nil(err)
+	is.NoError(err)
 	is.Equal("baz", svc)
 
 	// service not found
 	svc, err = invokeAnyByName(i, "not_found")
-	is.NotNil(err)
+	is.Error(err)
 	is.Empty(svc)
 	is.Contains(err.Error(), "DI: could not find service `not_found`, available services: ")
 
@@ -66,7 +66,7 @@ func TestInvokeAnyByName(t *testing.T) {
 	})
 	// Try to invoke as string when it's actually int
 	svc, err = invokeAnyByName(i, "type-mismatch")
-	is.Nil(err) // invokeAnyByName doesn't do type checking, it returns interface{}
+	is.NoError(err) // invokeAnyByName doesn't do type checking, it returns interface{}
 	is.Equal(42, svc)
 
 	// Test provider error
@@ -100,12 +100,12 @@ func TestInvokeAnyByName(t *testing.T) {
 	childScope := i.Scope("child")
 	ProvideNamedValue(childScope, "child-service", "child-value")
 	svc, err = invokeAnyByName(childScope, "child-service")
-	is.Nil(err)
+	is.NoError(err)
 	is.Equal("child-value", svc)
 
 	// Test parent scope fallback
 	svc, err = invokeAnyByName(childScope, "foo")
-	is.Nil(err)
+	is.NoError(err)
 	is.Equal("baz", svc)
 
 	// Test invocation hooks
@@ -125,7 +125,7 @@ func TestInvokeAnyByName(t *testing.T) {
 	})
 	ProvideNamedValue(hookInjector, "hook-test", "hook-value")
 	svc, err = invokeAnyByName(hookInjector, "hook-test")
-	is.Nil(err)
+	is.NoError(err)
 	is.Equal("hook-value", svc)
 	is.True(beforeCalled, "BeforeInvocationHook should be called")
 	is.True(afterCalled, "AfterInvocationHook should be called")
@@ -139,19 +139,19 @@ func TestInvokeByName(t *testing.T) {
 	// test default injector vs scope
 	ProvideNamedValue(DefaultRootScope, "foo", "bar")
 	svc, err := invokeByName[string](nil, "foo")
-	is.Nil(err)
+	is.NoError(err)
 	is.Equal("bar", svc)
 
 	// test default injector vs scope
 	i := New()
 	ProvideNamedValue(i, "foo", "baz")
 	svc, err = invokeByName[string](i, "foo")
-	is.Nil(err)
+	is.NoError(err)
 	is.Equal("baz", svc)
 
 	// service not found
 	svc, err = invokeByName[string](nil, "not_found")
-	is.NotNil(err)
+	is.Error(err)
 	is.Empty(svc)
 	is.Contains(err.Error(), "DI: could not find service `not_found`, available services: ")
 
@@ -228,12 +228,12 @@ func TestInvokeByName(t *testing.T) {
 	childScope := i.Scope("child")
 	ProvideNamedValue(childScope, "child-service", "child-value")
 	svc, err = invokeByName[string](childScope, "child-service")
-	is.Nil(err)
+	is.NoError(err)
 	is.Equal("child-value", svc)
 
 	// Test parent scope fallback
 	svc, err = invokeByName[string](childScope, "foo")
-	is.Nil(err)
+	is.NoError(err)
 	is.Equal("baz", svc)
 
 	// Test invocation hooks
@@ -253,7 +253,7 @@ func TestInvokeByName(t *testing.T) {
 	})
 	ProvideNamedValue(hookInjector, "hook-test", "hook-value")
 	svc, err = invokeByName[string](hookInjector, "hook-test")
-	is.Nil(err)
+	is.NoError(err)
 	is.Equal("hook-value", svc)
 	is.True(beforeCalled, "HookBeforeInvocation should be called")
 	is.True(afterCalled, "HookAfterInvocation should be called")
@@ -261,13 +261,13 @@ func TestInvokeByName(t *testing.T) {
 	// Test with different generic types
 	ProvideNamedValue(i, "int-value", 42)
 	intVal, err := invokeByName[int](i, "int-value")
-	is.Nil(err)
+	is.NoError(err)
 	is.Equal(42, intVal)
 
 	// Test with struct types
 	ProvideNamedValue(i, "struct-value", &eagerTest{foobar: "test"})
 	structVal, err := invokeByName[*eagerTest](i, "struct-value")
-	is.Nil(err)
+	is.NoError(err)
 	is.Equal("test", structVal.foobar)
 }
 
@@ -283,13 +283,13 @@ func TestInvokeByGenericType(t *testing.T) {
 	i := New()
 	ProvideValue(i, &lazyTest{foobar: "baz"})
 	svc2, err := invokeByGenericType[*lazyTest](i)
-	is.EqualValues(&lazyTest{foobar: "baz"}, svc2)
-	is.Nil(err)
+	is.Equal(&lazyTest{foobar: "baz"}, svc2)
+	is.NoError(err)
 
 	// service not found
 	svcX, err := invokeByGenericType[string](i)
 	is.Empty(svcX)
-	is.NotNil(err)
+	is.Error(err)
 	is.Contains(err.Error(), "DI: could not find service satisfying interface `string`, available services: `*github.com/samber/do/v2.lazyTest`")
 
 	// test virtual scope wrapper
@@ -341,13 +341,13 @@ func TestInvokeByGenericType(t *testing.T) {
 	childScope := i.Scope("child")
 	ProvideValue(childScope, &lazyTest{foobar: "child-lazy"})
 	svc8, err := invokeByGenericType[*lazyTest](childScope)
-	is.Nil(err)
+	is.NoError(err)
 	is.Equal("child-lazy", svc8.foobar)
 
 	// Test parent scope fallback
 	// Note: Child scope finds its own service first, which is correct behavior
 	svc9, err := invokeByGenericType[*lazyTest](childScope)
-	is.Nil(err)
+	is.NoError(err)
 	is.Equal("child-lazy", svc9.foobar) // Should get the child scope service
 
 	// Test invocation hooks
@@ -367,7 +367,7 @@ func TestInvokeByGenericType(t *testing.T) {
 	})
 	ProvideValue(hookInjector, &eagerTest{foobar: "hook-test"})
 	svc10, err := invokeByGenericType[*eagerTest](hookInjector)
-	is.Nil(err)
+	is.NoError(err)
 	is.Equal("hook-test", svc10.foobar)
 	is.True(beforeCalled, "HookBeforeInvocation should be called")
 	is.True(afterCalled, "HookAfterInvocation should be called")
@@ -375,7 +375,7 @@ func TestInvokeByGenericType(t *testing.T) {
 	// Test with primitive types
 	ProvideValue(i, 42)
 	intVal, err := invokeByGenericType[int](i)
-	is.Nil(err)
+	is.NoError(err)
 	is.Equal(42, intVal)
 
 	// Test with interface types
@@ -383,7 +383,7 @@ func TestInvokeByGenericType(t *testing.T) {
 		return &lazyTestHeathcheckerOK{foobar: "healthchecker"}, nil
 	})
 	healthchecker, err := invokeByGenericType[Healthchecker](i)
-	is.Nil(err)
+	is.NoError(err)
 	is.Equal("healthchecker", healthchecker.(*lazyTestHeathcheckerOK).foobar)
 
 	// Test service selection when multiple services match
@@ -392,7 +392,7 @@ func TestInvokeByGenericType(t *testing.T) {
 	})
 	// Should select the first matching service (order is not guaranteed, but should work)
 	healthchecker2, err := invokeByGenericType[Healthchecker](i)
-	is.Nil(err)
+	is.NoError(err)
 
 	// Use safe type assertion to check which type we got
 	if okType, ok := healthchecker2.(*lazyTestHeathcheckerOK); ok {
@@ -427,8 +427,8 @@ func TestInvokeByName_race(t *testing.T) {
 			_, err1 := invokeByName[int](injector, NameOf[int]())
 			_, err2 := invokeByName[*lazyTest](child, NameOf[*lazyTest]())
 
-			is.Nil(err1)
-			is.Nil(err2)
+			is.NoError(err1)
+			is.NoError(err2)
 
 			wg.Done()
 		}(i)
@@ -459,8 +459,8 @@ func TestInvokeByGenericType_race(t *testing.T) {
 			_, err1 := invokeByGenericType[int](injector)
 			_, err2 := invokeByGenericType[*lazyTest](child)
 
-			is.Nil(err1)
-			is.Nil(err2)
+			is.NoError(err1)
+			is.NoError(err2)
 
 			wg.Done()
 		}(i)
@@ -478,7 +478,7 @@ func TestInvokeByTags(t *testing.T) {
 
 	// no dependencies
 	err := invokeByTags(i, "*myStruct", reflect.ValueOf(&eagerTest{}), false)
-	is.Nil(err)
+	is.NoError(err)
 
 	// not pointer
 	err = invokeByTags(i, "*myStruct", reflect.ValueOf(eagerTest{}), false)
@@ -490,7 +490,7 @@ func TestInvokeByTags(t *testing.T) {
 	}
 	test1 := hasExportedEagerTestDependency{}
 	err = invokeByTags(i, "*myStruct", reflect.ValueOf(&test1), false)
-	is.Nil(err)
+	is.NoError(err)
 	is.Equal("foobar", test1.EagerTest.foobar)
 
 	// unexported field
@@ -499,7 +499,7 @@ func TestInvokeByTags(t *testing.T) {
 	}
 	test2 := hasNonExportedEagerTestDependency{}
 	err = invokeByTags(i, "*myStruct", reflect.ValueOf(&test2), false)
-	is.Nil(err)
+	is.NoError(err)
 	is.Equal("foobar", test2.eagerTest.foobar)
 
 	// not found
@@ -525,7 +525,7 @@ func TestInvokeByTags(t *testing.T) {
 	}
 	test5 := namedService{}
 	err = invokeByTags(i, "*myStruct", reflect.ValueOf(&test5), false)
-	is.Nil(err)
+	is.NoError(err)
 	is.Equal(42, test5.EagerTest)
 
 	// use tag but wrong type
@@ -544,7 +544,7 @@ func TestInvokeByTags(t *testing.T) {
 	}
 	test7 := namedServiceWithCustomTag{}
 	err = invokeByTags(i, "*myStruct", reflect.ValueOf(&test7), false)
-	is.Nil(err)
+	is.NoError(err)
 	is.Equal(42, test7.EagerTest)
 }
 
@@ -563,7 +563,7 @@ func TestInvokeByTags_ImplicitAliasing_FallbackOnNotFound(t *testing.T) {
 
 	s := foobar{}
 	err := invokeByTags(i, "*foobar", reflect.ValueOf(&s), true)
-	is.NotNil(err)
+	is.Error(err)
 	is.Equal("DI: could not find service `github.com/samber/do/v2.Healthchecker`, no service available", err.Error())
 	is.Nil(s.Dep)
 
@@ -575,7 +575,7 @@ func TestInvokeByTags_ImplicitAliasing_FallbackOnNotFound(t *testing.T) {
 
 	s = foobar{}
 	err = invokeByTags(i, "*foobar", reflect.ValueOf(&s), true)
-	is.Nil(err)
+	is.NoError(err)
 	is.NotNil(s.Dep)
 	is.Equal("foobar", s.Dep.(*lazyTestHeathcheckerOK).foobar)
 
@@ -588,7 +588,7 @@ func TestInvokeByTags_ImplicitAliasing_FallbackOnNotFound(t *testing.T) {
 
 	s = foobar{}
 	err = invokeByTags(i, "*foobar", reflect.ValueOf(&s), true)
-	is.Nil(err)
+	is.NoError(err)
 	is.NotNil(s.Dep)
 	is.Equal("foobar", s.Dep.(*lazyTestHeathcheckerOK).foobar)
 }
@@ -611,7 +611,7 @@ func TestInvokeByTags_ImplicitAliasing_NoFallbackOnOtherErrors(t *testing.T) {
 
 	s := foobar{}
 	err := invokeByTags(i, "*foobar", reflect.ValueOf(&s), true)
-	is.NotNil(err)
+	is.Error(err)
 	is.Equal("DI: could not find service `bad`, available services: `*github.com/samber/do/v2.lazyTestHeathcheckerOK`", err.Error())
 	is.Nil(s.Dep)
 
@@ -623,7 +623,7 @@ func TestInvokeByTags_ImplicitAliasing_NoFallbackOnOtherErrors(t *testing.T) {
 
 	s = foobar{}
 	err = invokeByTags(i, "*foobar", reflect.ValueOf(&s), true)
-	is.NotNil(err)
+	is.Error(err)
 	is.Equal("DI: `bad` is not assignable to field `*foobar.Dep`", err.Error())
 	is.Nil(s.Dep)
 
@@ -635,7 +635,7 @@ func TestInvokeByTags_ImplicitAliasing_NoFallbackOnOtherErrors(t *testing.T) {
 
 	s = foobar{}
 	err = invokeByTags(i, "*foobar", reflect.ValueOf(&s), true)
-	is.NotNil(err)
+	is.Error(err)
 	is.Equal("boom", err.Error())
 	is.Nil(s.Dep)
 }
@@ -758,7 +758,7 @@ func TestHandleProviderPanic(t *testing.T) {
 		svc, err := handleProviderPanic(func(i Injector) (int, error) {
 			return 42, nil
 		}, nil)
-		is.Nil(err)
+		is.NoError(err)
 		is.Equal(42, svc)
 
 		// should return an error

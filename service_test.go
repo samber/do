@@ -93,7 +93,7 @@ func TestInferServiceInfo(t *testing.T) {
 	is.True(ok2)
 	is.Equal("*github.com/samber/do/v2.lazyTestHeathcheckerOK", info2.name)
 	is.Equal(ServiceTypeLazy, info2.serviceType)
-	is.True(info2.serviceBuildTime > 0) // Should have build time now
+	is.Positive(info2.serviceBuildTime) // Should have build time now
 	is.True(info2.healthchecker)        // Should be healthchecker now
 	is.False(info2.shutdowner)          // Not a shutdowner
 

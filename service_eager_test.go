@@ -120,7 +120,7 @@ func TestNewServiceEager(t *testing.T) {
 	is.Equal("string", service1.typeName)
 	is.Equal("test-value", service1.instance)
 	is.NotEmpty(service1.providerFrame.File, "Provider frame should be set")
-	is.Greater(service1.providerFrame.Line, 0, "Provider frame should have line number")
+	is.Positive(service1.providerFrame.Line, "Provider frame should have line number")
 	is.Empty(service1.invokationFrames, "Invocation frames should be empty initially")
 	is.Equal(uint32(0), service1.invokationFramesCounter, "Invocation frames counter should be 0")
 
@@ -252,12 +252,12 @@ func TestServiceEager_getInstanceAny(t *testing.T) {
 
 	service1 := newServiceEager("foobar", test)
 	instance1, err1 := service1.getInstanceAny(nil)
-	is.Nil(err1)
+	is.NoError(err1)
 	is.Equal(test, instance1)
 
 	service2 := newServiceEager("foobar", 42)
 	instance2, err2 := service2.getInstanceAny(nil)
-	is.Nil(err2)
+	is.NoError(err2)
 	is.Equal(42, instance2)
 }
 
@@ -270,12 +270,12 @@ func TestServiceEager_getInstance(t *testing.T) {
 
 	service1 := newServiceEager("foobar", test)
 	instance1, err1 := service1.getInstance(nil)
-	is.Nil(err1)
+	is.NoError(err1)
 	is.Equal(test, instance1)
 
 	service2 := newServiceEager("foobar", 42)
 	instance2, err2 := service2.getInstance(nil)
-	is.Nil(err2)
+	is.NoError(err2)
 	is.Equal(42, instance2)
 }
 
@@ -307,17 +307,17 @@ func TestServiceEager_healthcheck(t *testing.T) {
 	// no healthcheck
 	service1 := newServiceEager("foobar", &eagerTest{foobar: "foobar"})
 	err1 := service1.healthcheck(ctx)
-	is.Nil(err1)
+	is.NoError(err1)
 
 	// healthcheck ok
 	service2 := newServiceEager("foobar", &eagerTestHeathcheckerOK{foobar: "foobar"})
 	err2 := service2.healthcheck(ctx)
-	is.Nil(err2)
+	is.NoError(err2)
 
 	// healthcheck ko
 	service3 := newServiceEager("foobar", &eagerTestHeathcheckerKO{foobar: "foobar"})
 	err3 := service3.healthcheck(ctx)
-	is.NotNil(err3)
+	is.Error(err3)
 	is.Error(err3)
 	is.Equal(err3, assert.AnError)
 
@@ -346,7 +346,7 @@ func TestServiceEager_healthcheck(t *testing.T) {
 
 	service6 := newServiceEager("foobar", &eagerTestHeathcheckerOK{foobar: "foobar"})
 	err6 := service6.healthcheck(futureCtx)
-	is.Nil(err6) // Should succeed since context hasn't expired
+	is.NoError(err6) // Should succeed since context hasn't expired
 
 	// Test HealthcheckerWithContext type
 	healthcheckerWithCtx := &eagerTestHeathcheckerWithContext{foobar: "test", shouldFail: false}
@@ -354,7 +354,7 @@ func TestServiceEager_healthcheck(t *testing.T) {
 
 	// Test HealthcheckerWithContext interface
 	err7 := service7.healthcheck(ctx)
-	is.Nil(err7) // Should work with normal context
+	is.NoError(err7) // Should work with normal context
 
 	// Test context error handling with canceled context and error healthchecker
 	service8 := newServiceEager("foobar", &eagerTestHeathcheckerKO{foobar: "foobar"})
@@ -391,17 +391,17 @@ func TestServiceEager_shutdown(t *testing.T) {
 	// no shutdown
 	service1 := newServiceEager("foobar", &eagerTest{foobar: "foobar"})
 	err1 := service1.shutdown(ctx)
-	is.Nil(err1)
+	is.NoError(err1)
 
 	// shutdown ok
 	service2 := newServiceEager("foobar", &eagerTestShutdownerOK{foobar: "foobar"})
 	err2 := service2.shutdown(ctx)
-	is.Nil(err2)
+	is.NoError(err2)
 
 	// shutdown ko
 	service3 := newServiceEager("foobar", &eagerTestShutdownerKO{foobar: "foobar"})
 	err3 := service3.shutdown(ctx)
-	is.NotNil(err3)
+	is.Error(err3)
 	is.Error(err3)
 	is.Equal(err3, assert.AnError)
 
@@ -430,14 +430,14 @@ func TestServiceEager_shutdown(t *testing.T) {
 
 	service6 := newServiceEager("foobar", &eagerTestShutdownerOK{foobar: "foobar"})
 	err6 := service6.shutdown(futureCtx)
-	is.Nil(err6) // Should succeed since context hasn't expired
+	is.NoError(err6) // Should succeed since context hasn't expired
 
 	// Test different shutdowner types with context
 
 	// Test ShutdownerWithContextAndError (already tested above)
 	service7 := newServiceEager("foobar", &eagerTestShutdownerOK{foobar: "foobar"})
 	err7 := service7.shutdown(ctx)
-	is.Nil(err7)
+	is.NoError(err7)
 
 	// Test ShutdownerWithError with canceled context
 	service8 := newServiceEager("foobar", &eagerTestShutdownerKO{foobar: "foobar"})
@@ -451,7 +451,7 @@ func TestServiceEager_shutdown(t *testing.T) {
 
 	// Test ShutdownerWithContext interface
 	err9 := service9.shutdown(ctx)
-	is.Nil(err9) // Should work with normal context
+	is.NoError(err9) // Should work with normal context
 
 	// Test Shutdowner type (void return, no context)
 	shutdownerVoid := &eagerTestShutdownerVoid{foobar: "test"}
@@ -459,7 +459,7 @@ func TestServiceEager_shutdown(t *testing.T) {
 
 	// Test Shutdowner interface
 	err10 := service10.shutdown(ctx)
-	is.Nil(err10) // Should work
+	is.NoError(err10) // Should work
 
 	// Test context error handling with canceled context and different shutdowner types
 	service11 := newServiceEager("foobar", shutdownerWithCtx)
@@ -504,7 +504,7 @@ func TestServiceEager_source(t *testing.T) {
 
 	// Provider frame should be set (from newServiceEager)
 	is.NotEmpty(providerFrame.File, "Provider frame should have a file")
-	is.Greater(providerFrame.Line, 0, "Provider frame should have a line number")
+	is.Positive(providerFrame.Line, "Provider frame should have a line number")
 
 	// Initially no invocation frames
 	is.Empty(invocationFrames, "Should have no invocation frames initially")
@@ -623,12 +623,12 @@ func TestServiceEager_ContextValuePropagation(t *testing.T) {
 	// Test context value propagation for healthcheck
 	ctx1 := context.WithValue(context.Background(), ctxTestKey, "healthcheck-value")
 	err := healthcheckEager.healthcheck(ctx1)
-	is.Nil(err)
+	is.NoError(err)
 
 	// Test context value propagation for shutdown
 	ctx2 := context.WithValue(context.Background(), ctxTestKey, "shutdown-value")
 	err = shutdownEager.shutdown(ctx2)
-	is.Nil(err)
+	is.NoError(err)
 
 	// Test that eager service properly delegates to the underlying instance
 	// The eager service should not store context values itself, but pass them through

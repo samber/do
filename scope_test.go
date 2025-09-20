@@ -51,7 +51,7 @@ func TestScope_Name(t *testing.T) {
 	scope := newScope("foobar", nil, nil)
 
 	is.NotEmpty(scope.Name())
-	is.Equal(scope.Name(), "foobar")
+	is.Equal("foobar", scope.Name())
 }
 
 func TestScope_Scope(t *testing.T) {
@@ -419,7 +419,7 @@ func TestScope_HealthCheck(t *testing.T) {
 	child3.serviceSet("child3-a", newServiceLazy("child3-a", provider2))
 
 	// Test healthcheck before services are invoked
-	is.EqualValues(map[string]error{"child1-a": nil, "child2a-a": nil, "child2a-b": nil, "root-a": nil}, child2a.HealthCheck())
+	is.Equal(map[string]error{"child1-a": nil, "child2a-a": nil, "child2a-b": nil, "root-a": nil}, child2a.HealthCheck())
 
 	// Invoke services to make them healthcheckable
 	_, _ = invokeByName[*lazyTestHeathcheckerKO](rootScope, "root-a")
@@ -430,22 +430,22 @@ func TestScope_HealthCheck(t *testing.T) {
 	_, _ = invokeByName[*lazyTestHeathcheckerKO](child3, "child3-a")
 
 	// Test healthcheck after services are invoked
-	is.EqualValues(map[string]error{"child1-a": nil, "child2a-a": nil, "child2a-b": assert.AnError, "root-a": assert.AnError}, child2a.HealthCheck())
-	is.EqualValues(map[string]error{"root-a": assert.AnError}, rootScope.HealthCheck())
+	is.Equal(map[string]error{"child1-a": nil, "child2a-a": nil, "child2a-b": assert.AnError, "root-a": assert.AnError}, child2a.HealthCheck())
+	is.Equal(map[string]error{"root-a": assert.AnError}, rootScope.HealthCheck())
 
 	// Test healthcheck from different scopes
-	is.EqualValues(map[string]error{"child2b-a": assert.AnError, "child1-a": nil, "root-a": assert.AnError}, child2b.HealthCheck())
-	is.EqualValues(map[string]error{"child3-a": assert.AnError, "child2a-a": nil, "child2a-b": assert.AnError, "child1-a": nil, "root-a": assert.AnError}, child3.HealthCheck())
+	is.Equal(map[string]error{"child2b-a": assert.AnError, "child1-a": nil, "root-a": assert.AnError}, child2b.HealthCheck())
+	is.Equal(map[string]error{"child3-a": assert.AnError, "child2a-a": nil, "child2a-b": assert.AnError, "child1-a": nil, "root-a": assert.AnError}, child3.HealthCheck())
 
 	// Test healthcheck with no healthcheckable services
 	emptyScope := rootScope.Scope("empty")
-	is.EqualValues(map[string]error{"root-a": assert.AnError}, emptyScope.HealthCheck()) // Includes ancestor services
+	is.Equal(map[string]error{"root-a": assert.AnError}, emptyScope.HealthCheck()) // Includes ancestor services
 
 	// Test healthcheck with services that don't implement Healthchecker
 	nonHealthcheckableScope := rootScope.Scope("non-healthcheckable")
 	nonHealthcheckableScope.serviceSet("non-healthcheckable-a", newServiceLazy("non-healthcheckable-a", func(i Injector) (int, error) { return 42, nil }))
 	_, _ = invokeByName[int](nonHealthcheckableScope, "non-healthcheckable-a")
-	is.EqualValues(map[string]error{"non-healthcheckable-a": nil, "root-a": assert.AnError}, nonHealthcheckableScope.HealthCheck()) // Includes ancestor services
+	is.Equal(map[string]error{"non-healthcheckable-a": nil, "root-a": assert.AnError}, nonHealthcheckableScope.HealthCheck()) // Includes ancestor services
 }
 
 func TestScope_HealthCheckWithContext(t *testing.T) {
@@ -474,7 +474,7 @@ func TestScope_HealthCheckWithContext(t *testing.T) {
 	child2b.serviceSet("child2b-a", newServiceLazy("child2b-a", provider2))
 	child3.serviceSet("child3-a", newServiceLazy("child3-a", provider2))
 
-	is.EqualValues(map[string]error{"child1-a": nil, "child2a-a": nil, "child2a-b": nil, "root-a": nil}, child2a.HealthCheck())
+	is.Equal(map[string]error{"child1-a": nil, "child2a-a": nil, "child2a-b": nil, "root-a": nil}, child2a.HealthCheck())
 
 	_, _ = invokeByName[*lazyTestHeathcheckerKO](rootScope, "root-a")
 	_, _ = invokeByName[*lazyTestHeathcheckerOK](child1, "child1-a")
@@ -483,15 +483,15 @@ func TestScope_HealthCheckWithContext(t *testing.T) {
 	_, _ = invokeByName[*lazyTestHeathcheckerKO](child2b, "child2b-a")
 	_, _ = invokeByName[*lazyTestHeathcheckerKO](child3, "child3-a")
 
-	is.EqualValues(map[string]error{"child1-a": nil, "child2a-a": nil, "child2a-b": assert.AnError, "root-a": assert.AnError}, child2a.HealthCheck())
-	is.EqualValues(map[string]error{"root-a": assert.AnError}, rootScope.HealthCheckWithContext(context.Background()))
+	is.Equal(map[string]error{"child1-a": nil, "child2a-a": nil, "child2a-b": assert.AnError, "root-a": assert.AnError}, child2a.HealthCheck())
+	is.Equal(map[string]error{"root-a": assert.AnError}, rootScope.HealthCheckWithContext(context.Background()))
 
 	// Test with different context scenarios
 	ctx := context.Background()
 
 	// Test with background context
 	results1 := child2a.HealthCheckWithContext(ctx)
-	is.EqualValues(map[string]error{"child1-a": nil, "child2a-a": nil, "child2a-b": assert.AnError, "root-a": assert.AnError}, results1)
+	is.Equal(map[string]error{"child1-a": nil, "child2a-a": nil, "child2a-b": assert.AnError, "root-a": assert.AnError}, results1)
 
 	// Test with canceled context - should return timeout errors
 	canceledCtx, cancel := context.WithCancel(context.Background())
@@ -517,7 +517,7 @@ func TestScope_HealthCheckWithContext(t *testing.T) {
 	// Test with value context - should return original errors
 	valueCtx := context.WithValue(context.Background(), ctxTestKey, "test-value")
 	results5 := child2a.HealthCheckWithContext(valueCtx)
-	is.EqualValues(map[string]error{"child1-a": nil, "child2a-a": nil, "child2a-b": assert.AnError, "root-a": assert.AnError}, results5)
+	is.Equal(map[string]error{"child1-a": nil, "child2a-a": nil, "child2a-b": assert.AnError, "root-a": assert.AnError}, results5)
 }
 
 func TestScope_Shutdown(t *testing.T) {
@@ -576,7 +576,7 @@ func TestScope_ShutdownWithContext(t *testing.T) {
 
 	// from child1 POV
 	is.ErrorContains(child1.serviceShutdown(ctx, "root-a"), "could not find service")
-	is.Equal(nil, child1.serviceShutdown(ctx, "child1-a"))
+	is.NoError(child1.serviceShutdown(ctx, "child1-a"))
 	is.ErrorContains(child1.serviceShutdown(ctx, "child2a-a"), "could not find service")
 	is.ErrorContains(child1.serviceShutdown(ctx, "child2a-b"), "could not find service")
 	is.ErrorContains(child1.serviceShutdown(ctx, "child2b-a"), "could not find service")
@@ -584,7 +584,7 @@ func TestScope_ShutdownWithContext(t *testing.T) {
 	// from child2a POV
 	is.ErrorContains(child2a.serviceShutdown(ctx, "root-a"), "could not find service")
 	is.ErrorContains(child2a.serviceShutdown(ctx, "child1-a"), "could not find service")
-	is.Equal(nil, child2a.serviceShutdown(ctx, "child2a-a"))
+	is.NoError(child2a.serviceShutdown(ctx, "child2a-a"))
 	is.Equal(assert.AnError, child2a.serviceShutdown(ctx, "child2a-b"))
 	is.ErrorContains(child2a.serviceShutdown(ctx, "child2b-a"), "could not find service")
 
@@ -599,7 +599,7 @@ func TestScope_ShutdownWithContext(t *testing.T) {
 	// Test with background context
 	results1 := child2a.ShutdownWithContext(ctx)
 	is.NotNil(results1)
-	is.Len(results1.Errors, 0) // child2a-b already shut down
+	is.Empty(results1.Errors) // child2a-b already shut down
 
 	// Test with canceled context - create new scope
 	rootScope2 := New()
@@ -697,18 +697,18 @@ func TestScope_clone(t *testing.T) {
 	// invoked list is not cloned
 	is.NotEqual(cloneRoot.childScopes["child1"].orderedInvocation, rootScope.self.childScopes["child1"].orderedInvocation)
 	is.Len(rootScope.self.childScopes["child1"].orderedInvocation, 2)
-	is.Len(cloneRoot.childScopes["child1"].orderedInvocation, 0)
+	is.Empty(cloneRoot.childScopes["child1"].orderedInvocation)
 
 	// Test that cloned services are independent
 	cloneChild := cloneRoot.childScopes["child1"]
 
 	// Test that services can be invoked in clone
 	instance1, err1 := invokeByName[string](cloneChild, "child-a")
-	is.Nil(err1)
+	is.NoError(err1)
 	is.Equal("child-a", instance1)
 
 	instance2, err2 := invokeByName[string](cloneChild, "child-b")
-	is.Nil(err2)
+	is.NoError(err2)
 	is.Equal("child-b", instance2)
 
 	// Test that clone has its own invocation tracking
@@ -745,7 +745,7 @@ func TestScope_clone(t *testing.T) {
 	is.Equal(rootScope, cloneGrandchild.rootScope)
 
 	// Test that original scope is unaffected by clone's children
-	is.Len(rootScope.self.childScopes["child1"].childScopes, 0)
+	is.Empty(rootScope.self.childScopes["child1"].childScopes)
 	is.Len(cloneChild.childScopes, 1)
 }
 
@@ -777,7 +777,7 @@ func TestScope_serviceHealthCheck(t *testing.T) {
 
 	is.ElementsMatch([]EdgeService{newEdgeService(child3.id, child3.name, "child3-a"), newEdgeService(child2a.id, child2a.name, "child2a-a"), newEdgeService(child2a.id, child2a.name, "child2a-b"), newEdgeService(child1.id, child1.name, "child1-a")}, child3.ListInvokedServices())
 	shutdownReport := child1.Shutdown()
-	is.Len(shutdownReport.Errors, 0)
+	is.Empty(shutdownReport.Errors)
 	is.ElementsMatch([]EdgeService{}, child3.ListInvokedServices())
 }
 
@@ -1079,7 +1079,7 @@ func TestScope_serviceShutdown(t *testing.T) {
 
 	// from child1 POV
 	is.ErrorContains(child1.serviceShutdown(ctx, "root-a"), "could not find service")
-	is.Equal(nil, child1.serviceShutdown(ctx, "child1-a"))
+	is.NoError(child1.serviceShutdown(ctx, "child1-a"))
 	is.ErrorContains(child1.serviceShutdown(ctx, "child2a-a"), "could not find service")
 	is.ErrorContains(child1.serviceShutdown(ctx, "child2a-b"), "could not find service")
 	is.ErrorContains(child1.serviceShutdown(ctx, "child2b-a"), "could not find service")
@@ -1087,7 +1087,7 @@ func TestScope_serviceShutdown(t *testing.T) {
 	// from child2a POV
 	is.ErrorContains(child2a.serviceShutdown(ctx, "root-a"), "could not find service")
 	is.ErrorContains(child2a.serviceShutdown(ctx, "child1-a"), "could not find service")
-	is.Equal(nil, child2a.serviceShutdown(ctx, "child2a-a"))
+	is.NoError(child2a.serviceShutdown(ctx, "child2a-a"))
 	is.Equal(assert.AnError, child2a.serviceShutdown(ctx, "child2a-b"))
 	is.ErrorContains(child2a.serviceShutdown(ctx, "child2b-a"), "could not find service")
 
@@ -1117,7 +1117,7 @@ func TestScope_serviceShutdown(t *testing.T) {
 	nonShutdownableScope := rootScope.Scope("non-shutdownable")
 	nonShutdownableScope.serviceSet("non-shutdownable-a", newServiceLazy("non-shutdownable-a", func(i Injector) (int, error) { return 42, nil }))
 	_, _ = invokeByName[int](nonShutdownableScope, "non-shutdownable-a")
-	is.Equal(nil, nonShutdownableScope.serviceShutdown(ctx, "non-shutdownable-a"))
+	is.NoError(nonShutdownableScope.serviceShutdown(ctx, "non-shutdownable-a"))
 }
 
 func TestScope_onServiceRegistration(t *testing.T) {
@@ -1190,9 +1190,9 @@ func TestScope_onServiceInvoke(t *testing.T) {
 
 	// Invoke services
 	_, err1 := invokeByName[string](rootScope, "service1")
-	is.Nil(err1)
+	is.NoError(err1)
 	_, err2 := invokeByName[string](rootScope, "service2")
-	is.Nil(err2)
+	is.NoError(err2)
 
 	// Verify invocation tracking through orderedInvocation
 	is.Equal(0, rootScope.self.orderedInvocation["service1"])
@@ -1208,9 +1208,9 @@ func TestScope_onServiceInvoke(t *testing.T) {
 
 	// Invoke child services
 	_, childErr1 := invokeByName[string](childScope, "child-service1")
-	is.Nil(childErr1)
+	is.NoError(childErr1)
 	_, childErr2 := invokeByName[string](childScope, "child-service2")
-	is.Nil(childErr2)
+	is.NoError(childErr2)
 
 	// Verify child invocation tracking
 	is.Equal(0, childScope.orderedInvocation["child-service1"])
@@ -1224,7 +1224,7 @@ func TestScope_onServiceInvoke(t *testing.T) {
 
 	// Test multiple invocations of the same service
 	_, err3 := invokeByName[string](rootScope, "service1")
-	is.Nil(err3)
+	is.NoError(err3)
 
 	// Verify that orderedInvocation is not changed for repeated invocations
 	is.Equal(0, rootScope.self.orderedInvocation["service1"])
@@ -1233,7 +1233,7 @@ func TestScope_onServiceInvoke(t *testing.T) {
 
 	// Test invocation of parent service from child scope
 	_, parentErr := invokeByName[string](childScope, "service1")
-	is.Nil(parentErr)
+	is.NoError(parentErr)
 
 	// Verify that parent's orderedInvocation is updated when child invokes parent service
 	is.Equal(0, rootScope.self.orderedInvocation["service1"])
@@ -1265,13 +1265,13 @@ func TestScope_onServiceShutdown(t *testing.T) {
 
 	// Invoke services to make them shutdownable
 	_, err1 := invokeByName[*lazyTestShutdownerOK](rootScope, "shutdown-ok")
-	is.Nil(err1)
+	is.NoError(err1)
 	_, err2 := invokeByName[*lazyTestShutdownerKO](rootScope, "shutdown-ko")
-	is.Nil(err2)
+	is.NoError(err2)
 
 	// Test successful shutdown
 	err := rootScope.serviceShutdown(ctx, "shutdown-ok")
-	is.Nil(err)
+	is.NoError(err)
 
 	// Verify service is removed from scope
 	_, found := rootScope.serviceGet("shutdown-ok")
@@ -1292,18 +1292,18 @@ func TestScope_onServiceShutdown(t *testing.T) {
 	// Test shutdown of service that doesn't implement Shutdowner
 	rootScope.serviceSet("non-shutdownable", newServiceLazy("non-shutdownable", func(i Injector) (int, error) { return 42, nil }))
 	_, err3 := invokeByName[int](rootScope, "non-shutdownable")
-	is.Nil(err3)
+	is.NoError(err3)
 
 	// This should not panic because the service wrapper handles non-shutdowner services gracefully
 	err = rootScope.serviceShutdown(ctx, "non-shutdownable")
-	is.Nil(err)
+	is.NoError(err)
 
 	// Test shutdown with different context scenarios
 	rootScope.serviceSet("shutdown-test", newServiceLazy("shutdown-test", func(i Injector) (*lazyTestShutdownerOK, error) {
 		return &lazyTestShutdownerOK{foobar: "test"}, nil
 	}))
 	_, err4 := invokeByName[*lazyTestShutdownerOK](rootScope, "shutdown-test")
-	is.Nil(err4)
+	is.NoError(err4)
 
 	// Test with canceled context
 	canceledCtx, cancel := context.WithCancel(context.Background())
@@ -1341,7 +1341,7 @@ func TestScope_logs(t *testing.T) {
 
 	// Test logging during service invocation
 	_, err := invokeByName[string](injector, "test-service")
-	is.Nil(err)
+	is.NoError(err)
 
 	// Test logging during health check
 	healthcheckService := newServiceLazy("healthcheck-service", func(i Injector) (*lazyTestHeathcheckerOK, error) {
@@ -1349,7 +1349,7 @@ func TestScope_logs(t *testing.T) {
 	})
 	injector.serviceSet("healthcheck-service", healthcheckService)
 	_, err = invokeByName[*lazyTestHeathcheckerOK](injector, "healthcheck-service")
-	is.Nil(err)
+	is.NoError(err)
 
 	ctx := context.Background()
 	_ = injector.serviceHealthCheck(ctx, "healthcheck-service")
@@ -1360,7 +1360,7 @@ func TestScope_logs(t *testing.T) {
 	})
 	injector.serviceSet("shutdown-service", shutdownService)
 	_, err = invokeByName[*lazyTestShutdownerOK](injector, "shutdown-service")
-	is.Nil(err)
+	is.NoError(err)
 
 	_ = injector.serviceShutdown(ctx, "shutdown-service")
 
@@ -1386,7 +1386,7 @@ func TestScope_logs(t *testing.T) {
 	injectorNoLog := New()
 	injectorNoLog.serviceSet("no-log-service", newServiceEager("no-log-service", "no-log-value"))
 	_, err = invokeByName[string](injectorNoLog, "no-log-service")
-	is.Nil(err)
+	is.NoError(err)
 
 	// Test logging with nil log function (should not panic)
 	injectorNilLog := NewWithOpts(&InjectorOpts{
@@ -1394,13 +1394,13 @@ func TestScope_logs(t *testing.T) {
 	})
 	injectorNilLog.serviceSet("nil-log-service", newServiceEager("nil-log-service", "nil-log-value"))
 	_, err = invokeByName[string](injectorNilLog, "nil-log-service")
-	is.Nil(err)
+	is.NoError(err)
 
 	// Test logging in child scopes
 	childScope := injector.Scope("child")
 	childScope.serviceSet("child-service", newServiceEager("child-service", "child-value"))
 	_, err = invokeByName[string](childScope, "child-service")
-	is.Nil(err)
+	is.NoError(err)
 
 	// Verify that child scope logging also works
 	is.NotEmpty(logMessages)
@@ -1428,19 +1428,19 @@ func TestScope_Shutdown_NoDependencies(t *testing.T) {
 	// No dependencies between services; shutdown should call all three
 	report := i.Shutdown()
 	is.True(report.Succeed)
-	is.Len(report.Errors, 0)
+	is.Empty(report.Errors)
 
-	is.EqualValues(int32(1), atomic.LoadInt32(&a))
-	is.EqualValues(int32(1), atomic.LoadInt32(&b))
-	is.EqualValues(int32(1), atomic.LoadInt32(&c))
+	is.Equal(int32(1), atomic.LoadInt32(&a))
+	is.Equal(int32(1), atomic.LoadInt32(&b))
+	is.Equal(int32(1), atomic.LoadInt32(&c))
 
 	// Services should be removed after shutdown
 	_, errA := InvokeNamed[*shutdownRecorder](i, "svc-a")
 	_, errB := InvokeNamed[*shutdownRecorder](i, "svc-b")
 	_, errC := InvokeNamed[*shutdownRecorder](i, "svc-c")
-	is.NotNil(errA)
-	is.NotNil(errB)
-	is.NotNil(errC)
+	is.Error(errA)
+	is.Error(errB)
+	is.Error(errC)
 }
 
 // Test services for context expiration testing
@@ -1673,8 +1673,8 @@ func TestScope_ShutdownWithContextExpiration_ChildScopes(t *testing.T) {
 	// Invoke the services to ensure they are instantiated
 	_, err1 := InvokeNamed[*scopeTestSlowShutdowner](injector, "parent-service")
 	_, err2 := InvokeNamed[*scopeTestSlowShutdowner](childScope, "child-service")
-	is.Nil(err1)
-	is.Nil(err2)
+	is.NoError(err1)
+	is.NoError(err2)
 
 	// Create context with short timeout
 	ctx, cancel := context.WithTimeout(context.Background(), 50*time.Millisecond)
@@ -1718,7 +1718,7 @@ func TestScope_HealthCheckWithContextExpiration_Timeout(t *testing.T) {
 	is.NotEmpty(results)
 	is.Len(results, 1)
 	for _, err := range results {
-		is.NotNil(err)
+		is.Error(err)
 		// Check if it's a timeout error (could be wrapped)
 		is.True(errors.Is(err, context.DeadlineExceeded) || err.Error() == "DI: health check timeout: context deadline exceeded")
 	}
@@ -1759,7 +1759,7 @@ func TestScope_HealthCheckWithContextExpiration_Cancellation(t *testing.T) {
 	is.NotEmpty(results)
 	is.Len(results, 1)
 	for _, err := range results {
-		is.NotNil(err)
+		is.Error(err)
 		// Check if it's a cancellation error (could be wrapped)
 		is.True(errors.Is(err, context.Canceled) || err.Error() == "DI: health check timeout: context canceled")
 	}
@@ -1783,8 +1783,8 @@ func TestScope_HealthCheckWithContextExpiration_MultipleServices(t *testing.T) {
 	// Invoke the services to ensure they are instantiated
 	_, err1 := InvokeNamed[*scopeTestSlowHealthchecker](injector, "fast-healthcheck")
 	_, err2 := InvokeNamed[*scopeTestSlowHealthchecker](injector, "slow-healthcheck")
-	is.Nil(err1)
-	is.Nil(err2)
+	is.NoError(err1)
+	is.NoError(err2)
 
 	// Create context with timeout between fast and slow service delays
 	ctx, cancel := context.WithTimeout(context.Background(), 100*time.Millisecond)
@@ -1827,8 +1827,8 @@ func TestScope_HealthCheckWithContextExpiration_ChildScopes(t *testing.T) {
 	// Invoke the services to ensure they are instantiated
 	_, err1 := InvokeNamed[*scopeTestSlowHealthchecker](injector, "parent-healthcheck")
 	_, err2 := InvokeNamed[*scopeTestSlowHealthchecker](childScope, "child-healthcheck")
-	is.Nil(err1)
-	is.Nil(err2)
+	is.NoError(err1)
+	is.NoError(err2)
 
 	// Create context with short timeout
 	ctx, cancel := context.WithTimeout(context.Background(), 50*time.Millisecond)
@@ -1869,7 +1869,7 @@ func TestScope_HealthCheckWithContextExpiration_GlobalTimeoutOption(t *testing.T
 
 	// Invoke the service to ensure it is instantiated
 	_, err := InvokeNamed[*scopeTestSlowHealthchecker](injector, "global-timeout-service")
-	is.Nil(err)
+	is.NoError(err)
 
 	// Healthcheck should timeout due to global timeout
 	start := time.Now()
@@ -1882,7 +1882,7 @@ func TestScope_HealthCheckWithContextExpiration_GlobalTimeoutOption(t *testing.T
 	// Should have healthcheck errors due to timeout
 	is.NotEmpty(results)
 	for _, err := range results {
-		is.NotNil(err)
+		is.Error(err)
 		// Check if it's a timeout error (could be wrapped)
 		is.True(errors.Is(err, context.DeadlineExceeded) || err.Error() == "DI: health check timeout: context deadline exceeded")
 	}
@@ -1923,7 +1923,7 @@ func TestScope_ContextExpiration_ShutdownAndHealthcheckSameTimeout(t *testing.T)
 	is.NotEmpty(healthcheckResults)
 	is.Len(healthcheckResults, 1)
 	for _, err := range healthcheckResults {
-		is.NotNil(err)
+		is.Error(err)
 		// Check if it's a timeout error (could be wrapped)
 		is.True(errors.Is(err, context.DeadlineExceeded) || err.Error() == "DI: health check timeout: context deadline exceeded")
 	}

@@ -259,7 +259,7 @@ func TestConcurrentHealthCheckDuringShutdown(t *testing.T) {
 
 	// Shutdown should complete successfully
 	is.True(report.Succeed)
-	is.Len(report.Errors, 0)
+	is.Empty(report.Errors)
 
 	// Health checks should either succeed or fail gracefully during shutdown
 	for i := 0; i < numHealthChecks; i++ {
@@ -440,7 +440,7 @@ func TestConcurrentHealthChecks(t *testing.T) {
 	for i := 0; i < numGoroutines; i++ {
 		is.NotNil(results[i])
 		is.Contains(results[i], "healthy-service")
-		is.Nil(results[i]["healthy-service"])
+		is.NoError(results[i]["healthy-service"])
 		is.Contains(results[i], "unhealthy-service")
 		is.Error(results[i]["unhealthy-service"])
 	}

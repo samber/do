@@ -88,7 +88,7 @@ func TestUtilsFlatten(t *testing.T) {
 
 	result1 := flatten([][]int{{0, 1}, {2, 3, 4, 5}})
 
-	is.Equal(result1, []int{0, 1, 2, 3, 4, 5})
+	is.Equal([]int{0, 1, 2, 3, 4, 5}, result1)
 }
 
 func TestUtilsMap(t *testing.T) {
@@ -104,10 +104,10 @@ func TestUtilsMap(t *testing.T) {
 		return strconv.FormatInt(x, 10)
 	})
 
-	is.Equal(len(result1), 4)
-	is.Equal(len(result2), 4)
-	is.Equal(result1, []string{"Hello", "Hello", "Hello", "Hello"})
-	is.Equal(result2, []string{"1", "2", "3", "4"})
+	is.Len(result1, 4)
+	is.Len(result2, 4)
+	is.Equal([]string{"Hello", "Hello", "Hello", "Hello"}, result1)
+	is.Equal([]string{"1", "2", "3", "4"}, result2)
 }
 
 func TestTypesEqual(t *testing.T) {
@@ -139,13 +139,13 @@ func TestFilter(t *testing.T) {
 		return x%2 == 0
 	})
 
-	is.Equal(r1, []int{2, 4})
+	is.Equal([]int{2, 4}, r1)
 
 	r2 := filter([]string{"", "foo", "", "bar", ""}, func(x string, _ int) bool {
 		return len(x) > 0
 	})
 
-	is.Equal(r2, []string{"foo", "bar"})
+	is.Equal([]string{"foo", "bar"}, r2)
 }
 
 func TestUtilsOrderedUniq(t *testing.T) {
@@ -155,10 +155,10 @@ func TestUtilsOrderedUniq(t *testing.T) {
 	result1 := orderedUniq([]string{"a", "b", "c"})
 	result2 := orderedUniq([]string{"a", "b", "b", "c"})
 
-	is.Equal(len(result1), 3)
-	is.Equal(len(result2), 3)
-	is.Equal(result1, []string{"a", "b", "c"})
-	is.Equal(result2, []string{"a", "b", "c"})
+	is.Len(result1, 3)
+	is.Len(result2, 3)
+	is.Equal([]string{"a", "b", "c"}, result1)
+	is.Equal([]string{"a", "b", "c"}, result2)
 }
 
 func TestUtilsContains(t *testing.T) {
@@ -185,7 +185,7 @@ func TestUtilsJobPool(t *testing.T) {
 	is := assert.New(t)
 
 	p := newJobPool[error](42)
-	is.Equal(p.parallelism, uint(42))
+	is.Equal(uint(42), p.parallelism)
 }
 
 type test1 struct{}
