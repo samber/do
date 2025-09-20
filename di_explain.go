@@ -480,6 +480,7 @@ func ExplainInjector(scope Injector) ExplainInjectorOutput {
 
 // 2 modes are available: looping on ancestors, focused-scope or children.
 func newExplainInjectorScopes(ancestors []Injector, children []Injector) []ExplainInjectorScopeOutput {
+	//nolint:goconst
 	loopingOn := "children" // @TODO: create a real enum
 	injectors := children
 	if len(ancestors) > 0 {
