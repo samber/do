@@ -1,122 +1,102 @@
-# inspired by https://gist.github.com/maratori/47a4d00457a92aa426dbd48a18776322
-
 version: "2"
-
 run:
-  timeout: 5m                 # Stop after 5 minutes
-  issues-exit-code: 1         # Exit with status 1 if issues are found
-  tests: false                # Do not lint test files
-  concurrency: 4              # Run up to 4 linters in parallel
-
-
-
-formatters:
-  enable:
-    - goimports       # checks if the code and import statements are formatted according to the 'goimports' command
-    - golines         # checks if code is formatted, and fixes long lines
-    - gofmt           # Enforce code formatting
-    - gofumpt         # Enforce code formatting
-  settings:
-    goimports:
-      # A list of prefixes, which, if set, checks import paths
-      # with the given prefixes are grouped after 3rd-party packages.
-      # Default: []
-      local-prefixes:
-        - github.com/samber
-
-    golines:
-      # Target maximum line length.
-      # Default: 100
-      max-len: 180
-
-
-
+  concurrency: 4
+  # also lint _test.go files
+  tests: true
+  timeout: 5m
 linters:
   enable:
-    - asasalint # checks for pass []any as any in variadic func(...any)
-    - asciicheck # checks that your code does not contain non-ASCII identifiers
-    - bidichk # checks for dangerous unicode character sequences
-    - bodyclose # checks whether HTTP response body is closed successfully
-    - canonicalheader # checks whether net/http.Header uses canonical header
-    - copyloopvar # detects places where loop variables are copied (Go 1.22+)
-    - dupl # tool for code clone detection
-    - durationcheck # checks for two durations multiplied together
-    - embeddedstructfieldcheck # checks embedded types in structs
-    - errcheck # checking for unchecked errors, these unchecked errors can be critical bugs in some cases
-    - errorlint # finds code that will cause problems with the error wrapping scheme introduced in Go 1.13
-    - exhaustive # checks exhaustiveness of enum switch statements
-    - exptostd # detects functions from golang.org/x/exp/ that can be replaced by std functions
-    - fatcontext # detects nested contexts in loops
-    - gocheckcompilerdirectives # validates go compiler directive comments (//go:)
-    - gochecknoinits # checks that no init functions are present in Go code
-    - gochecksumtype # checks exhaustiveness on Go "sum types"
-    - gocognit # computes and checks the cognitive complexity of functions
-    - gocritic # provides diagnostics that check for bugs, performance and style issues
-    - gocyclo # computes and checks the cyclomatic complexity of functions
-    - gomoddirectives # manages the use of 'replace', 'retract', and 'excludes' directives in go.mod
-    - goprintffuncname # checks that printf-like functions are named with f at the end
-    - gosec # inspects source code for security problems
-    - govet # reports suspicious constructs, such as Printf calls whose arguments do not align with the format string
-    - iface # checks the incorrect use of interfaces, helping developers avoid interface pollution
-    - ineffassign # detects when assignments to existing variables are not used
-    - intrange # finds places where for loops could make use of an integer range
-    - loggercheck # checks key value pairs for common logger libraries (kitlog,klog,logr,zap)
-    - makezero # finds slice declarations with non-zero initial length
-    - mirror # reports wrong mirror patterns of bytes/strings usage
-    - musttag # enforces field tags in (un)marshaled structs
-    - nakedret # finds naked returns in functions greater than a specified function length
-    - nestif # reports deeply nested if statements
-    - nilerr # finds the code that returns nil even if it checks that the error is not nil
-    - nilnesserr # reports that it checks for err != nil, but it returns a different nil value error (powered by nilness and nilerr)
-    - nilnil # checks that there is no simultaneous return of nil error and an invalid value
-    - noctx # finds sending http request without context.Context
-    - nolintlint # reports ill-formed or insufficient nolint directives
-    - nosprintfhostport # checks for misuse of Sprintf to construct a host with port in a URL
-    - misspell # [useless] finds commonly misspelled English words in comments
-    - prealloc # [premature optimization, but can be used in some cases] finds slice declarations that could potentially be preallocated
-    - predeclared # finds code that shadows one of Go's predeclared identifiers
-    - promlinter # checks Prometheus metrics naming via promlint
-    - protogetter # reports direct reads from proto message fields when getters should be used
-    - reassign # checks that package variables are not reassigned
-    - recvcheck # checks for receiver type consistency
-    - rowserrcheck # checks whether Err of rows is checked successfully
-    - sloglint # ensure consistent code style when using log/slog
-    - spancheck # checks for mistakes with OpenTelemetry/Census spans
-    - sqlclosecheck # checks that sql.Rows and sql.Stmt are closed
-    - staticcheck # is a go vet on steroids, applying a ton of static analysis checks
-    - tagalign # checks that struct tags are well aligned
-    - testableexamples # checks if examples are testable (have an expected output)
-    - testifylint # checks usage of github.com/stretchr/testify
-    - testpackage # makes you use a separate _test package
-    - tparallel # detects inappropriate usage of t.Parallel() method in your Go test codes
-    - unconvert # removes unnecessary type conversions
-    - unused # checks for unused constants, variables, functions and types
-    - usestdlibvars # detects the possibility to use variables/constants from the Go standard library
-    - usetesting # reports uses of functions with replacement inside the testing package
-    - wastedassign # finds wasted assignment statements
-    - whitespace # detects leading and trailing whitespace
+    - govet
+    - staticcheck
+    - unused
+    - errcheck
+    - gocritic
+    - gocyclo
+    - revive
+    - ineffassign
+    - unconvert
+    - goconst
+    # - depguard
+    - prealloc
+    # - dupl
+    - misspell
+    - bodyclose
+    - sqlclosecheck
+    - nilerr
+    - nestif
+    - forcetypeassert
+    - exhaustive
+    - funlen
+    # - wsl_v5
+    - testifylint
 
-
-
+  # disable noisy/controversial ones which you might enable later
+  disable:
+    - lll          # line length — handled by gfmt/gofumpt
 
   settings:
-    gocyclo:
-      min-complexity: 12   # Threshold before warning (default is 30, so stricter)
+    dupl:
+      threshold: 20  # lower => stricter (tokens)
+    errcheck:
+      check-type-assertions: true
+    funlen:
+      lines: 120
+      statements: 80
     goconst:
-      min-len: 3           # Minimum length of repeated string to report
-      min-occurrences: 2   # Minimum occurrences before reporting
-    misspell:
-      locale: US           # Use US English dictionary
-    gosec:
-      severity: medium     # Report at least medium severity issues
-      confidence: medium   # Require at least medium confidence
-    prealloc:
-      for-loops: true      # Also detect opportunities in for-loops
+      min-len: 2
+      min-occurrences: 3
+    gocyclo:
+      min-complexity: 15 # strict; lower => stricter
+    wsl_v5:
+      allow-first-in-block: true
+      allow-whole-block: false
+      branch-max-lines: 2
+    testifylint:
+      disable:
+        - require-error
+        - float-compare
 
-
+  exclusions:
+    generated: lax
+    paths:
+      - examples$
+    rules:
+      - linters:
+          - revive
+        text: "^unused-parameter:"
+      - linters:
+          - revive
+        text: "^package-comments:"
+      - linters:
+          - errcheck
+        text: "Error return value of `.*\\.Body\\.Close` is not checked"
+      # linters disabled in tests
+      - linters:
+          - dupl
+          - goconst
+          - funlen
+          - errcheck
+          - forcetypeassert
+          - revive
+        path: "_test\\.go$"
+      - linters:
+          - revive
+        path: "tests/"
 
 
 
 issues:
-  max-issues-per-linter: 0   # No artificial limit
-  max-same-issues: 0         # No artificial limit for identical issues
+  max-issues-per-linter: 0  # 0 = unlimited (we want ALL issues)
+  max-same-issues: 100
+
+
+formatters:
+  enable:
+    - gofmt
+    - gofumpt
+  exclusions:
+    generated: lax
+    paths:
+      - third_party$
+      - builtin$
+      - examples$
