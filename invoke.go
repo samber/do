@@ -105,7 +105,7 @@ func invokeByName[T any](i Injector, name string) (T, error) {
 
 	service, ok := serviceAny.(serviceWrapper[T])
 	if !ok {
-		return empty[T](), serviceTypeMismatch(inferServiceName[T](), serviceAny.(serviceWrapperAny).getTypeName()) //nolint:errcheck
+		return empty[T](), serviceTypeMismatch(inferServiceName[T](), serviceAny.(serviceWrapperAny).getTypeName()) //nolint:errcheck,forcetypeassert
 	}
 
 	injector.RootScope().opts.onBeforeInvocation(serviceScope, name)
@@ -154,7 +154,7 @@ func invokeByGenericType[T any](i Injector) (T, error) {
 		if serviceCanCastToGeneric[T](s) {
 			serviceInstance = s
 			serviceScope = scope
-			serviceRealName = s.(serviceWrapperGetName).getName() //nolint:errcheck
+			serviceRealName = s.(serviceWrapperGetName).getName() //nolint:errcheck,forcetypeassert
 			ok = true
 
 			// Stop or not stop, that's the question -> https://github.com/samber/do/issues/114
@@ -175,7 +175,7 @@ func invokeByGenericType[T any](i Injector) (T, error) {
 	}
 
 	injector.RootScope().opts.onBeforeInvocation(serviceScope, serviceAliasName)
-	instance, err := serviceInstance.(serviceWrapperGetInstanceAny).getInstanceAny( //nolint:errcheck
+	instance, err := serviceInstance.(serviceWrapperGetInstanceAny).getInstanceAny( //nolint:errcheck,forcetypeassert
 		newVirtualScope(serviceScope, append(invokerChain, serviceRealName)),
 	)
 	injector.RootScope().opts.onAfterInvocation(serviceScope, serviceAliasName, err)
@@ -264,7 +264,7 @@ func invokeByTags(i Injector, structName string, structValue reflect.Value, impl
 			var found bool
 			injector.serviceForEachRec(func(name string, _ *Scope, s any) bool {
 				if serviceCanCastToType(s, toType) {
-					resolvedName = s.(serviceWrapperGetName).getName() //nolint:errcheck
+					resolvedName = s.(serviceWrapperGetName).getName() //nolint:errcheck,forcetypeassert
 					found = true
 
 					// Stop or not stop, that's the question -> https://github.com/samber/do/issues/114
