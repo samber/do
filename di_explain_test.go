@@ -1,6 +1,7 @@
 package do
 
 import (
+	"context"
 	"os"
 	"testing"
 	"time"
@@ -277,7 +278,7 @@ Scope name: scope-child
 Service name: SERVICE-E
 Service type: lazy
 Service build time: 1s
-Invoked: ` + dirname + `/di_explain_test.go:fakeProvider5:39
+Invoked: ` + dirname + `/di_explain_test.go:fakeProvider5:40
 
 Dependencies:
 * SERVICE-D from scope scope-child
@@ -305,7 +306,7 @@ Scope name: scope-child
 
 Service name: SERVICE-E
 Service type: lazy
-Invoked: ` + dirname + `/di_explain_test.go:fakeProvider5:39
+Invoked: ` + dirname + `/di_explain_test.go:fakeProvider5:40
 
 Dependencies:
 * SERVICE-D from scope scope-child
@@ -333,158 +334,6 @@ Dependents:
 /////////////////////////////////////////////////////////////////////////////
 // 							Explain scopes
 /////////////////////////////////////////////////////////////////////////////
-
-func TestExplainInjector_String(t *testing.T) {
-	t.Parallel()
-	testWithTimeout(t, 100*time.Millisecond)
-	is := assert.New(t)
-
-	// Test with all fields populated
-	output := ExplainInjectorOutput{
-		ScopeID:   "scope-123",
-		ScopeName: "test-scope",
-		DAG: []ExplainInjectorScopeOutput{
-			{
-				ScopeID:   "scope-123",
-				ScopeName: "test-scope",
-				Services: []ExplainInjectorServiceOutput{
-					{
-						ServiceName:      "service1",
-						ServiceType:      ServiceTypeLazy,
-						ServiceTypeIcon:  "😴",
-						ServiceBuildTime: 1 * time.Second,
-						IsHealthchecker:  true,
-						IsShutdowner:     false,
-					},
-					{
-						ServiceName:      "service2",
-						ServiceType:      ServiceTypeEager,
-						ServiceTypeIcon:  "🔁",
-						ServiceBuildTime: 0,
-						IsHealthchecker:  false,
-						IsShutdowner:     true,
-					},
-				},
-				Children: []ExplainInjectorScopeOutput{
-					{
-						ScopeID:   "child-123",
-						ScopeName: "child-scope",
-						Services:  []ExplainInjectorServiceOutput{},
-						Children:  []ExplainInjectorScopeOutput{},
-					},
-				},
-			},
-		},
-	}
-
-	expected := `Scope ID: scope-123
-Scope name: test-scope
-
-DAG:
- |
-  \_ test-scope (ID: scope-123)
-      * 😴 service1 🫀
-      * 🔁 service2 🙅
-      |
-      |
-       \_ child-scope (ID: child-123)
-`
-	is.Equal(expected, output.String())
-
-	// Test with minimal fields
-	output2 := ExplainInjectorOutput{
-		ScopeID:   "scope-123",
-		ScopeName: "test-scope",
-		DAG:       []ExplainInjectorScopeOutput{},
-	}
-
-	expected2 := `Scope ID: scope-123
-Scope name: test-scope
-
-DAG:
-
-`
-	is.Equal(expected2, output2.String())
-}
-
-func TestExplainInjectorScope_String(t *testing.T) {
-	t.Parallel()
-	testWithTimeout(t, 100*time.Millisecond)
-	is := assert.New(t)
-
-	// Test with all fields populated
-	output := ExplainInjectorScopeOutput{
-		ScopeID:   "scope-123",
-		ScopeName: "test-scope",
-		Services: []ExplainInjectorServiceOutput{
-			{
-				ServiceName:      "service1",
-				ServiceType:      ServiceTypeLazy,
-				ServiceTypeIcon:  "😴",
-				ServiceBuildTime: 1 * time.Second,
-				IsHealthchecker:  true,
-				IsShutdowner:     false,
-			},
-			{
-				ServiceName:      "service2",
-				ServiceType:      ServiceTypeEager,
-				ServiceTypeIcon:  "🔁",
-				ServiceBuildTime: 0,
-				IsHealthchecker:  false,
-				IsShutdowner:     true,
-			},
-		},
-		Children: []ExplainInjectorScopeOutput{
-			{
-				ScopeID:   "child-123",
-				ScopeName: "child-scope",
-				Services:  []ExplainInjectorServiceOutput{},
-				Children:  []ExplainInjectorScopeOutput{},
-			},
-		},
-		IsAncestor: false,
-		IsChildren: true,
-	}
-
-	expected := `test-scope (ID: scope-123)
- * 😴 service1 🫀
- * 🔁 service2 🙅
- |
- |
-  \_ child-scope (ID: child-123)`
-	is.Equal(expected, output.String())
-
-	// Test with minimal fields
-	output2 := ExplainInjectorScopeOutput{
-		ScopeID:    "scope-123",
-		ScopeName:  "test-scope",
-		Services:   []ExplainInjectorServiceOutput{},
-		Children:   []ExplainInjectorScopeOutput{},
-		IsAncestor: true,
-		IsChildren: false,
-	}
-
-	expected2 := `test-scope (ID: scope-123)`
-	is.Equal(expected2, output2.String())
-}
-
-func TestExplainInjectorService_String(t *testing.T) {
-	t.Parallel()
-	testWithTimeout(t, 100*time.Millisecond)
-	is := assert.New(t)
-
-	svc := ExplainInjectorServiceOutput{ServiceName: "service-name", ServiceType: ServiceTypeLazy, ServiceTypeIcon: "😴", ServiceBuildTime: 1 * time.Second, IsHealthchecker: true, IsShutdowner: true}
-	expected := ` * 😴 service-name 🫀 🙅`
-	is.Equal(expected, svc.String())
-
-	svc = ExplainInjectorServiceOutput{ServiceName: "service-name", ServiceType: ServiceTypeEager, ServiceTypeIcon: "🔁", IsHealthchecker: true, IsShutdowner: false}
-	expected = ` * 🔁 service-name 🫀`
-	is.Equal(expected, svc.String())
-
-	svc = ExplainInjectorServiceOutput{ServiceName: "service-name", IsHealthchecker: true, IsShutdowner: true}
-	expected = ` * ❓ service-name`
-	is.Equal(expected, svc.String())
-}
 
 func TestExplainInjector(t *testing.T) {
 	t.Parallel()
@@ -714,4 +563,243 @@ DAG:
 `
 	output = ExplainInjector(scope2b)
 	is.Equal(expected, output.String())
+}
+
+func TestExplainInjector_repeatedServices(t *testing.T) {
+	t.Parallel()
+	testWithTimeout(t, 100*time.Millisecond)
+	is := assert.New(t)
+
+	rootCtx := context.Background()
+
+	// Create the rootScope with a context and a string provided.
+	rootScope := New(
+		Eager(rootCtx),
+		Eager("Hello, World!"),
+	)
+	rootScope.self.id = "root-scope"
+	_ = MustInvoke[context.Context](rootScope) // Add (rootScope).context.Context to the invoked list.
+
+	// Create a childScope with only a context.
+	childScope := rootScope.Scope("child",
+		Eager(rootCtx),
+	)
+	childScope.id = "scope-123"
+	_ = MustInvoke[context.Context](childScope) // Add (childScope).context.Context to the invoked list.
+
+	output := ExplainInjector(childScope)
+
+	is.Equal(`Scope ID: scope-123
+Scope name: child
+
+DAG:
+ |
+  \_ [root] (ID: root-scope)
+      * 🔁 context.Context
+      * 🔁 string
+      |
+      |
+       \_ child (ID: scope-123)
+           * 🔁 context.Context
+`, output.String())
+
+	is.Equal([]ExplainInjectorScopeOutput{
+		{
+			ScopeID:   "root-scope",
+			ScopeName: "[root]",
+			Scope:     rootScope.self,
+			Services: []ExplainInjectorServiceOutput{
+				{
+					ServiceName:      "context.Context",
+					ServiceType:      ServiceTypeEager,
+					ServiceTypeIcon:  "🔁",
+					ServiceBuildTime: 0,
+					IsHealthchecker:  false,
+					IsShutdowner:     false,
+				},
+				{
+					ServiceName:      "string",
+					ServiceType:      ServiceTypeEager,
+					ServiceTypeIcon:  "🔁",
+					ServiceBuildTime: 0,
+					IsHealthchecker:  false,
+					IsShutdowner:     false,
+				},
+			},
+			Children: []ExplainInjectorScopeOutput{
+				{
+					ScopeID:   "scope-123",
+					ScopeName: "child",
+					Scope:     childScope,
+					Services: []ExplainInjectorServiceOutput{
+						{
+							ServiceName:      "context.Context",
+							ServiceType:      ServiceTypeEager,
+							ServiceTypeIcon:  "🔁",
+							ServiceBuildTime: 0,
+							IsHealthchecker:  false,
+							IsShutdowner:     false,
+						},
+					},
+					Children:   []ExplainInjectorScopeOutput{},
+					IsAncestor: false,
+					IsChildren: false,
+				},
+			},
+			IsAncestor: true,
+			IsChildren: false,
+		},
+	}, output.DAG)
+}
+
+func TestExplainInjector_String(t *testing.T) {
+	t.Parallel()
+	testWithTimeout(t, 100*time.Millisecond)
+	is := assert.New(t)
+
+	// Test with all fields populated
+	output := ExplainInjectorOutput{
+		ScopeID:   "scope-123",
+		ScopeName: "test-scope",
+		DAG: []ExplainInjectorScopeOutput{
+			{
+				ScopeID:   "scope-123",
+				ScopeName: "test-scope",
+				Services: []ExplainInjectorServiceOutput{
+					{
+						ServiceName:      "service1",
+						ServiceType:      ServiceTypeLazy,
+						ServiceTypeIcon:  "😴",
+						ServiceBuildTime: 1 * time.Second,
+						IsHealthchecker:  true,
+						IsShutdowner:     false,
+					},
+					{
+						ServiceName:      "service2",
+						ServiceType:      ServiceTypeEager,
+						ServiceTypeIcon:  "🔁",
+						ServiceBuildTime: 0,
+						IsHealthchecker:  false,
+						IsShutdowner:     true,
+					},
+				},
+				Children: []ExplainInjectorScopeOutput{
+					{
+						ScopeID:   "child-123",
+						ScopeName: "child-scope",
+						Services:  []ExplainInjectorServiceOutput{},
+						Children:  []ExplainInjectorScopeOutput{},
+					},
+				},
+			},
+		},
+	}
+
+	expected := `Scope ID: scope-123
+Scope name: test-scope
+
+DAG:
+ |
+  \_ test-scope (ID: scope-123)
+      * 😴 service1 🫀
+      * 🔁 service2 🙅
+      |
+      |
+       \_ child-scope (ID: child-123)
+`
+	is.Equal(expected, output.String())
+
+	// Test with minimal fields
+	output2 := ExplainInjectorOutput{
+		ScopeID:   "scope-123",
+		ScopeName: "test-scope",
+		DAG:       []ExplainInjectorScopeOutput{},
+	}
+
+	expected2 := `Scope ID: scope-123
+Scope name: test-scope
+
+DAG:
+
+`
+	is.Equal(expected2, output2.String())
+}
+
+func TestExplainInjectorScope_String(t *testing.T) {
+	t.Parallel()
+	testWithTimeout(t, 100*time.Millisecond)
+	is := assert.New(t)
+
+	// Test with all fields populated
+	output := ExplainInjectorScopeOutput{
+		ScopeID:   "scope-123",
+		ScopeName: "test-scope",
+		Services: []ExplainInjectorServiceOutput{
+			{
+				ServiceName:      "service1",
+				ServiceType:      ServiceTypeLazy,
+				ServiceTypeIcon:  "😴",
+				ServiceBuildTime: 1 * time.Second,
+				IsHealthchecker:  true,
+				IsShutdowner:     false,
+			},
+			{
+				ServiceName:      "service2",
+				ServiceType:      ServiceTypeEager,
+				ServiceTypeIcon:  "🔁",
+				ServiceBuildTime: 0,
+				IsHealthchecker:  false,
+				IsShutdowner:     true,
+			},
+		},
+		Children: []ExplainInjectorScopeOutput{
+			{
+				ScopeID:   "child-123",
+				ScopeName: "child-scope",
+				Services:  []ExplainInjectorServiceOutput{},
+				Children:  []ExplainInjectorScopeOutput{},
+			},
+		},
+		IsAncestor: false,
+		IsChildren: true,
+	}
+
+	expected := `test-scope (ID: scope-123)
+ * 😴 service1 🫀
+ * 🔁 service2 🙅
+ |
+ |
+  \_ child-scope (ID: child-123)`
+	is.Equal(expected, output.String())
+
+	// Test with minimal fields
+	output2 := ExplainInjectorScopeOutput{
+		ScopeID:    "scope-123",
+		ScopeName:  "test-scope",
+		Services:   []ExplainInjectorServiceOutput{},
+		Children:   []ExplainInjectorScopeOutput{},
+		IsAncestor: true,
+		IsChildren: false,
+	}
+
+	expected2 := `test-scope (ID: scope-123)`
+	is.Equal(expected2, output2.String())
+}
+
+func TestExplainInjectorService_String(t *testing.T) {
+	t.Parallel()
+	testWithTimeout(t, 100*time.Millisecond)
+	is := assert.New(t)
+
+	svc := ExplainInjectorServiceOutput{ServiceName: "service-name", ServiceType: ServiceTypeLazy, ServiceTypeIcon: "😴", ServiceBuildTime: 1 * time.Second, IsHealthchecker: true, IsShutdowner: true}
+	expected := ` * 😴 service-name 🫀 🙅`
+	is.Equal(expected, svc.String())
+
+	svc = ExplainInjectorServiceOutput{ServiceName: "service-name", ServiceType: ServiceTypeEager, ServiceTypeIcon: "🔁", IsHealthchecker: true, IsShutdowner: false}
+	expected = ` * 🔁 service-name 🫀`
+	is.Equal(expected, svc.String())
+
+	svc = ExplainInjectorServiceOutput{ServiceName: "service-name", IsHealthchecker: true, IsShutdowner: true}
+	expected = ` * ❓ service-name`
+	is.Equal(expected, svc.String())
 }
