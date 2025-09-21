@@ -51,6 +51,7 @@ func (s *virtualScope) ChildByName(name string) (*Scope, bool)     { return s.se
 func (s *virtualScope) ListProvidedServices() []ServiceDescription {
 	return s.self.ListProvidedServices()
 }
+
 func (s *virtualScope) ListInvokedServices() []ServiceDescription {
 	return s.self.ListInvokedServices()
 }
