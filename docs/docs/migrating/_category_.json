@@ -1,8 +1,0 @@
-{
-  "label": "🏎️ Migrating",
-  "position": 8,
-  "link": {
-    "type": "generated-index",
-    "description": "Migrate your dependency injection from another framework to samber/do"
-  }
-}
