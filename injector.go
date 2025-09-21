@@ -40,10 +40,10 @@ type Injector interface {
 	ChildByName(string) (*Scope, bool)
 
 	// ListProvidedServices returns all services available in the current scope and all its ancestor scopes.
-	ListProvidedServices() []EdgeService
+	ListProvidedServices() []ServiceDescription
 
 	// ListInvokedServices returns only the services that have been actually invoked in the current scope and its ancestors.
-	ListInvokedServices() []EdgeService
+	ListInvokedServices() []ServiceDescription
 
 	// HealthCheck performs health checks on all services in the current scope and its ancestors.
 	HealthCheck() map[string]error

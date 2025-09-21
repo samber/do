@@ -201,15 +201,15 @@ func (s *Scope) ChildByName(name string) (*Scope, bool) {
 // This provides a complete view of the service hierarchy, showing all services
 // that can be accessed from the current scope.
 //
-// Returns a slice of EdgeService objects representing all available services,
+// Returns a slice of ServiceDescription objects representing all available services,
 // including those inherited from parent scopes.
-func (s *Scope) ListProvidedServices() []EdgeService {
-	services := []EdgeService{}
+func (s *Scope) ListProvidedServices() []ServiceDescription {
+	services := []ServiceDescription{}
 
 	// Add services from current scope
 	s.mu.RLock()
 	for name := range s.services {
-		services = append(services, newEdgeService(s.id, s.name, name))
+		services = append(services, newServiceDescription(s.id, s.name, name))
 	}
 	s.mu.RUnlock()
 
@@ -230,14 +230,14 @@ func (s *Scope) ListProvidedServices() []EdgeService {
 // This is useful for understanding which services are actually being used
 // and for debugging dependency issues.
 //
-// Returns a slice of EdgeService objects representing only the invoked services.
-func (s *Scope) ListInvokedServices() []EdgeService {
-	services := []EdgeService{}
+// Returns a slice of ServiceDescription objects representing only the invoked services.
+func (s *Scope) ListInvokedServices() []ServiceDescription {
+	services := []ServiceDescription{}
 
 	// Add invoked services from current scope
 	s.mu.RLock()
 	for name := range s.orderedInvocation {
-		services = append(services, newEdgeService(s.id, s.name, name))
+		services = append(services, newServiceDescription(s.id, s.name, name))
 	}
 	s.mu.RUnlock()
 
@@ -388,10 +388,10 @@ func (s *Scope) shutdownChildrenInParallel(ctx context.Context) *ShutdownReport 
 func (s *Scope) shutdownServicesInParallel(ctx context.Context) *ShutdownReport {
 	report := &ShutdownReport{
 		Succeed:             true,
-		Services:            []EdgeService{},
-		Errors:              map[EdgeService]error{},
+		Services:            []ServiceDescription{},
+		Errors:              map[ServiceDescription]error{},
 		ShutdownTime:        0,
-		ServiceShutdownTime: map[EdgeService]time.Duration{},
+		ServiceShutdownTime: map[ServiceDescription]time.Duration{},
 	}
 
 	listServices := func() []string {
@@ -440,30 +440,30 @@ func (s *Scope) shutdownServicesInParallel(ctx context.Context) *ShutdownReport 
 // Returns a ShutdownReport containing any errors from the shutdown operations.
 func (s *Scope) shutdownServicesWithoutDependenciesInParallel(ctx context.Context, serviceNames []string) *ShutdownReport {
 	if len(serviceNames) == 0 {
-		return &ShutdownReport{Succeed: true, Services: []EdgeService{}, Errors: map[EdgeService]error{}, ShutdownTime: 0, ServiceShutdownTime: map[EdgeService]time.Duration{}}
+		return &ShutdownReport{Succeed: true, Services: []ServiceDescription{}, Errors: map[ServiceDescription]error{}, ShutdownTime: 0, ServiceShutdownTime: map[ServiceDescription]time.Duration{}}
 	}
 
 	mu := sync.Mutex{}
-	services := []EdgeService{}
-	errors := map[EdgeService]error{}
-	perServiceTimes := map[EdgeService]time.Duration{}
+	services := []ServiceDescription{}
+	errors := map[ServiceDescription]error{}
+	perServiceTimes := map[ServiceDescription]time.Duration{}
 
 	var wg sync.WaitGroup
 	wg.Add(len(serviceNames))
 
 	for _, name := range serviceNames {
 		go func(n string) {
-			edge := newEdgeService(s.id, s.name, n)
+			desc := newServiceDescription(s.id, s.name, n)
 			start := time.Now()
 			e := s.serviceShutdown(ctx, n)
 			dt := time.Since(start)
 
 			mu.Lock()
-			services = append(services, edge)
+			services = append(services, desc)
 			if e != nil {
-				errors[edge] = e
+				errors[desc] = e
 			}
-			perServiceTimes[edge] = dt
+			perServiceTimes[desc] = dt
 			mu.Unlock()
 
 			wg.Done()

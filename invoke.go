@@ -332,12 +332,12 @@ func serviceTypeMismatch(invoking string, registered string) error {
 	return fmt.Errorf("DI: service found, but type mismatch: invoking `%s` but registered `%s`", invoking, registered)
 }
 
-// getServiceNames formats a list of EdgeService names for error reporting.
-// This function converts EdgeService objects to formatted string names
+// getServiceNames formats a list of ServiceDescription names for error reporting.
+// This function converts ServiceDescription objects to formatted string names
 // that can be displayed in error messages.
-func getServiceNames(services []EdgeService) []string {
-	return mAp(services, func(edge EdgeService, _ int) string {
-		return fmt.Sprintf("`%s`", edge.Service)
+func getServiceNames(services []ServiceDescription) []string {
+	return mAp(services, func(desc ServiceDescription, _ int) string {
+		return fmt.Sprintf("`%s`", desc.Service)
 	})
 }
 

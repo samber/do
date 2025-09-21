@@ -1189,12 +1189,12 @@ func TestPackage(t *testing.T) {
 	root := New()
 	pkg(root)
 
-	svc1 := newEdgeService(root.ID(), root.Name(), NameOf[*test]())
-	svc2 := newEdgeService(root.ID(), root.Name(), NameOf[test]())
-	svc3 := newEdgeService(root.ID(), root.Name(), NameOf[iTest]())
+	svc1 := newServiceDescription(root.ID(), root.Name(), NameOf[*test]())
+	svc2 := newServiceDescription(root.ID(), root.Name(), NameOf[test]())
+	svc3 := newServiceDescription(root.ID(), root.Name(), NameOf[iTest]())
 
-	is.ElementsMatch([]EdgeService{svc1, svc2, svc3}, root.ListProvidedServices())
-	is.ElementsMatch([]EdgeService{}, root.ListInvokedServices())
+	is.ElementsMatch([]ServiceDescription{svc1, svc2, svc3}, root.ListProvidedServices())
+	is.ElementsMatch([]ServiceDescription{}, root.ListInvokedServices())
 
 	is.NotPanics(func() {
 		_ = MustInvoke[*test](root)
@@ -1202,8 +1202,8 @@ func TestPackage(t *testing.T) {
 		_ = MustInvoke[iTest](root)
 	})
 
-	is.ElementsMatch([]EdgeService{svc1, svc2, svc3}, root.ListProvidedServices())
-	is.ElementsMatch([]EdgeService{svc1, svc2, svc3}, root.ListInvokedServices())
+	is.ElementsMatch([]ServiceDescription{svc1, svc2, svc3}, root.ListProvidedServices())
+	is.ElementsMatch([]ServiceDescription{svc1, svc2, svc3}, root.ListInvokedServices())
 }
 
 func TestNewWithPackage(t *testing.T) {
@@ -1228,12 +1228,12 @@ func TestNewWithPackage(t *testing.T) {
 		Bind[*test, iTest](),
 	)
 
-	svc1 := newEdgeService(root.ID(), root.Name(), NameOf[*test]())
-	svc2 := newEdgeService(root.ID(), root.Name(), NameOf[test]())
-	svc3 := newEdgeService(root.ID(), root.Name(), NameOf[iTest]())
+	svc1 := newServiceDescription(root.ID(), root.Name(), NameOf[*test]())
+	svc2 := newServiceDescription(root.ID(), root.Name(), NameOf[test]())
+	svc3 := newServiceDescription(root.ID(), root.Name(), NameOf[iTest]())
 
-	is.ElementsMatch([]EdgeService{svc1, svc2, svc3}, root.ListProvidedServices())
-	is.ElementsMatch([]EdgeService{}, root.ListInvokedServices())
+	is.ElementsMatch([]ServiceDescription{svc1, svc2, svc3}, root.ListProvidedServices())
+	is.ElementsMatch([]ServiceDescription{}, root.ListInvokedServices())
 
 	is.NotPanics(func() {
 		_ = MustInvoke[*test](root)
@@ -1241,8 +1241,8 @@ func TestNewWithPackage(t *testing.T) {
 		_ = MustInvoke[iTest](root)
 	})
 
-	is.ElementsMatch([]EdgeService{svc1, svc2, svc3}, root.ListProvidedServices())
-	is.ElementsMatch([]EdgeService{svc1, svc2, svc3}, root.ListInvokedServices())
+	is.ElementsMatch([]ServiceDescription{svc1, svc2, svc3}, root.ListProvidedServices())
+	is.ElementsMatch([]ServiceDescription{svc1, svc2, svc3}, root.ListInvokedServices())
 }
 
 func TestLazy(t *testing.T) {
@@ -1264,19 +1264,19 @@ func TestLazy(t *testing.T) {
 	Lazy(provider1)(root)
 	Lazy(provider2)(root)
 
-	svc1 := newEdgeService(root.ID(), root.Name(), NameOf[*test]())
-	svc2 := newEdgeService(root.ID(), root.Name(), NameOf[test]())
+	svc1 := newServiceDescription(root.ID(), root.Name(), NameOf[*test]())
+	svc2 := newServiceDescription(root.ID(), root.Name(), NameOf[test]())
 
-	is.ElementsMatch([]EdgeService{svc1, svc2}, root.ListProvidedServices())
-	is.ElementsMatch([]EdgeService{}, root.ListInvokedServices())
+	is.ElementsMatch([]ServiceDescription{svc1, svc2}, root.ListProvidedServices())
+	is.ElementsMatch([]ServiceDescription{}, root.ListInvokedServices())
 
 	is.NotPanics(func() {
 		_ = MustInvoke[*test](root)
 		_, _ = Invoke[test](root)
 	})
 
-	is.ElementsMatch([]EdgeService{svc1, svc2}, root.ListProvidedServices())
-	is.ElementsMatch([]EdgeService{svc1}, root.ListInvokedServices())
+	is.ElementsMatch([]ServiceDescription{svc1, svc2}, root.ListProvidedServices())
+	is.ElementsMatch([]ServiceDescription{svc1}, root.ListInvokedServices())
 }
 
 func TestLazyNamed(t *testing.T) {
@@ -1298,19 +1298,19 @@ func TestLazyNamed(t *testing.T) {
 	LazyNamed("p1", provider1)(root)
 	LazyNamed("p2", provider2)(root)
 
-	svc1 := newEdgeService(root.ID(), root.Name(), "p1")
-	svc2 := newEdgeService(root.ID(), root.Name(), "p2")
+	svc1 := newServiceDescription(root.ID(), root.Name(), "p1")
+	svc2 := newServiceDescription(root.ID(), root.Name(), "p2")
 
-	is.ElementsMatch([]EdgeService{svc1, svc2}, root.ListProvidedServices())
-	is.ElementsMatch([]EdgeService{}, root.ListInvokedServices())
+	is.ElementsMatch([]ServiceDescription{svc1, svc2}, root.ListProvidedServices())
+	is.ElementsMatch([]ServiceDescription{}, root.ListInvokedServices())
 
 	is.NotPanics(func() {
 		_ = MustInvokeNamed[*test](root, "p1")
 		_, _ = InvokeNamed[test](root, "p2")
 	})
 
-	is.ElementsMatch([]EdgeService{svc1, svc2}, root.ListProvidedServices())
-	is.ElementsMatch([]EdgeService{svc1}, root.ListInvokedServices())
+	is.ElementsMatch([]ServiceDescription{svc1, svc2}, root.ListProvidedServices())
+	is.ElementsMatch([]ServiceDescription{svc1}, root.ListInvokedServices())
 }
 
 func TestEager(t *testing.T) {
@@ -1324,19 +1324,19 @@ func TestEager(t *testing.T) {
 	Eager(&test{})(root)
 	Eager(test{})(root)
 
-	svc1 := newEdgeService(root.ID(), root.Name(), NameOf[*test]())
-	svc2 := newEdgeService(root.ID(), root.Name(), NameOf[test]())
+	svc1 := newServiceDescription(root.ID(), root.Name(), NameOf[*test]())
+	svc2 := newServiceDescription(root.ID(), root.Name(), NameOf[test]())
 
-	is.ElementsMatch([]EdgeService{svc1, svc2}, root.ListProvidedServices())
-	is.ElementsMatch([]EdgeService{}, root.ListInvokedServices())
+	is.ElementsMatch([]ServiceDescription{svc1, svc2}, root.ListProvidedServices())
+	is.ElementsMatch([]ServiceDescription{}, root.ListInvokedServices())
 
 	is.NotPanics(func() {
 		_ = MustInvoke[*test](root)
 		_ = MustInvoke[test](root)
 	})
 
-	is.ElementsMatch([]EdgeService{svc1, svc2}, root.ListProvidedServices())
-	is.ElementsMatch([]EdgeService{svc1, svc2}, root.ListInvokedServices())
+	is.ElementsMatch([]ServiceDescription{svc1, svc2}, root.ListProvidedServices())
+	is.ElementsMatch([]ServiceDescription{svc1, svc2}, root.ListInvokedServices())
 }
 
 func TestEagerNamed(t *testing.T) {
@@ -1350,19 +1350,19 @@ func TestEagerNamed(t *testing.T) {
 	EagerNamed("p1", &test{})(root)
 	EagerNamed("p2", test{})(root)
 
-	svc1 := newEdgeService(root.ID(), root.Name(), "p1")
-	svc2 := newEdgeService(root.ID(), root.Name(), "p2")
+	svc1 := newServiceDescription(root.ID(), root.Name(), "p1")
+	svc2 := newServiceDescription(root.ID(), root.Name(), "p2")
 
-	is.ElementsMatch([]EdgeService{svc1, svc2}, root.ListProvidedServices())
-	is.ElementsMatch([]EdgeService{}, root.ListInvokedServices())
+	is.ElementsMatch([]ServiceDescription{svc1, svc2}, root.ListProvidedServices())
+	is.ElementsMatch([]ServiceDescription{}, root.ListInvokedServices())
 
 	is.NotPanics(func() {
 		_ = MustInvokeNamed[*test](root, "p1")
 		_ = MustInvokeNamed[test](root, "p2")
 	})
 
-	is.ElementsMatch([]EdgeService{svc1, svc2}, root.ListProvidedServices())
-	is.ElementsMatch([]EdgeService{svc1, svc2}, root.ListInvokedServices())
+	is.ElementsMatch([]ServiceDescription{svc1, svc2}, root.ListProvidedServices())
+	is.ElementsMatch([]ServiceDescription{svc1, svc2}, root.ListInvokedServices())
 }
 
 func TestTransient(t *testing.T) {
@@ -1384,19 +1384,19 @@ func TestTransient(t *testing.T) {
 	Transient(provider1)(root)
 	Transient(provider2)(root)
 
-	svc1 := newEdgeService(root.ID(), root.Name(), NameOf[*test]())
-	svc2 := newEdgeService(root.ID(), root.Name(), NameOf[test]())
+	svc1 := newServiceDescription(root.ID(), root.Name(), NameOf[*test]())
+	svc2 := newServiceDescription(root.ID(), root.Name(), NameOf[test]())
 
-	is.ElementsMatch([]EdgeService{svc1, svc2}, root.ListProvidedServices())
-	is.ElementsMatch([]EdgeService{}, root.ListInvokedServices())
+	is.ElementsMatch([]ServiceDescription{svc1, svc2}, root.ListProvidedServices())
+	is.ElementsMatch([]ServiceDescription{}, root.ListInvokedServices())
 
 	is.NotPanics(func() {
 		_ = MustInvoke[*test](root)
 		_, _ = Invoke[test](root)
 	})
 
-	is.ElementsMatch([]EdgeService{svc1, svc2}, root.ListProvidedServices())
-	is.ElementsMatch([]EdgeService{svc1}, root.ListInvokedServices())
+	is.ElementsMatch([]ServiceDescription{svc1, svc2}, root.ListProvidedServices())
+	is.ElementsMatch([]ServiceDescription{svc1}, root.ListInvokedServices())
 }
 
 func TestTransientNamed(t *testing.T) {
@@ -1418,19 +1418,19 @@ func TestTransientNamed(t *testing.T) {
 	TransientNamed("p1", provider1)(root)
 	TransientNamed("p2", provider2)(root)
 
-	svc1 := newEdgeService(root.ID(), root.Name(), "p1")
-	svc2 := newEdgeService(root.ID(), root.Name(), "p2")
+	svc1 := newServiceDescription(root.ID(), root.Name(), "p1")
+	svc2 := newServiceDescription(root.ID(), root.Name(), "p2")
 
-	is.ElementsMatch([]EdgeService{svc1, svc2}, root.ListProvidedServices())
-	is.ElementsMatch([]EdgeService{}, root.ListInvokedServices())
+	is.ElementsMatch([]ServiceDescription{svc1, svc2}, root.ListProvidedServices())
+	is.ElementsMatch([]ServiceDescription{}, root.ListInvokedServices())
 
 	is.NotPanics(func() {
 		_ = MustInvokeNamed[*test](root, "p1")
 		_, _ = InvokeNamed[test](root, "p2")
 	})
 
-	is.ElementsMatch([]EdgeService{svc1, svc2}, root.ListProvidedServices())
-	is.ElementsMatch([]EdgeService{svc1}, root.ListInvokedServices())
+	is.ElementsMatch([]ServiceDescription{svc1, svc2}, root.ListProvidedServices())
+	is.ElementsMatch([]ServiceDescription{svc1}, root.ListInvokedServices())
 }
 
 func TestBind(t *testing.T) {
@@ -1454,12 +1454,12 @@ func TestBind(t *testing.T) {
 	Lazy(provider2)(root)
 	Bind[*test, iTest]()(root)
 
-	svc1 := newEdgeService(root.ID(), root.Name(), NameOf[*test]())
-	svc2 := newEdgeService(root.ID(), root.Name(), NameOf[test]())
-	svc3 := newEdgeService(root.ID(), root.Name(), NameOf[iTest]())
+	svc1 := newServiceDescription(root.ID(), root.Name(), NameOf[*test]())
+	svc2 := newServiceDescription(root.ID(), root.Name(), NameOf[test]())
+	svc3 := newServiceDescription(root.ID(), root.Name(), NameOf[iTest]())
 
-	is.ElementsMatch([]EdgeService{svc1, svc2, svc3}, root.ListProvidedServices())
-	is.ElementsMatch([]EdgeService{}, root.ListInvokedServices())
+	is.ElementsMatch([]ServiceDescription{svc1, svc2, svc3}, root.ListProvidedServices())
+	is.ElementsMatch([]ServiceDescription{}, root.ListInvokedServices())
 
 	is.NotPanics(func() {
 		_ = MustInvoke[*test](root)
@@ -1467,8 +1467,8 @@ func TestBind(t *testing.T) {
 		_ = MustInvoke[iTest](root)
 	})
 
-	is.ElementsMatch([]EdgeService{svc1, svc2, svc3}, root.ListProvidedServices())
-	is.ElementsMatch([]EdgeService{svc1, svc3}, root.ListInvokedServices())
+	is.ElementsMatch([]ServiceDescription{svc1, svc2, svc3}, root.ListProvidedServices())
+	is.ElementsMatch([]ServiceDescription{svc1, svc3}, root.ListInvokedServices())
 }
 
 func TestBindNamed(t *testing.T) {
@@ -1492,12 +1492,12 @@ func TestBindNamed(t *testing.T) {
 	Lazy(provider2)(root)
 	BindNamed[*test, iTest](NameOf[*test](), NameOf[iTest]())(root)
 
-	svc1 := newEdgeService(root.ID(), root.Name(), NameOf[*test]())
-	svc2 := newEdgeService(root.ID(), root.Name(), NameOf[test]())
-	svc3 := newEdgeService(root.ID(), root.Name(), NameOf[iTest]())
+	svc1 := newServiceDescription(root.ID(), root.Name(), NameOf[*test]())
+	svc2 := newServiceDescription(root.ID(), root.Name(), NameOf[test]())
+	svc3 := newServiceDescription(root.ID(), root.Name(), NameOf[iTest]())
 
-	is.ElementsMatch([]EdgeService{svc1, svc2, svc3}, root.ListProvidedServices())
-	is.ElementsMatch([]EdgeService{}, root.ListInvokedServices())
+	is.ElementsMatch([]ServiceDescription{svc1, svc2, svc3}, root.ListProvidedServices())
+	is.ElementsMatch([]ServiceDescription{}, root.ListInvokedServices())
 
 	is.NotPanics(func() {
 		_ = MustInvoke[*test](root)
@@ -1505,6 +1505,6 @@ func TestBindNamed(t *testing.T) {
 		_ = MustInvoke[iTest](root)
 	})
 
-	is.ElementsMatch([]EdgeService{svc1, svc2, svc3}, root.ListProvidedServices())
-	is.ElementsMatch([]EdgeService{svc1, svc3}, root.ListInvokedServices())
+	is.ElementsMatch([]ServiceDescription{svc1, svc2, svc3}, root.ListProvidedServices())
+	is.ElementsMatch([]ServiceDescription{svc1, svc3}, root.ListInvokedServices())
 }

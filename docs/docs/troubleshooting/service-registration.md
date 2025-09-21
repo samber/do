@@ -9,10 +9,10 @@ sidebar_position: 3
 ### Spec
 
 ```go
-injector.ListProvidedServices() []do.EdgeService
-injector.ListInvokedServices() []do.EdgeService
+injector.ListProvidedServices() []do.ServiceDescription
+injector.ListInvokedServices() []do.ServiceDescription
 
-type EdgeService struct {
+type ServiceDescription struct {
 	ScopeID   string
 	ScopeName string
 	Service   string

@@ -12,13 +12,13 @@ func TestShutdownReport_ErrorFormatting(t *testing.T) {
 	t.Parallel()
 	is := assert.New(t)
 
-	edge := EdgeService{ScopeID: "sid", ScopeName: "sname", Service: "svc"}
+	desc := ServiceDescription{ScopeID: "sid", ScopeName: "sname", Service: "svc"}
 	rep := ShutdownReport{
 		Succeed:             false,
-		Services:            []EdgeService{edge},
-		Errors:              map[EdgeService]error{edge: assert.AnError},
+		Services:            []ServiceDescription{desc},
+		Errors:              map[ServiceDescription]error{desc: assert.AnError},
 		ShutdownTime:        0,
-		ServiceShutdownTime: map[EdgeService]time.Duration{edge: time.Millisecond},
+		ServiceShutdownTime: map[ServiceDescription]time.Duration{desc: time.Millisecond},
 	}
 
 	is.Len(rep.Services, 1)
@@ -53,8 +53,8 @@ func TestScope_Shutdown_ReportFields(t *testing.T) {
 	is.Len(rep.Services, 2)
 	is.Len(rep.ServiceShutdownTime, 2)
 
-	// Error should be attached to the failing service edge
-	failing := EdgeService{ScopeID: i.self.id, ScopeName: i.self.name, Service: "ko-svc"}
+	// Error should be attached to the failing service desc
+	failing := ServiceDescription{ScopeID: i.self.id, ScopeName: i.self.name, Service: "ko-svc"}
 	_, ok := rep.Errors[failing]
 	is.True(ok)
 }
@@ -80,8 +80,8 @@ func TestScope_ShutdownWithContext_ReportTimings(t *testing.T) {
 	// One service
 	is.Len(rep.Services, 1)
 	// Per-service timing should be recorded and > 0
-	edge := EdgeService{ScopeID: i.self.id, ScopeName: i.self.name, Service: "slow"}
-	dt, ok := rep.ServiceShutdownTime[edge]
+	desc := ServiceDescription{ScopeID: i.self.id, ScopeName: i.self.name, Service: "slow"}
+	dt, ok := rep.ServiceShutdownTime[desc]
 	is.True(ok)
 	is.Greater(dt, time.Duration(0))
 }

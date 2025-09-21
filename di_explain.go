@@ -231,13 +231,13 @@ func ExplainNamedService(scope Injector, name string) (description ExplainServic
 		ServiceType:      service.getServiceType(),
 		ServiceBuildTime: buildTime,
 		Invoked:          invoked,
-		Dependencies:     newExplainServiceDependencies(_i, newEdgeService(_i.ID(), _i.Name(), name), "dependencies"),
-		Dependents:       newExplainServiceDependencies(_i, newEdgeService(_i.ID(), _i.Name(), name), "dependents"),
+		Dependencies:     newExplainServiceDependencies(_i, newServiceDescription(_i.ID(), _i.Name(), name), "dependencies"),
+		Dependents:       newExplainServiceDependencies(_i, newServiceDescription(_i.ID(), _i.Name(), name), "dependents"),
 	}, true
 }
 
-func newExplainServiceDependencies(i Injector, edge EdgeService, mode string) []ExplainServiceDependencyOutput {
-	dependencies, dependents := i.RootScope().dag.explainService(edge.ScopeID, edge.ScopeName, edge.Service)
+func newExplainServiceDependencies(i Injector, desc ServiceDescription, mode string) []ExplainServiceDependencyOutput {
+	dependencies, dependents := i.RootScope().dag.explainService(desc.ScopeID, desc.ScopeName, desc.Service)
 
 	deps := dependencies
 	if mode == "dependents" {
@@ -252,7 +252,7 @@ func newExplainServiceDependencies(i Injector, edge EdgeService, mode string) []
 		return deps[i].ScopeID < deps[j].ScopeID
 	})
 
-	return mAp(deps, func(item EdgeService, _ int) ExplainServiceDependencyOutput {
+	return mAp(deps, func(item ServiceDescription, _ int) ExplainServiceDependencyOutput {
 		recursive := newExplainServiceDependencies(i, item, mode)
 
 		// @TODO: differentiate status of lazy services (built, not built). Such as: "😴 (✅)"
@@ -519,7 +519,7 @@ func newExplainInjectorScopes(ancestors []Injector, children []Injector) []Expla
 
 func newExplainInjectorServices(i Injector) []ExplainInjectorServiceOutput {
 	services := i.ListProvidedServices()
-	services = filter(services, func(item EdgeService, _ int) bool {
+	services = filter(services, func(item ServiceDescription, _ int) bool {
 		return item.ScopeID == i.ID() && i.serviceExist(item.Service)
 	})
 
@@ -528,7 +528,7 @@ func newExplainInjectorServices(i Injector) []ExplainInjectorServiceOutput {
 		return services[i].Service < services[j].Service
 	})
 
-	return mAp(services, func(item EdgeService, _ int) ExplainInjectorServiceOutput {
+	return mAp(services, func(item ServiceDescription, _ int) ExplainInjectorServiceOutput {
 		var serviceType ServiceType
 		var serviceTypeIcon string
 		var serviceBuildTime time.Duration

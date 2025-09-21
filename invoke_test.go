@@ -47,8 +47,8 @@ func TestInvokeAnyByName(t *testing.T) {
 	is.True(called)
 	// check dependency/dependent relationship
 	dependencies, dependents := i.dag.explainService(i.self.id, i.self.name, "hello")
-	is.ElementsMatch([]EdgeService{{ScopeID: i.self.id, ScopeName: i.self.name, Service: "foo"}}, dependencies)
-	is.ElementsMatch([]EdgeService{}, dependents)
+	is.ElementsMatch([]ServiceDescription{{ScopeID: i.self.id, ScopeName: i.self.name, Service: "foo"}}, dependencies)
+	is.ElementsMatch([]ServiceDescription{}, dependents)
 
 	// test circular dependency
 	vs := newVirtualScope(i, []string{"foo", "bar"})
@@ -174,8 +174,8 @@ func TestInvokeByName(t *testing.T) {
 	is.True(called)
 	// check dependency/dependent relationship
 	dependencies, dependents := i.dag.explainService(i.self.id, i.self.name, "hello")
-	is.ElementsMatch([]EdgeService{{ScopeID: i.self.id, ScopeName: i.self.name, Service: "foo"}}, dependencies)
-	is.ElementsMatch([]EdgeService{}, dependents)
+	is.ElementsMatch([]ServiceDescription{{ScopeID: i.self.id, ScopeName: i.self.name, Service: "foo"}}, dependencies)
+	is.ElementsMatch([]ServiceDescription{}, dependents)
 
 	// test circular dependency
 	vs := newVirtualScope(i, []string{"foo", "bar"})
@@ -311,8 +311,8 @@ func TestInvokeByGenericType(t *testing.T) {
 	is.True(called)
 	// check dependency/dependent relationship
 	dependencies, dependents := i.dag.explainService(i.self.id, i.self.name, "*github.com/samber/do/v2.eagerTest")
-	is.ElementsMatch([]EdgeService{{ScopeID: i.self.id, ScopeName: i.self.name, Service: "*github.com/samber/do/v2.lazyTest"}}, dependencies)
-	is.ElementsMatch([]EdgeService{}, dependents)
+	is.ElementsMatch([]ServiceDescription{{ScopeID: i.self.id, ScopeName: i.self.name, Service: "*github.com/samber/do/v2.lazyTest"}}, dependencies)
+	is.ElementsMatch([]ServiceDescription{}, dependents)
 
 	// test circular dependency
 	vs := newVirtualScope(i, []string{"*github.com/samber/do/v2.eagerTest", "bar"})

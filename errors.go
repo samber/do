@@ -23,10 +23,10 @@ var (
 // when any occurred, or a "no shutdown errors" message otherwise.
 type ShutdownReport struct {
 	Succeed             bool
-	Services            []EdgeService
-	Errors              map[EdgeService]error
+	Services            []ServiceDescription
+	Errors              map[ServiceDescription]error
 	ShutdownTime        time.Duration
-	ServiceShutdownTime map[EdgeService]time.Duration
+	ServiceShutdownTime map[ServiceDescription]time.Duration
 }
 
 // Error implements the error interface for ShutdownReport.
@@ -57,10 +57,10 @@ func (r ShutdownReport) Error() string {
 func mergeShutdownReports(reports ...*ShutdownReport) *ShutdownReport {
 	out := ShutdownReport{
 		Succeed:             true,
-		Services:            []EdgeService{},
-		Errors:              map[EdgeService]error{},
+		Services:            []ServiceDescription{},
+		Errors:              map[ServiceDescription]error{},
 		ShutdownTime:        0,
-		ServiceShutdownTime: map[EdgeService]time.Duration{},
+		ServiceShutdownTime: map[ServiceDescription]time.Duration{},
 	}
 
 	for _, r := range reports {

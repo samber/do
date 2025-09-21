@@ -48,9 +48,13 @@ func (s *virtualScope) Ancestors() []*Scope                        { return s.se
 func (s *virtualScope) Children() []*Scope                         { return s.self.Children() }
 func (s *virtualScope) ChildByID(id string) (*Scope, bool)         { return s.self.ChildByID(id) }
 func (s *virtualScope) ChildByName(name string) (*Scope, bool)     { return s.self.ChildByName(name) }
-func (s *virtualScope) ListProvidedServices() []EdgeService        { return s.self.ListProvidedServices() }
-func (s *virtualScope) ListInvokedServices() []EdgeService         { return s.self.ListInvokedServices() }
-func (s *virtualScope) HealthCheck() map[string]error              { return s.self.HealthCheck() }
+func (s *virtualScope) ListProvidedServices() []ServiceDescription {
+	return s.self.ListProvidedServices()
+}
+func (s *virtualScope) ListInvokedServices() []ServiceDescription {
+	return s.self.ListInvokedServices()
+}
+func (s *virtualScope) HealthCheck() map[string]error { return s.self.HealthCheck() }
 func (s *virtualScope) HealthCheckWithContext(ctx context.Context) map[string]error {
 	return s.self.HealthCheckWithContext(ctx)
 }

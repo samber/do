@@ -347,18 +347,18 @@ func TestScope_ListProvidedServices(t *testing.T) {
 	// override in child3
 	child3.serviceSet("root-a", newServiceEager("root-a", 0))
 
-	is.ElementsMatch([]EdgeService{newEdgeService(rootScope.ID(), rootScope.Name(), "root-a")}, rootScope.ListProvidedServices())
-	is.ElementsMatch([]EdgeService{newEdgeService(child1.ID(), child1.Name(), "child1-a"), newEdgeService(rootScope.ID(), rootScope.Name(), "root-a")}, child1.ListProvidedServices())
-	is.ElementsMatch([]EdgeService{newEdgeService(child2a.ID(), child2a.Name(), "child2a-a"), newEdgeService(child2a.ID(), child2a.Name(), "child2a-b"), newEdgeService(child1.ID(), child1.Name(), "child1-a"), newEdgeService(rootScope.ID(), rootScope.Name(), "root-a")}, child2a.ListProvidedServices())
-	is.ElementsMatch([]EdgeService{newEdgeService(child2b.ID(), child2b.Name(), "child2b-a"), newEdgeService(child1.ID(), child1.Name(), "child1-a"), newEdgeService(rootScope.ID(), rootScope.Name(), "root-a")}, child2b.ListProvidedServices())
+	is.ElementsMatch([]ServiceDescription{newServiceDescription(rootScope.ID(), rootScope.Name(), "root-a")}, rootScope.ListProvidedServices())
+	is.ElementsMatch([]ServiceDescription{newServiceDescription(child1.ID(), child1.Name(), "child1-a"), newServiceDescription(rootScope.ID(), rootScope.Name(), "root-a")}, child1.ListProvidedServices())
+	is.ElementsMatch([]ServiceDescription{newServiceDescription(child2a.ID(), child2a.Name(), "child2a-a"), newServiceDescription(child2a.ID(), child2a.Name(), "child2a-b"), newServiceDescription(child1.ID(), child1.Name(), "child1-a"), newServiceDescription(rootScope.ID(), rootScope.Name(), "root-a")}, child2a.ListProvidedServices())
+	is.ElementsMatch([]ServiceDescription{newServiceDescription(child2b.ID(), child2b.Name(), "child2b-a"), newServiceDescription(child1.ID(), child1.Name(), "child1-a"), newServiceDescription(rootScope.ID(), rootScope.Name(), "root-a")}, child2b.ListProvidedServices())
 	is.ElementsMatch(
-		[]EdgeService{
-			newEdgeService(child3.ID(), child3.Name(), "child3-a"),
-			newEdgeService(child3.ID(), child3.Name(), "root-a"),
-			newEdgeService(child2a.ID(), child2a.Name(), "child2a-a"),
-			newEdgeService(child2a.ID(), child2a.Name(), "child2a-b"),
-			newEdgeService(child1.ID(), child1.Name(), "child1-a"),
-			newEdgeService(rootScope.ID(), rootScope.Name(), "root-a"),
+		[]ServiceDescription{
+			newServiceDescription(child3.ID(), child3.Name(), "child3-a"),
+			newServiceDescription(child3.ID(), child3.Name(), "root-a"),
+			newServiceDescription(child2a.ID(), child2a.Name(), "child2a-a"),
+			newServiceDescription(child2a.ID(), child2a.Name(), "child2a-b"),
+			newServiceDescription(child1.ID(), child1.Name(), "child1-a"),
+			newServiceDescription(rootScope.ID(), rootScope.Name(), "root-a"),
 		},
 		child3.ListProvidedServices(),
 	)
@@ -390,11 +390,11 @@ func TestScope_ListInvokedServices(t *testing.T) {
 	_, _ = invokeByName[int](child2b, "child2b-a")
 	_, _ = invokeByName[int](child3, "child3-a")
 
-	is.ElementsMatch([]EdgeService{}, rootScope.ListInvokedServices())
-	is.ElementsMatch([]EdgeService{newEdgeService(child1.ID(), child1.Name(), "child1-a")}, child1.ListInvokedServices())
-	is.ElementsMatch([]EdgeService{newEdgeService(child2a.ID(), child2a.Name(), "child2a-a"), newEdgeService(child2a.ID(), child2a.Name(), "child2a-b"), newEdgeService(child1.ID(), child1.Name(), "child1-a")}, child2a.ListInvokedServices())
-	is.ElementsMatch([]EdgeService{newEdgeService(child2b.ID(), child2b.Name(), "child2b-a"), newEdgeService(child1.ID(), child1.Name(), "child1-a")}, child2b.ListInvokedServices())
-	is.ElementsMatch([]EdgeService{newEdgeService(child3.ID(), child3.Name(), "child3-a"), newEdgeService(child2a.ID(), child2a.Name(), "child2a-a"), newEdgeService(child2a.ID(), child2a.Name(), "child2a-b"), newEdgeService(child1.ID(), child1.Name(), "child1-a")}, child3.ListInvokedServices())
+	is.ElementsMatch([]ServiceDescription{}, rootScope.ListInvokedServices())
+	is.ElementsMatch([]ServiceDescription{newServiceDescription(child1.ID(), child1.Name(), "child1-a")}, child1.ListInvokedServices())
+	is.ElementsMatch([]ServiceDescription{newServiceDescription(child2a.ID(), child2a.Name(), "child2a-a"), newServiceDescription(child2a.ID(), child2a.Name(), "child2a-b"), newServiceDescription(child1.ID(), child1.Name(), "child1-a")}, child2a.ListInvokedServices())
+	is.ElementsMatch([]ServiceDescription{newServiceDescription(child2b.ID(), child2b.Name(), "child2b-a"), newServiceDescription(child1.ID(), child1.Name(), "child1-a")}, child2b.ListInvokedServices())
+	is.ElementsMatch([]ServiceDescription{newServiceDescription(child3.ID(), child3.Name(), "child3-a"), newServiceDescription(child2a.ID(), child2a.Name(), "child2a-a"), newServiceDescription(child2a.ID(), child2a.Name(), "child2a-b"), newServiceDescription(child1.ID(), child1.Name(), "child1-a")}, child3.ListInvokedServices())
 
 	is.Equal(map[string]int{}, rootScope.self.orderedInvocation)
 	is.Equal(map[string]int{"child1-a": 0}, child1.orderedInvocation)
@@ -545,7 +545,7 @@ func TestScope_Shutdown(t *testing.T) {
 
 	shutdownReport := i.Shutdown()
 	is.Len(shutdownReport.Errors, 1)
-	is.Contains(shutdownReport.Errors, EdgeService{ScopeID: i.self.id, ScopeName: i.self.name, Service: "lazy-ko"})
+	is.Contains(shutdownReport.Errors, ServiceDescription{ScopeID: i.self.id, ScopeName: i.self.name, Service: "lazy-ko"})
 }
 
 func TestScope_ShutdownWithContext(t *testing.T) {
@@ -787,10 +787,10 @@ func TestScope_serviceHealthCheck(t *testing.T) {
 	_, _ = invokeByName[int](child2b, "child2b-a")
 	_, _ = invokeByName[int](child3, "child3-a")
 
-	is.ElementsMatch([]EdgeService{newEdgeService(child3.id, child3.name, "child3-a"), newEdgeService(child2a.id, child2a.name, "child2a-a"), newEdgeService(child2a.id, child2a.name, "child2a-b"), newEdgeService(child1.id, child1.name, "child1-a")}, child3.ListInvokedServices())
+	is.ElementsMatch([]ServiceDescription{newServiceDescription(child3.id, child3.name, "child3-a"), newServiceDescription(child2a.id, child2a.name, "child2a-a"), newServiceDescription(child2a.id, child2a.name, "child2a-b"), newServiceDescription(child1.id, child1.name, "child1-a")}, child3.ListInvokedServices())
 	shutdownReport := child1.Shutdown()
 	is.Empty(shutdownReport.Errors)
-	is.ElementsMatch([]EdgeService{}, child3.ListInvokedServices())
+	is.ElementsMatch([]ServiceDescription{}, child3.ListInvokedServices())
 }
 
 func TestScope_serviceGet(t *testing.T) {

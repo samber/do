@@ -4,31 +4,31 @@ import (
 	"sync"
 )
 
-// newEdgeService creates a new EdgeService with the provided scope ID, scope name, and service name.
-// This function is used internally to create consistent EdgeService instances.
+// newServiceDescription creates a new ServiceDescription with the provided scope ID, scope name, and service name.
+// This function is used internally to create consistent ServiceDescription instances.
 //
 // Parameters:
 //   - scopeID: The unique identifier of the scope
 //   - scopeName: The human-readable name of the scope
 //   - serviceName: The name of the service
 //
-// Returns a new EdgeService instance.
-func newEdgeService(scopeID string, scopeName string, serviceName string) EdgeService {
-	return EdgeService{
+// Returns a new ServiceDescription instance.
+func newServiceDescription(scopeID string, scopeName string, serviceName string) ServiceDescription {
+	return ServiceDescription{
 		ScopeID:   scopeID,
 		ScopeName: scopeName,
 		Service:   serviceName,
 	}
 }
 
-// EdgeService represents a service in the dependency graph (DAG), identified by scope ID, scope name, and service name.
+// ServiceDescription represents a service in the dependency graph (DAG), identified by scope ID, scope name, and service name.
 // This type is used to uniquely identify services across the entire scope hierarchy for dependency tracking.
 //
 // Fields:
 //   - ScopeID: The unique identifier of the scope containing the service
 //   - ScopeName: The human-readable name of the scope containing the service
 //   - Service: The name of the service within the scope
-type EdgeService struct {
+type ServiceDescription struct {
 	ScopeID   string
 	ScopeName string
 	Service   string
@@ -41,8 +41,8 @@ type EdgeService struct {
 func newDAG() *DAG {
 	return &DAG{
 		mu:           sync.RWMutex{},
-		dependencies: map[EdgeService]map[EdgeService]struct{}{},
-		dependents:   map[EdgeService]map[EdgeService]struct{}{},
+		dependencies: map[ServiceDescription]map[ServiceDescription]struct{}{},
+		dependents:   map[ServiceDescription]map[ServiceDescription]struct{}{},
 	}
 }
 
@@ -60,8 +60,8 @@ func newDAG() *DAG {
 //   - dependents: Map of services to their dependents
 type DAG struct {
 	mu           sync.RWMutex
-	dependencies map[EdgeService]map[EdgeService]struct{}
-	dependents   map[EdgeService]map[EdgeService]struct{}
+	dependencies map[ServiceDescription]map[ServiceDescription]struct{}
+	dependents   map[ServiceDescription]map[ServiceDescription]struct{}
 }
 
 // addDependency adds a dependency relationship from one service to another in the DAG.
@@ -78,21 +78,21 @@ type DAG struct {
 //
 // This function is thread-safe and updates both the dependencies and dependents maps.
 func (d *DAG) addDependency(fromScopeID, fromScopeName, fromServiceName, toScopeID, toScopeName, toServiceName string) {
-	from := newEdgeService(fromScopeID, fromScopeName, fromServiceName)
-	to := newEdgeService(toScopeID, toScopeName, toServiceName)
+	from := newServiceDescription(fromScopeID, fromScopeName, fromServiceName)
+	to := newServiceDescription(toScopeID, toScopeName, toServiceName)
 
 	d.mu.Lock()
 	defer d.mu.Unlock()
 
 	// from -> to
 	if _, ok := d.dependencies[from]; !ok {
-		d.dependencies[from] = map[EdgeService]struct{}{}
+		d.dependencies[from] = map[ServiceDescription]struct{}{}
 	}
 	d.dependencies[from][to] = struct{}{}
 
 	// from <- to
 	if _, ok := d.dependents[to]; !ok {
-		d.dependents[to] = map[EdgeService]struct{}{}
+		d.dependents[to] = map[ServiceDescription]struct{}{}
 	}
 	d.dependents[to][from] = struct{}{}
 }
@@ -109,24 +109,24 @@ func (d *DAG) addDependency(fromScopeID, fromScopeName, fromServiceName, toScope
 // This function removes the service from both dependencies and dependents maps,
 // ensuring the graph remains consistent.
 func (d *DAG) removeService(scopeID, scopeName, serviceName string) {
-	edge := newEdgeService(scopeID, scopeName, serviceName)
+	desc := newServiceDescription(scopeID, scopeName, serviceName)
 
 	d.mu.Lock()
 	defer d.mu.Unlock()
 
-	dependencies, dependents := d.explainServiceUnsafe(edge)
+	dependencies, dependents := d.explainServiceUnsafe(desc)
 
 	for _, dependency := range dependencies {
-		delete(d.dependents[dependency], edge)
+		delete(d.dependents[dependency], desc)
 	}
 
 	// should be empty, because we remove dependencies in the inverse invocation order
 	for _, dependent := range dependents {
-		delete(d.dependencies[dependent], edge)
+		delete(d.dependencies[dependent], desc)
 	}
 
-	delete(d.dependencies, edge)
-	delete(d.dependents, edge)
+	delete(d.dependencies, desc)
+	delete(d.dependents, desc)
 }
 
 // explainService provides information about a service's dependencies and dependents in the DAG.
@@ -143,13 +143,13 @@ func (d *DAG) removeService(scopeID, scopeName, serviceName string) {
 //   - dependents: Services that depend on the specified service
 //
 // This function is thread-safe and provides read-only access to the dependency graph.
-func (d *DAG) explainService(scopeID, scopeName, serviceName string) (dependencies, dependents []EdgeService) {
-	edge := newEdgeService(scopeID, scopeName, serviceName)
+func (d *DAG) explainService(scopeID, scopeName, serviceName string) (dependencies, dependents []ServiceDescription) {
+	desc := newServiceDescription(scopeID, scopeName, serviceName)
 
 	d.mu.RLock()
 	defer d.mu.RUnlock()
 
-	return d.explainServiceUnsafe(edge)
+	return d.explainServiceUnsafe(desc)
 }
 
 // explainServiceUnsafe is the internal implementation of explainService.
@@ -157,19 +157,19 @@ func (d *DAG) explainService(scopeID, scopeName, serviceName string) (dependenci
 // without acquiring locks (assumes the caller has already acquired appropriate locks).
 //
 // Parameters:
-//   - edge: The EdgeService to explain
+//   - desc: The ServiceDescription to explain
 //
 // Returns two slices:
 //   - dependencies: Services that the specified service depends on
 //   - dependents: Services that depend on the specified service
-func (d *DAG) explainServiceUnsafe(edge EdgeService) (dependencies, dependents []EdgeService) {
-	dependencies, dependents = []EdgeService{}, []EdgeService{}
+func (d *DAG) explainServiceUnsafe(desc ServiceDescription) (dependencies, dependents []ServiceDescription) {
+	dependencies, dependents = []ServiceDescription{}, []ServiceDescription{}
 
-	if kv, ok := d.dependencies[edge]; ok {
+	if kv, ok := d.dependencies[desc]; ok {
 		dependencies = keys(kv)
 	}
 
-	if kv, ok := d.dependents[edge]; ok {
+	if kv, ok := d.dependents[desc]; ok {
 		dependents = keys(kv)
 	}
 

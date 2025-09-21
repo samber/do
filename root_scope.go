@@ -151,10 +151,10 @@ func (s *RootScope) ChildByID(id string) (*Scope, bool) { return s.self.ChildByI
 func (s *RootScope) ChildByName(name string) (*Scope, bool) { return s.self.ChildByName(name) }
 
 // ListProvidedServices returns all services available in the root scope and all its descendant scopes.
-func (s *RootScope) ListProvidedServices() []EdgeService { return s.self.ListProvidedServices() }
+func (s *RootScope) ListProvidedServices() []ServiceDescription { return s.self.ListProvidedServices() }
 
 // ListInvokedServices returns all services that have been invoked in the root scope and all its descendant scopes.
-func (s *RootScope) ListInvokedServices() []EdgeService { return s.self.ListInvokedServices() }
+func (s *RootScope) ListInvokedServices() []ServiceDescription { return s.self.ListInvokedServices() }
 
 // HealthCheck performs health checks on all services in the root scope and all its descendant scopes.
 func (s *RootScope) HealthCheck() map[string]error { return s.self.HealthCheck() }
