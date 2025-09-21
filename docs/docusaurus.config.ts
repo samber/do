@@ -238,6 +238,15 @@ const config: Config = {
           position: 'left',
         },
         {
+          type: 'dropdown',
+          label: 'v2',
+          position: 'right',
+          items: [
+            { label: 'v2', to: '/docs/about', disabled: true },
+            { label: 'v1', href: 'https://github.com/samber/do/tree/v1' },
+          ],
+        },
+        {
           to: 'https://github.com/samber/do/releases',
           label: 'Changelog',
           position: 'right',
