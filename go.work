@@ -1,0 +1,31 @@
+go 1.18
+
+use (
+	.
+
+	./examples/dag
+	./examples/eager-loading
+	./examples/event-driven
+	./examples/healthcheckable
+	./examples/http/chi
+	./examples/http/echo
+	./examples/http/fiber
+	./examples/http/gin
+	./examples/http/std
+	./examples/interface
+	./examples/nested-scope
+	./examples/package-system
+	./examples/service-aliases
+	./examples/service-explanation
+	./examples/shutdownable
+	./examples/simple
+	./examples/struct
+	./examples/transient-services
+	./examples/web-application
+
+	./http/chi
+	./http/echo
+	./http/fiber
+	./http/gin
+	./http/std
+)

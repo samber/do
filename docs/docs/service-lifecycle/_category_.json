@@ -1,0 +1,8 @@
+{
+  "label": "🧑‍⚕️ Service lifecycle",
+  "position": 4,
+  "link": {
+    "type": "generated-index",
+    "description": "Learn how to check service status and unload an application"
+  }
+}

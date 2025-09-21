@@ -1,0 +1,8 @@
+{
+  "label": "🔁 Upgrading",
+  "position": 7,
+  "link": {
+    "type": "generated-index",
+    "description": "Upgrade to the latest samber/do release"
+  }
+}

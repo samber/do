@@ -1,13 +1,6 @@
 
-BIN=go
-# BIN=go1.18beta1
-
-go1.18beta1:
-	go install golang.org/dl/go1.18beta1@latest
-	go1.18beta1 download
-
 build:
-	${BIN} build -v ./...
+	go build -v ./...
 
 test:
 	go test -race -v ./...
@@ -20,18 +13,20 @@ watch-bench:
 	reflex -t 50ms -s -- sh -c 'go test -benchmem -count 3 -bench ./...'
 
 coverage:
-	${BIN} test -v -coverprofile=cover.out -covermode=atomic .
-	${BIN} tool cover -html=cover.out -o cover.html
+	go test -v -coverprofile=cover.out -covermode=atomic ./...
+	go tool cover -html=cover.out -o cover.html
 
 # tools
 tools:
-	${BIN} install github.com/cespare/reflex@latest
-	${BIN} install github.com/rakyll/gotest@latest
-	${BIN} install github.com/psampaz/go-mod-outdated@latest
-	${BIN} install github.com/jondot/goweight@latest
-	${BIN} install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
-	${BIN} get -t -u golang.org/x/tools/cmd/cover
-	${BIN} get -t -u github.com/sonatype-nexus-community/nancy@latest
+	go install github.com/cespare/reflex@latest
+	go install github.com/rakyll/gotest@latest
+	go install github.com/psampaz/go-mod-outdated@latest
+	go install github.com/jondot/goweight@latest
+	go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
+	go get -t -u golang.org/x/tools/cmd/cover
+	go install github.com/sonatype-nexus-community/nancy@latest
+	go install golang.org/x/perf/cmd/benchstat@latest
+	go install github.com/cespare/prettybench@latest
 	go mod tidy
 
 lint:
@@ -40,12 +35,15 @@ lint-fix:
 	golangci-lint run --timeout 60s --max-same-issues 50 --fix ./...
 
 audit: tools
-	${BIN} mod tidy
-	${BIN} list -json -m all | nancy sleuth
+	go mod tidy
+	go list -json -m all | nancy sleuth
 
 outdated: tools
-	${BIN} mod tidy
-	${BIN} list -u -m -json all | go-mod-outdated -update -direct
+	go mod tidy
+	go list -u -m -json all | go-mod-outdated -update -direct
 
 weight: tools
 	goweight
+
+doc:
+	cd docs && npm install && npm start

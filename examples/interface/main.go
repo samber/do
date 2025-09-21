@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/samber/do"
+	"github.com/samber/do/v2"
 )
 
 func main() {
@@ -18,6 +18,10 @@ func main() {
 
 	// provide engine
 	do.Provide(injector, NewEngine)
+
+	// magic happens here
+	_ = do.As[*carImplem, Car](injector)
+	_ = do.As[*engineImplem, Engine](injector)
 
 	// start car
 	car := do.MustInvoke[Car](injector)

@@ -1,12 +1,11 @@
 package main
 
-import "github.com/samber/do"
+import "github.com/samber/do/v2"
 
 type Engine interface{}
 
-type engineImplem struct {
-}
+type engineImplem struct{}
 
-func NewEngine(i *do.Injector) (Engine, error) {
+func NewEngine(i do.Injector) (*engineImplem, error) {
 	return &engineImplem{}, nil
 }

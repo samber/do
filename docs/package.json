@@ -1,0 +1,63 @@
+{
+  "name": "do",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "docusaurus": "docusaurus",
+    "start": "docusaurus start",
+    "build": "docusaurus build",
+    "swizzle": "docusaurus swizzle",
+    "deploy": "docusaurus deploy",
+    "clear": "docusaurus clear",
+    "serve": "docusaurus serve",
+    "write-translations": "docusaurus write-translations",
+    "write-heading-ids": "docusaurus write-heading-ids",
+    "typecheck": "tsc",
+    "start:fast": "docusaurus start --no-open",
+    "build:analyze": "npm run build -- --bundle-analyzer",
+    "start:no-cache": "docusaurus clear && docusaurus start",
+    "build:fast": "docusaurus build --no-minify",
+    "lint": "docusaurus write-heading-ids && prettier --check --cache .",
+    "lint:fix": "docusaurus write-heading-ids && prettier --write --cache .",
+    "build:en": "docusaurus build --locale en",
+    "start:en": "docusaurus start --locale en"
+  },
+  "dependencies": {
+    "@docusaurus/core": "3.8.1",
+    "@docusaurus/faster": "^3.8.1",
+    "@docusaurus/plugin-css-cascade-layers": "^3.8.1",
+    "@docusaurus/plugin-ideal-image": "^3.8.1",
+    "@docusaurus/plugin-svgr": "^3.8.1",
+    "@docusaurus/plugin-vercel-analytics": "^3.8.1",
+    "@docusaurus/preset-classic": "3.8.1",
+    "@docusaurus/theme-mermaid": "^3.8.1",
+    "@mdx-js/react": "^3.0.0",
+    "classnames": "^2.3.2",
+    "clsx": "^1.2.1",
+    "prism-react-renderer": "^2.4.1",
+    "react": "^18.0.0",
+    "react-dom": "^18.0.0"
+  },
+  "devDependencies": {
+    "@docusaurus/module-type-aliases": "3.8.1",
+    "@docusaurus/tsconfig": "3.8.1",
+    "@docusaurus/types": "3.8.1",
+    "prettier": "^3.0.0",
+    "typescript": "~5.2.2"
+  },
+  "browserslist": {
+    "production": [
+      ">0.5%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 3 chrome version",
+      "last 3 firefox version",
+      "last 5 safari version"
+    ]
+  },
+  "engines": {
+    "node": ">=18.0"
+  }
+}

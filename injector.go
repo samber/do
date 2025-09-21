@@ -1,311 +1,207 @@
 package do
 
 import (
-	"fmt"
-	"os"
-	"os/signal"
-	"strings"
-	"sync"
-	"syscall"
+	"context"
+	"time"
 )
 
-var DefaultInjector = New()
+// Injector is the main interface for dependency injection containers.
+// It provides methods for service registration, resolution, lifecycle management,
+// and scope hierarchy management.
+//
+// The Injector interface is implemented by both RootScope and Scope types,
+// allowing for a consistent API across different levels of the scope hierarchy.
+type Injector interface {
+	// Public API methods for scope and service management
 
-func getInjectorOrDefault(i *Injector) *Injector {
+	// ID returns the unique identifier of the injector.
+	ID() string
+
+	// Name returns the human-readable name of the injector.
+	Name() string
+
+	// Scope creates a new child scope with the given name.
+	// Optional package functions can be provided to execute during scope creation.
+	Scope(string, ...func(Injector)) *Scope
+
+	// RootScope returns the root scope of the injector hierarchy.
+	RootScope() *RootScope
+
+	// Ancestors returns the list of all parent scopes in order from immediate parent to root.
+	Ancestors() []*Scope
+
+	// Children returns the list of immediate child scopes.
+	Children() []*Scope
+
+	// ChildByID searches for a child scope by its unique ID across the entire scope hierarchy.
+	ChildByID(string) (*Scope, bool)
+
+	// ChildByName searches for a child scope by its name across the entire scope hierarchy.
+	ChildByName(string) (*Scope, bool)
+
+	// ListProvidedServices returns all services available in the current scope and all its ancestor scopes.
+	ListProvidedServices() []ServiceDescription
+
+	// ListInvokedServices returns only the services that have been actually invoked in the current scope and its ancestors.
+	ListInvokedServices() []ServiceDescription
+
+	// HealthCheck performs health checks on all services in the current scope and its ancestors.
+	HealthCheck() map[string]error
+
+	// HealthCheckWithContext performs health checks with context support for cancellation and timeouts.
+	HealthCheckWithContext(context.Context) map[string]error
+
+	// Shutdown gracefully shuts down the injector and all its descendant scopes.
+	Shutdown() *ShutdownReport
+
+	// ShutdownWithContext gracefully shuts down the injector and all its descendant scopes with context support.
+	ShutdownWithContext(context.Context) *ShutdownReport
+
+	// clone creates a deep copy of the injector with all its services and child scopes.
+	clone(*RootScope, *Scope) *Scope
+
+	// Internal service lifecycle methods
+
+	// serviceExist checks if a service with the given name exists in the current scope.
+	serviceExist(string) bool
+	// serviceExistRec checks if a service with the given name exists in the current scope or any of its ancestor scopes.
+	serviceExistRec(string) bool
+	// serviceGet retrieves a service from the current scope by name.
+	serviceGet(string) (any, bool)
+	// serviceGetRec retrieves a service by name from the current scope or any of its ancestor scopes.
+	serviceGetRec(string) (any, *Scope, bool)
+	// serviceSet registers a service in the current scope with the given name.
+	// Note: This method is not protected against double registration.
+	serviceSet(string, any)
+	// serviceForEach iterates over all services in the current scope.
+	serviceForEach(func(string, *Scope, any) bool)
+	// serviceForEachRec iterates over all services in the current scope and all ancestor scopes.
+	serviceForEachRec(func(string, *Scope, any) bool)
+	// serviceHealthCheck performs a health check on a specific service in the current scope.
+	serviceHealthCheck(context.Context, string) error
+	// serviceShutdown gracefully shuts down a specific service in the current scope.
+	serviceShutdown(context.Context, string) error
+	// onServiceInvoke is called whenever a service is invoked in this scope.
+	onServiceInvoke(string)
+}
+
+// getInjectorOrDefault returns the provided injector if it's not nil, otherwise returns the default root scope.
+// This function ensures that DI operations always have a valid injector to work with.
+//
+// Parameters:
+//   - i: The injector to check, can be nil
+//
+// Returns the provided injector if not nil, or DefaultRootScope if nil.
+func getInjectorOrDefault(i Injector) Injector {
 	if i != nil {
 		return i
 	}
 
-	return DefaultInjector
+	return DefaultRootScope
 }
 
-func New() *Injector {
-	return NewWithOpts(&InjectorOpts{})
-}
-
+// InjectorOpts contains all configuration options for the dependency injection container.
+// These options control logging, hooks, health checks, and other behavioral aspects
+// of the DI container.
 type InjectorOpts struct {
-	HookAfterRegistration func(injector *Injector, serviceName string)
-	HookAfterShutdown     func(injector *Injector, serviceName string)
+	// HookBeforeRegistration is called before a service is registered in a scope.
+	// This hook can be used for validation, logging, or other pre-registration tasks.
+	HookBeforeRegistration []func(scope *Scope, serviceName string)
 
+	// HookAfterRegistration is called after a service is successfully registered in a scope.
+	// This hook can be used for logging, metrics collection, or other post-registration tasks.
+	HookAfterRegistration []func(scope *Scope, serviceName string)
+
+	// HookBeforeInvocation is called before a service is invoked (instantiated).
+	// This hook can be used for logging, metrics, or other pre-invocation tasks.
+	HookBeforeInvocation []func(scope *Scope, serviceName string)
+
+	// HookAfterInvocation is called after a service is invoked, with the result error.
+	// This hook can be used for logging, metrics collection, or error handling.
+	HookAfterInvocation []func(scope *Scope, serviceName string, err error)
+
+	// HookBeforeShutdown is called before a service is shut down.
+	// This hook can be used for cleanup preparation or logging.
+	HookBeforeShutdown []func(scope *Scope, serviceName string)
+
+	// HookAfterShutdown is called after a service is shut down, with the result error.
+	// This hook can be used for logging, metrics collection, or error handling.
+	HookAfterShutdown []func(scope *Scope, serviceName string, err error)
+
+	// Logf is the logging function used by the DI container for internal logging.
+	// If not provided, no logging will occur. This function should handle the format
+	// string and arguments similar to fmt.Printf.
 	Logf func(format string, args ...any)
+
+	// HealthCheckParallelism controls the number of concurrent health checks that can run simultaneously.
+	// Default: all health checks run in parallel (unlimited).
+	// Setting this to a positive number limits the concurrency for better resource management.
+	HealthCheckParallelism uint
+
+	// HealthCheckGlobalTimeout sets a global timeout for all health check operations.
+	// This timeout applies to the entire health check process across all services.
+	// Default: no timeout (health checks can run indefinitely).
+	HealthCheckGlobalTimeout time.Duration
+
+	// HealthCheckTimeout sets a timeout for individual service health checks.
+	// This timeout applies to each service's health check method.
+	// Default: no timeout (individual health checks can run indefinitely).
+	HealthCheckTimeout time.Duration
+
+	// StructTagKey specifies the tag key used for struct field injection.
+	// Default: "do" (see DefaultStructTagKey constant).
+	// This allows customization of the struct tag format for injection.
+	StructTagKey string
 }
 
-func NewWithOpts(opts *InjectorOpts) *Injector {
-	logf := opts.Logf
-	if logf == nil {
-		logf = func(format string, args ...any) {}
-	}
-
-	logf("injector created")
-
-	return &Injector{
-		mu:       sync.RWMutex{},
-		services: make(map[string]any),
-
-		orderedInvocation:      map[string]int{},
-		orderedInvocationIndex: 0,
-
-		hookAfterRegistration: opts.HookAfterRegistration,
-		hookAfterShutdown:     opts.HookAfterShutdown,
-
-		logf: logf,
-	}
-}
-
-type Injector struct {
-	mu       sync.RWMutex
-	services map[string]any
-
-	// It should be a graph instead of simple ordered list.
-	orderedInvocation      map[string]int // map is faster than slice
-	orderedInvocationIndex int
-
-	hookAfterRegistration func(injector *Injector, serviceName string)
-	hookAfterShutdown     func(injector *Injector, serviceName string)
-
-	logf func(format string, args ...any)
-}
-
-func (i *Injector) ListProvidedServices() []string {
-	i.mu.RLock()
-	names := keys(i.services)
-	i.mu.RUnlock()
-
-	i.logf("exported list of services: %v", names)
-
-	return names
-}
-
-func (i *Injector) ListInvokedServices() []string {
-	i.mu.RLock()
-	names := keys(i.orderedInvocation)
-	i.mu.RUnlock()
-
-	i.logf("exported list of invoked services: %v", names)
-
-	return names
-}
-
-func (i *Injector) HealthCheck() map[string]error {
-	i.mu.RLock()
-	names := keys(i.services)
-	i.mu.RUnlock()
-
-	i.logf("requested healthcheck")
-
-	results := map[string]error{}
-
-	for _, name := range names {
-		results[name] = i.healthcheckImplem(name)
-	}
-
-	i.logf("got healthcheck results: %v", results)
-
-	return results
-}
-
-func (i *Injector) Shutdown() error {
-	i.mu.RLock()
-	invocations := invertMap(i.orderedInvocation)
-	invocationIndex := i.orderedInvocationIndex
-	i.mu.RUnlock()
-
-	i.logf("requested shutdown")
-
-	for index := invocationIndex; index >= 0; index-- {
-		name, ok := invocations[index]
-		if !ok {
-			continue
-		}
-
-		err := i.shutdownImplem(name)
-		if err != nil {
-			return err
-		}
-	}
-
-	i.logf("shutdowned services")
-
-	return nil
-}
-
-// ShutdownOnSIGTERM listens for sigterm signal in order to graceful stop service.
-// It will block until receiving a sigterm signal.
-func (i *Injector) ShutdownOnSIGTERM() error {
-	return i.ShutdownOnSignals(syscall.SIGTERM)
-}
-
-// ShutdownOnSignals listens for signals defined in signals parameter in order to graceful stop service.
-// It will block until receiving any of these signal.
-// If no signal is provided in signals parameter, syscall.SIGTERM will be added as default signal.
-func (i *Injector) ShutdownOnSignals(signals ...os.Signal) error {
-	// Make sure there is at least syscall.SIGTERM as a signal
-	if len(signals) < 1 {
-		signals = append(signals, syscall.SIGTERM)
-	}
-	ch := make(chan os.Signal, 1)
-
-	signal.Notify(ch, signals...)
-
-	<-ch
-	signal.Stop(ch)
-	close(ch)
-
-	return i.Shutdown()
-}
-
-func (i *Injector) healthcheckImplem(name string) error {
-	i.mu.Lock()
-
-	serviceAny, ok := i.services[name]
-	if !ok {
-		i.mu.Unlock()
-		return fmt.Errorf("DI: could not find service `%s`", name)
-	}
-
-	i.mu.Unlock()
-
-	service, ok := serviceAny.(healthcheckableService)
-	if ok {
-		i.logf("requested healthcheck for service %s", name)
-
-		err := service.healthcheck()
-		if err != nil {
-			return err
-		}
-	}
-
-	return nil
-}
-
-func (i *Injector) shutdownImplem(name string) error {
-	i.mu.Lock()
-
-	serviceAny, ok := i.services[name]
-	if !ok {
-		i.mu.Unlock()
-		return fmt.Errorf("DI: could not find service `%s`", name)
-	}
-
-	i.mu.Unlock()
-
-	service, ok := serviceAny.(shutdownableService)
-	if ok {
-		i.logf("requested shutdown for service %s", name)
-
-		err := service.shutdown()
-		if err != nil {
-			return err
-		}
-	}
-
-	i.mu.Lock()
-	delete(i.services, name)
-	delete(i.orderedInvocation, name)
-	i.mu.Unlock()
-
-	i.onServiceShutdown(name)
-
-	return nil
-}
-
-func (i *Injector) exists(name string) bool {
-	i.mu.RLock()
-	defer i.mu.RUnlock()
-
-	_, ok := i.services[name]
-	return ok
-}
-
-func (i *Injector) get(name string) (any, bool) {
-	i.mu.RLock()
-	defer i.mu.RUnlock()
-
-	s, ok := i.services[name]
-	return s, ok
-}
-
-func (i *Injector) set(name string, service any) {
-	i.mu.Lock()
-	defer i.mu.Unlock()
-
-	i.services[name] = service
-
-	// defering hook call will unlock mutex
-	defer i.onServiceRegistration(name)
-}
-
-func (i *Injector) remove(name string) {
-	i.mu.Lock()
-	defer i.mu.Unlock()
-
-	delete(i.services, name)
-}
-
-func (i *Injector) forEach(cb func(name string, service any)) {
-	i.mu.Lock()
-	defer i.mu.Unlock()
-
-	for name, service := range i.services {
-		cb(name, service)
+func (o *InjectorOpts) copy() *InjectorOpts {
+	return &InjectorOpts{
+		HookBeforeRegistration:   append([]func(*Scope, string){}, o.HookBeforeRegistration...),
+		HookAfterRegistration:    append([]func(*Scope, string){}, o.HookAfterRegistration...),
+		HookBeforeInvocation:     append([]func(*Scope, string){}, o.HookBeforeInvocation...),
+		HookAfterInvocation:      append([]func(*Scope, string, error){}, o.HookAfterInvocation...),
+		HookBeforeShutdown:       append([]func(*Scope, string){}, o.HookBeforeShutdown...),
+		HookAfterShutdown:        append([]func(*Scope, string, error){}, o.HookAfterShutdown...),
+		Logf:                     o.Logf,
+		HealthCheckParallelism:   o.HealthCheckParallelism,
+		HealthCheckGlobalTimeout: o.HealthCheckGlobalTimeout,
+		HealthCheckTimeout:       o.HealthCheckTimeout,
+		StructTagKey:             o.StructTagKey,
 	}
 }
 
-func (i *Injector) serviceNotFound(name string) error {
-	// @TODO: use the Keys+Map functions from `golang.org/x/exp/maps` as
-	// soon as it is released in stdlib.
-	servicesNames := keys(i.services)
-	servicesNames = mAp(servicesNames, func(name string) string {
-		return fmt.Sprintf("`%s`", name)
-	})
-
-	return fmt.Errorf("DI: could not find service `%s`, available services: %s", name, strings.Join(servicesNames, ", "))
-}
-
-func (i *Injector) onServiceInvoke(name string) {
-	i.mu.Lock()
-	defer i.mu.Unlock()
-
-	if _, ok := i.orderedInvocation[name]; !ok {
-		i.orderedInvocation[name] = i.orderedInvocationIndex
-		i.orderedInvocationIndex++
+func (o *InjectorOpts) onBeforeRegistration(scope *Scope, serviceName string) {
+	for _, fn := range o.HookBeforeRegistration {
+		fn(scope, serviceName)
 	}
 }
 
-func (i *Injector) onServiceRegistration(name string) {
-	if i.hookAfterRegistration != nil {
-		i.hookAfterRegistration(i, name)
+func (o *InjectorOpts) onAfterRegistration(scope *Scope, serviceName string) {
+	for _, fn := range o.HookAfterRegistration {
+		fn(scope, serviceName)
 	}
 }
 
-func (i *Injector) onServiceShutdown(name string) {
-	if i.hookAfterShutdown != nil {
-		i.hookAfterShutdown(i, name)
+func (o *InjectorOpts) onBeforeInvocation(scope *Scope, serviceName string) {
+	for _, fn := range o.HookBeforeInvocation {
+		fn(scope, serviceName)
 	}
 }
 
-// Clone clones injector with provided services but not with invoked instances.
-func (i *Injector) Clone() *Injector {
-	return i.CloneWithOpts(&InjectorOpts{})
+func (o *InjectorOpts) onAfterInvocation(scope *Scope, serviceName string, err error) {
+	for _, fn := range o.HookAfterInvocation {
+		fn(scope, serviceName, err)
+	}
 }
 
-// CloneWithOpts clones injector with provided services but not with invoked instances, with options.
-func (i *Injector) CloneWithOpts(opts *InjectorOpts) *Injector {
-	clone := NewWithOpts(opts)
-
-	i.mu.RLock()
-	defer i.mu.RUnlock()
-
-	for name, serviceAny := range i.services {
-		if service, ok := serviceAny.(cloneableService); ok {
-			clone.services[name] = service.clone()
-		} else {
-			clone.services[name] = service
-		}
-		defer clone.onServiceRegistration(name)
+func (o *InjectorOpts) onBeforeShutdown(scope *Scope, serviceName string) {
+	for _, fn := range o.HookBeforeShutdown {
+		fn(scope, serviceName)
 	}
+}
 
-	i.logf("injector cloned")
-
-	return clone
+func (o *InjectorOpts) onAfterShutdown(scope *Scope, serviceName string, err error) {
+	for _, fn := range o.HookAfterShutdown {
+		fn(scope, serviceName, err)
+	}
 }
