@@ -35,7 +35,7 @@
     "classnames": "^2.3.2",
     "clsx": "^2.1.1",
     "prism-react-renderer": "^2.4.1",
-    "react": "^18.0.0",
+    "react": "^19.1.1",
     "react-dom": "^18.0.0"
   },
   "devDependencies": {
