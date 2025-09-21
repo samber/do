@@ -35,6 +35,8 @@ type Provider[T any] func(Injector) (T, error)
 // The function uses type inference to determine the service name
 // based on the generic type parameter T.
 //
+// Play: https://go.dev/play/p/g549GqBbj-n
+//
 // Example:
 //
 //	serviceName := do.NameOf[*Database]()
@@ -44,6 +46,8 @@ func NameOf[T any]() string {
 
 // Provide registers a service in the DI container, using type inference.
 // The service will be lazily instantiated when first requested.
+//
+// Play: https://go.dev/play/p/4JutUJ5Rqau
 //
 // Example:
 //
@@ -61,6 +65,8 @@ func Provide[T any](i Injector, provider Provider[T]) {
 //
 // The service will be lazily instantiated when first requested.
 //
+// Play: https://go.dev/play/p/9JuTQhLGIlh
+//
 // Example:
 //
 //	do.ProvideNamed(injector, "main-db", func(i do.Injector) (*Database, error) {
@@ -77,6 +83,8 @@ func ProvideNamed[T any](i Injector, name string, provider Provider[T]) {
 
 // ProvideValue registers a value in the DI container, using type inference to determine the service name.
 // The value is immediately available and will not be recreated on each request.
+//
+// Play: https://go.dev/play/p/5TOSiI-c17Y
 //
 // Example:
 //
@@ -104,6 +112,8 @@ func ProvideNamedValue[T any](i Injector, name string, value T) {
 
 // ProvideTransient registers a factory in the DI container, using type inference to determine the service name.
 // The service will be recreated each time it is requested, providing a fresh instance.
+//
+// Play: https://go.dev/play/p/hzOJwtNXwT9
 //
 // Example:
 //
@@ -172,6 +182,8 @@ func provide[T any, A any](i Injector, name string, valueOrProvider A, serviceCt
 // This function is useful for testing or when you need to replace a service
 // that has already been registered. However, be cautious as it may lead to
 // resource leaks if the original service was already instantiated.
+//
+// Play: https://go.dev/play/p/g549GqBbj-n
 func Override[T any](i Injector, provider Provider[T]) {
 	name := inferServiceName[T]()
 	OverrideNamed(i, name, provider)
@@ -182,6 +194,8 @@ func Override[T any](i Injector, provider Provider[T]) {
 //
 // This function allows you to replace a specific named service that has
 // already been registered. Use with caution to avoid resource leaks.
+//
+// Play: https://go.dev/play/p/-gNF1BUEB5Q
 func OverrideNamed[T any](i Injector, name string, provider Provider[T]) {
 	override(i, name, provider, func(s string, a Provider[T]) serviceWrapper[T] {
 		return newServiceLazy(s, a)
@@ -193,6 +207,8 @@ func OverrideNamed[T any](i Injector, name string, provider Provider[T]) {
 //
 // This function replaces an existing value service with a new one.
 // The old value will not be properly cleaned up if it was already instantiated.
+//
+// Play: https://go.dev/play/p/-gNF1BUEB5Q
 func OverrideValue[T any](i Injector, value T) {
 	name := inferServiceName[T]()
 	OverrideNamedValue(i, name, value)
@@ -203,6 +219,8 @@ func OverrideValue[T any](i Injector, value T) {
 //
 // This function allows you to replace a specific named value service.
 // Use with caution to avoid resource leaks.
+//
+// Play: https://go.dev/play/p/-gNF1BUEB5Q
 func OverrideNamedValue[T any](i Injector, name string, value T) {
 	override(i, name, value, func(s string, a T) serviceWrapper[T] {
 		return newServiceEager(s, a)
@@ -215,6 +233,8 @@ func OverrideNamedValue[T any](i Injector, name string, value T) {
 // This function replaces an existing transient service factory with a new one.
 // Since transient services are recreated on each request, this is generally safer
 // than overriding lazy or eager services.
+//
+// Play: https://go.dev/play/p/_wYwBADbCaN
 func OverrideTransient[T any](i Injector, provider Provider[T]) {
 	name := inferServiceName[T]()
 	OverrideNamedTransient(i, name, provider)
@@ -226,6 +246,8 @@ func OverrideTransient[T any](i Injector, provider Provider[T]) {
 // This function allows you to replace a specific named transient service factory.
 // Since transient services are recreated on each request, this is generally safer
 // than overriding lazy or eager services.
+//
+// Play: https://go.dev/play/p/_wYwBADbCaN
 func OverrideNamedTransient[T any](i Injector, name string, provider Provider[T]) {
 	override(i, name, provider, func(s string, a Provider[T]) serviceWrapper[T] {
 		return newServiceTransient(s, a)
@@ -248,6 +270,8 @@ func override[T any, A any](i Injector, name string, valueOrProvider A, serviceC
 // Invoke retrieves and instantiates a service from the DI container using type inference.
 // The service will be created if it hasn't been instantiated yet (for lazy services).
 //
+// Play: https://go.dev/play/p/4JutUJ5Rqau
+//
 // Example:
 //
 //	service, err := do.Invoke[*MyService](injector)
@@ -259,6 +283,8 @@ func Invoke[T any](i Injector) (T, error) {
 // InvokeNamed retrieves and instantiates a named service from the DI container.
 // This allows you to retrieve specific named services when multiple services
 // of the same type are registered.
+//
+// Play: https://go.dev/play/p/9JuTQhLGIlh
 //
 // Example:
 //
@@ -289,6 +315,8 @@ func InvokeNamed[T any](i Injector, name string) (T, error) {
 // This function is useful when you're certain the service exists and want
 // to avoid error handling in your code.
 //
+// Play: https://go.dev/play/p/456pBhI36Q2
+//
 // Example:
 //
 //	service := do.MustInvoke[*MyService](injector)
@@ -302,6 +330,8 @@ func MustInvoke[T any](i Injector) T {
 // This function is useful when you're certain the named service exists and want
 // to avoid error handling in your code.
 //
+// Play: https://go.dev/play/p/456pBhI36Q2
+//
 // Example:
 //
 //	service := do.MustInvokeNamed[*MyService](injector, "my-service")
@@ -313,6 +343,8 @@ func MustInvokeNamed[T any](i Injector, name string) T {
 // The struct fields must be tagged with `do:""` or `do:"name"`, where `name` is the service name in the DI container.
 // If the service is not found in the DI container, an error is returned.
 // If the service is found but not assignable to the struct field, an error is returned.
+//
+// Play: https://go.dev/play/p/I3_Rznkprpj
 //
 // Example:
 //
@@ -363,6 +395,8 @@ func InvokeStruct[T any](i Injector) (T, error) {
 // If the service is not found in the DI container, it panics.
 // If the service is found but not assignable to the struct field, it panics.
 //
+// Play: https://go.dev/play/p/lRKqRT9TQVf
+//
 // Example:
 //
 //	type App struct {
@@ -401,6 +435,8 @@ func MustInvokeStruct[T any](i Injector) T {
 //
 // Returns an error if the alias cannot be created (e.g., type incompatibility or missing service).
 //
+// Play: https://go.dev/play/p/T5zKBRZaZhj
+//
 // Example:
 //
 //	// Register a concrete service
@@ -429,6 +465,8 @@ func As[Initial any, Alias any](i Injector) error {
 //
 // Panics if the alias cannot be created (e.g., type incompatibility or missing service).
 //
+// Play: https://go.dev/play/p/_wGjnRJfwV8
+//
 // Example:
 //
 //	do.MustAs[*PostgresqlDatabase, Database](injector)
@@ -445,6 +483,8 @@ func MustAs[Initial any, Alias any](i Injector) {
 //   - alias: The name for the new alias service
 //
 // Returns an error if the alias cannot be created (e.g., type incompatibility or missing service).
+//
+// Play: https://go.dev/play/p/h1R5rxKizwR
 //
 // Example:
 //
@@ -486,6 +526,8 @@ func AsNamed[Initial any, Alias any](i Injector, initial string, alias string) e
 //
 // Panics if the alias cannot be created (e.g., type incompatibility or missing service).
 //
+// Play: https://go.dev/play/p/8QI2XUm9yLH
+//
 // Example:
 //
 //	do.MustAsNamed[*PostgresqlDatabase, Database](injector, "my-db", "db-interface")
@@ -505,6 +547,8 @@ func MustAsNamed[Initial any, Alias any](i Injector, initial string, alias strin
 //   - i: The injector to search for the service
 //
 // Returns the service instance and any error that occurred during invocation.
+//
+// Play: https://go.dev/play/p/1uXvNenBbgk
 //
 // Example:
 //
@@ -528,6 +572,8 @@ func InvokeAs[T any](i Injector) (T, error) {
 //
 // Returns the service instance.
 // Panics if the service cannot be found or invoked.
+//
+// Play: https://go.dev/play/p/29gb2TJG4m5
 //
 // Example:
 //
@@ -554,6 +600,8 @@ func MustInvokeAs[T any](i Injector) T {
 //   - services: Variable number of service registration functions to execute
 //
 // Returns a function that can be passed to New(), NewWithOpts(), or Scope() to register all services.
+//
+// Play: https://go.dev/play/p/kmf8aOVyj96
 //
 // Example:
 //
@@ -589,14 +637,16 @@ func Package(services ...func(i Injector)) func(Injector) {
 //
 // Returns a function that registers the service as lazy when executed.
 //
+// Play: https://go.dev/play/p/M6-wd1qt-GZ
+//
 // Example:
 //
-//	dbService := do.Lazy[*Database](func(i do.Injector) (*Database, error) {
-//	    return &Database{}, nil
-//	})
-//
 //	// Global to a package
-//	var Package = do.Package(dbService, ...)
+//	var Package = do.Package(
+//		do.Lazy[*Database](func(i do.Injector) (*Database, error) {
+//	    	return &Database{}, nil
+//		}),
+//	)
 func Lazy[T any](p Provider[T]) func(Injector) {
 	return func(injector Injector) {
 		Provide(injector, p)
@@ -613,14 +663,16 @@ func Lazy[T any](p Provider[T]) func(Injector) {
 //
 // Returns a function that registers the service as lazy with the specified name when executed.
 //
+// Play: https://go.dev/play/p/xAs-exXR9Sz
+//
 // Example:
 //
-//	dbService := do.LazyNamed[*Database]("main-db", func(i do.Injector) (*Database, error) {
-//	    return &Database{}, nil
-//	})
-//
 //	// Global to a package
-//	var Package = do.Package(dbService)
+//	var Package = do.Package(
+//		do.LazyNamed[*Database]("main-db", func(i do.Injector) (*Database, error) {
+//	    	return &Database{}, nil
+//		}),
+//	)
 func LazyNamed[T any](serviceName string, p Provider[T]) func(Injector) {
 	return func(injector Injector) {
 		ProvideNamed(injector, serviceName, p)
@@ -636,12 +688,14 @@ func LazyNamed[T any](serviceName string, p Provider[T]) func(Injector) {
 //
 // Returns a function that registers the service as eager when executed.
 //
+// Play: https://go.dev/play/p/M6-wd1qt-GZ
+//
 // Example:
 //
-//	configService := do.Eager[*Config](&Config{Port: 8080})
-//
 //	// Global to a package
-//	var Package = do.Package(configService)
+//	var Package = do.Package(
+//		do.Eager[*Config](&Config{Port: 8080})
+//	)
 func Eager[T any](value T) func(Injector) {
 	return func(injector Injector) {
 		ProvideValue(injector, value)
@@ -658,12 +712,14 @@ func Eager[T any](value T) func(Injector) {
 //
 // Returns a function that registers the service as eager with the specified name when executed.
 //
+// Play: https://go.dev/play/p/pvByI4EkFEJ
+//
 // Example:
 //
-//	configService := do.EagerNamed[*Config]("app-config", &Config{Port: 8080})
-//
 //	// Global to a package
-//	var Package = do.Package(configService, ...)
+//	var Package = do.Package(
+//		do.EagerNamed[*Config]("app-config", &Config{Port: 8080})
+//	)
 func EagerNamed[T any](serviceName string, value T) func(Injector) {
 	return func(injector Injector) {
 		ProvideNamedValue(injector, serviceName, value)
@@ -679,14 +735,16 @@ func EagerNamed[T any](serviceName string, value T) func(Injector) {
 //
 // Returns a function that registers the service as transient when executed.
 //
+// Play: https://go.dev/play/p/M6-wd1qt-GZ
+//
 // Example:
 //
-//	loggerService := do.Transient[*Logger](func(i do.Injector) (*Logger, error) {
-//	    return &Logger{}, nil
-//	})
-//
 //	// Global to a package
-//	var Package = do.Package(loggerService, ...)
+//	var Package = do.Package(
+//		do.Transient[*Logger](func(i do.Injector) (*Logger, error) {
+//	    	return &Logger{}, nil
+//		})
+//	)
 func Transient[T any](p Provider[T]) func(Injector) {
 	return func(injector Injector) {
 		ProvideTransient(injector, p)
@@ -703,14 +761,16 @@ func Transient[T any](p Provider[T]) func(Injector) {
 //
 // Returns a function that registers the service as transient with the specified name when executed.
 //
+// Play: https://go.dev/play/p/d9IJOAbKRUH
+//
 // Example:
 //
-//	loggerService := do.TransientNamed[*Logger]("request-logger", func(i do.Injector) (*Logger, error) {
-//	    return &Logger{}, nil
-//	})
-//
 //	// Global to a package
-//	var Package = do.Package(loggerService, ...)
+//	var Package = do.Package(
+//		do.TransientNamed[*Logger]("request-logger", func(i do.Injector) (*Logger, error) {
+//	    	return &Logger{}, nil
+//		})
+//	)
 func TransientNamed[T any](serviceName string, p Provider[T]) func(Injector) {
 	return func(injector Injector) {
 		ProvideNamedTransient(injector, serviceName, p)
@@ -728,12 +788,14 @@ func TransientNamed[T any](serviceName string, p Provider[T]) func(Injector) {
 // Returns a function that creates the type alias when executed.
 // Panics if the binding cannot be created.
 //
+// Play: https://go.dev/play/p/j69I52whJr2
+//
 // Example:
 //
-//	dbBinding := do.Bind[*Database, DatabaseInterface]()
-//
 //	// Global to a package
-//	var Package = do.Package(dbBinding, ...)
+//	var Package = do.Package(
+//		do.Bind[*Database, DatabaseInterface]()
+//	)
 func Bind[Initial any, Alias any]() func(Injector) {
 	return func(injector Injector) {
 		MustAs[Initial, Alias](injector)
@@ -753,12 +815,14 @@ func Bind[Initial any, Alias any]() func(Injector) {
 // Returns a function that creates the named type alias when executed.
 // Panics if the binding cannot be created.
 //
+// Play: https://go.dev/play/p/m2gW7s9_qgq
+//
 // Example:
 //
-//	dbBinding := do.BindNamed[*Database, DatabaseInterface]("main-db", "db-interface")
-//
 //	// Global to a package
-//	var Package = do.Package(dbBinding, ...)
+//	var Package = do.Package(
+//		do.BindNamed[*Database, DatabaseInterface]("main-db", "db-interface")
+//	)
 func BindNamed[Initial any, Alias any](initial string, alias string) func(Injector) {
 	return func(injector Injector) {
 		MustAsNamed[Initial, Alias](injector, initial, alias)

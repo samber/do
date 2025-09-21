@@ -21,7 +21,7 @@ No breaking changes will be made until v3.
 Update go.mod:
 
 ```sh
-go get -u github.com/samber/do/v2
+go get -u github.com/samber/do@v2
 ```
 
 Replace package import:

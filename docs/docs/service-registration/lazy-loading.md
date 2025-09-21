@@ -22,6 +22,8 @@ type Provider[T any] func(do.Injector) (T, error)
 
 Example:
 
+**Play: https://go.dev/play/p/4JutUJ5Rqau**
+
 ```go
 type MyService struct {
     Hello string
@@ -48,6 +50,8 @@ func OverrideNamed[T any](i do.Injector, name string, provider do.Provider[T])
 It is highly recommended to use anonymous service invocation to let the framework handle naming.
 
 :::
+
+**Play: https://go.dev/play/p/9JuTQhLGIlh**
 
 ```go
 i := do.New()

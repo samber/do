@@ -17,6 +17,8 @@ do.ExplainNamedService(do.Injector, string) (do.ExplainServiceOutput, bool)
 
 ### Print tree
 
+**Play: https://go.dev/play/p/GTcGyPFC8IB**
+
 ```go
 debug, found := do.ExplainNamedService(scope, "SERVICE-E")
 if found {
@@ -80,6 +82,8 @@ graph TD
 ```
 
 ### Print dependencies or dependents
+
+**Play: https://go.dev/play/p/GTcGyPFC8IB**
 
 ```go
 description, found := do.ExplainNamedService(scope, "SERVICE-E")

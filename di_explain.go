@@ -161,6 +161,8 @@ func (sdd *ExplainServiceDependencyOutput) String() string {
 //
 // Note: Please call Invoke[T] before ExplainService[T] to ensure that the service is registered.
 //
+// Play: https://go.dev/play/p/Eii-vX9Rc-a
+//
 // Example:
 //
 //	// First invoke the service to ensure it's registered
@@ -189,6 +191,8 @@ func ExplainService[T any](i Injector) (description ExplainServiceOutput, ok boo
 // The boolean is false if the service is not found.
 //
 // Note: Please call Invoke[T] before ExplainNamedService[T] to ensure that the service is registered.
+//
+// Play: https://go.dev/play/p/GTcGyPFC8IB
 //
 // Example:
 //
@@ -452,6 +456,8 @@ func (idss *ExplainInjectorServiceOutput) String() string {
 //
 //	explanation := do.ExplainInjector(injector)
 //	fmt.Println(explanation.String())
+//
+// Play: https://go.dev/play/p/mRs4Q7TJ5jj
 //
 // Output example:
 //

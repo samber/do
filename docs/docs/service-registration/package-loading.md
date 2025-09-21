@@ -12,6 +12,8 @@ Package loading groups multiple service registrations.
 
 The services can be assembled into a package, and then, exported all at once.
 
+**Play: https://go.dev/play/p/kmf8aOVyj96**
+
 ```go
 // pkg/stores/package.go
 

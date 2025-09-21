@@ -50,6 +50,8 @@ type HealthcheckerWithContext interface {
 
 Example:
 
+**Play: https://go.dev/play/p/ILV7UpAJDtc**
+
 ```go
 // Ensure at compile-time MyService implements do.HealthcheckerWithContext
 var _ do.HealthcheckerWithContext = (*MyService)(nil)

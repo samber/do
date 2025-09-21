@@ -45,6 +45,8 @@ It is highly recommended to use anonymous service invocation to let the framewor
 
 :::
 
+**Play: https://go.dev/play/p/j69I52whJr2**
+
 ```go
 i := do.New()
 

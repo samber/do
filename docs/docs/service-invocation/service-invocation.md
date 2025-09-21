@@ -32,6 +32,8 @@ Circular dependencies are not allowed. Services must be invoked in a Directed Ac
 
 ## Example
 
+**Play: https://go.dev/play/p/9JuTQhLGIlh**
+
 ```go
 type MyService struct {
     IP string
@@ -56,6 +58,8 @@ func main() {
 You can also use the `do.InvokeStruct` function to auto-magically provide a service with its dependencies. The fields can be either exported or not.
 
 The `do:""` tag indicates the DI must infer the service name from its type (equivalent to `do.Invoke[*logrus.Logger](i)`).
+
+**Play: https://go.dev/play/p/Rqa4RCjThoI**
 
 ```go
 type MyService struct {

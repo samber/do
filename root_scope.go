@@ -26,6 +26,8 @@ var noOpLogf = func(format string, args ...any) {}
 //
 // Returns a new RootScope instance ready for service registration.
 //
+// Play: https://go.dev/play/p/-Fvet5zLoVY
+//
 // Example:
 //
 //	injector := do.New()
@@ -44,6 +46,8 @@ func New(packages ...func(Injector)) *RootScope {
 //   - packages: Optional package functions to execute during initialization
 //
 // Returns a new RootScope instance with the specified configuration.
+//
+// Play: https://go.dev/play/p/SmhFpWZGKUw
 //
 // Example:
 //
@@ -244,41 +248,57 @@ func (s *RootScope) queueServiceHealthcheck(ctx context.Context, scope *Scope, s
  */
 
 // AddBeforeRegistrationHook adds a hook that will be called before a service is registered.
+//
+// Play: https://go.dev/play/p/IstT_4oovQD
 func (s *RootScope) AddBeforeRegistrationHook(hook func(*Scope, string)) {
 	s.opts.HookBeforeRegistration = append(s.opts.HookBeforeRegistration, hook)
 }
 
 // AddAfterRegistrationHook adds a hook that will be called after a service is registered.
+//
+// Play: https://go.dev/play/p/IstT_4oovQD
 func (s *RootScope) AddAfterRegistrationHook(hook func(*Scope, string)) {
 	s.opts.HookAfterRegistration = append(s.opts.HookAfterRegistration, hook)
 }
 
 // AddBeforeInvocationHook adds a hook that will be called before a service is invoked.
+//
+// Play: https://go.dev/play/p/IstT_4oovQD
 func (s *RootScope) AddBeforeInvocationHook(hook func(*Scope, string)) {
 	s.opts.HookBeforeInvocation = append(s.opts.HookBeforeInvocation, hook)
 }
 
 // AddAfterInvocationHook adds a hook that will be called after a service is invoked.
+//
+// Play: https://go.dev/play/p/IstT_4oovQD
 func (s *RootScope) AddAfterInvocationHook(hook func(*Scope, string, error)) {
 	s.opts.HookAfterInvocation = append(s.opts.HookAfterInvocation, hook)
 }
 
 // AddBeforeShutdownHook adds a hook that will be called before a service is shutdown.
+//
+// Play: https://go.dev/play/p/FFKDcV0hMJx
 func (s *RootScope) AddBeforeShutdownHook(hook func(*Scope, string)) {
 	s.opts.HookBeforeShutdown = append(s.opts.HookBeforeShutdown, hook)
 }
 
 // AddAfterShutdownHook adds a hook that will be called after a service is shutdown.
+//
+// Play: https://go.dev/play/p/FFKDcV0hMJx
 func (s *RootScope) AddAfterShutdownHook(hook func(*Scope, string, error)) {
 	s.opts.HookAfterShutdown = append(s.opts.HookAfterShutdown, hook)
 }
 
 // Clone clones injector with provided services but not with invoked instances.
+//
+// Play: https://go.dev/play/p/DqIlXhZ8c4t
 func (s *RootScope) Clone() *RootScope {
 	return s.CloneWithOpts(s.opts.copy())
 }
 
 // CloneWithOpts clones injector with provided services but not with invoked instances, with options.
+//
+// Play: https://go.dev/play/p/fT-v63fbFk5
 func (s *RootScope) CloneWithOpts(opts *InjectorOpts) *RootScope {
 	clone := NewWithOpts(opts)
 	clone.self = s.clone(clone, nil)

@@ -24,6 +24,8 @@ go get -u github.com/samber/do/v2
 
 The simplest way to start is to use the default options:
 
+**Play: https://go.dev/play/p/g549GqBbj-n**
+
 ```go
 import "github.com/samber/do/v2"
 
@@ -97,6 +99,8 @@ func (c *Car) Start() {
 
 ### Register services using individual declaration
 
+**Play: https://go.dev/play/p/cp5wNpo-5wn**
+
 ```go
 func main() {
     // create DI container and inject package services
@@ -124,6 +128,8 @@ func main() {
 ### Register services using package declaration
 
 The services can be assembled into a package, and then, imported all at once into a new container.
+
+**Play: https://go.dev/play/p/kmf8aOVyj96**
 
 ```go
 var Package = do.Package(

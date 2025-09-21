@@ -14,6 +14,8 @@ do.ExplainInjector(do.Injector) do.ExplainInjectorOutput
 
 ## Print scope tree
 
+**Play: https://go.dev/play/p/mRs4Q7TJ5jj**
+
 ```go
 debug := do.ExplainInjector(scope)
 println(debug.String())
