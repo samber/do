@@ -66,7 +66,7 @@ I love the **short name** for such a utility library. This name is the sum of `D
 go get github.com/samber/do@v2
 
 # v1
-go get github.com/samber/do
+go get github.com/samber/do@v1.6.0
 ```
 
 This library is v2 and follows SemVer strictly.
