@@ -382,5 +382,5 @@ func handleProviderPanic[T any](provider Provider[T], i Injector) (svc T, err er
 		svc = _svc
 	}
 
-	return
+	return svc, err
 }

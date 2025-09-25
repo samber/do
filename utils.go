@@ -14,7 +14,7 @@ import (
 //
 
 func empty[T any]() (t T) {
-	return
+	return t
 }
 
 func deepEmpty[T any]() T {
@@ -142,7 +142,7 @@ func coalesce[T comparable](v ...T) (result T) {
 		}
 	}
 
-	return
+	return result
 }
 
 // https://gist.github.com/rkravchik/d9733e1d2d626188eb91df751471d739
