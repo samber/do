@@ -27,7 +27,7 @@ const FeatureList: FeatureItem[] = [
     title: 'Application lifecycle',
     Svg: require('@site/static/img/undraw_docusaurus_tree.svg').default,
     // src: "https://www.svgrepo.com/download/520498/clock.svg",
-    //src: "https://www.svgrepo.com/download/514347/compass.svg",
+    // src: "https://www.svgrepo.com/download/514347/compass.svg",
     src: "/img/compass.svg",
     description: (
       <>
