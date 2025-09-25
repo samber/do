@@ -46,3 +46,4 @@ This example demonstrates how to organize services into modular packages using t
 - **Team Development**: Different teams can work on different packages
 
 This example shows how the package system enables modular, maintainable, and testable applications with clear separation of concerns.
+

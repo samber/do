@@ -86,6 +86,12 @@ This library has no dependencies except the Go std lib.
 - [Examples](https://github.com/samber/do/tree/master/examples)
 - [Project templates](https://do.samber.dev/examples)
 
+## 🎬 Project boilerplate
+
+- [do-template-api](https://github.com/samber/do-template-api)
+- [do-template-worker](https://github.com/samber/do-template-worker)
+- [do-template-cli](https://github.com/samber/do-template-cli)
+
 ## 🤝 Contributing
 
 - Ping me on Twitter [@samuelberthe](https://twitter.com/samuelberthe) (DMs, mentions, whatever :))
