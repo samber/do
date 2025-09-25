@@ -28,9 +28,9 @@ jobs:
     - name: Drop use of ./examples/... from go.work 
       run: find ./examples -type d -exec go work edit -dropuse={} \;
 
-    # remove tests in order to clean dependencies
+    # remove tests to clean dependencies
     - name: Remove xxx_test.go files
-      run: rm -rf $(find . -type f -name "*_test.go") examples/ docs/ tests/
+      run: rm -rf $(find . -type f -name "*_test.go" ! -name "*_example_test.go") examples/ docs/ tests/
 
     - name: Cleanup dependencies
       run: go mod tidy
