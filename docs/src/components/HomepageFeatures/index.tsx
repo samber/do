@@ -14,7 +14,8 @@ const FeatureList: FeatureItem[] = [
     title: 'Separation of concerns',
     Svg: require('@site/static/img/undraw_docusaurus_mountain.svg').default,
     // src: "https://www.svgrepo.com/download/520485/research.svg",
-    src: "https://www.svgrepo.com/download/514345/street-sign.svg",
+    // src: "https://www.svgrepo.com/download/514345/street-sign.svg",
+    src: "/img/street-sign.svg",
     description: (
       <>
         DO was designed from the ground up to increase modularity
@@ -26,7 +27,8 @@ const FeatureList: FeatureItem[] = [
     title: 'Application lifecycle',
     Svg: require('@site/static/img/undraw_docusaurus_tree.svg').default,
     // src: "https://www.svgrepo.com/download/520498/clock.svg",
-    src: "https://www.svgrepo.com/download/514347/compass.svg",
+    //src: "https://www.svgrepo.com/download/514347/compass.svg",
+    src: "/img/compass.svg",
     description: (
       <>
         DO provides an API to check the health of active services and to
@@ -38,7 +40,8 @@ const FeatureList: FeatureItem[] = [
     title: 'Easy debugging',
     Svg: require('@site/static/img/undraw_docusaurus_react.svg').default,
     // src: "https://www.svgrepo.com/download/520483/quiz.svg",
-    src: "https://www.svgrepo.com/download/514336/telescope.svg",
+    // src: "https://www.svgrepo.com/download/514336/telescope.svg",
+    src: "/img/telescope.svg",
     description: (
       <>
         Debugging IoC can be painful.
