@@ -1,6 +1,7 @@
 package do
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"os/signal"
@@ -26,6 +27,7 @@ func New() *Injector {
 type InjectorOpts struct {
 	HookAfterRegistration func(injector *Injector, serviceName string)
 	HookAfterShutdown     func(injector *Injector, serviceName string)
+	UseFQSN               bool // Use Fully Qualified Service Name (FQSN) for service names
 
 	Logf func(format string, args ...any)
 }
@@ -47,6 +49,7 @@ func NewWithOpts(opts *InjectorOpts) *Injector {
 
 		hookAfterRegistration: opts.HookAfterRegistration,
 		hookAfterShutdown:     opts.HookAfterShutdown,
+		useFQSN:               opts.UseFQSN,
 
 		logf: logf,
 	}
@@ -62,6 +65,7 @@ type Injector struct {
 
 	hookAfterRegistration func(injector *Injector, serviceName string)
 	hookAfterShutdown     func(injector *Injector, serviceName string)
+	useFQSN               bool // Use Fully Qualified Service Name (FQSN) for service names
 
 	logf func(format string, args ...any)
 }
@@ -78,8 +82,19 @@ func (i *Injector) ListProvidedServices() []string {
 
 func (i *Injector) ListInvokedServices() []string {
 	i.mu.RLock()
-	names := keys(i.orderedInvocation)
+	invocations := invertMap(i.orderedInvocation)
+	invocationIndex := i.orderedInvocationIndex
 	i.mu.RUnlock()
+
+	names := make([]string, 0, invocationIndex+1)
+	for index := 0; index <= invocationIndex; index++ {
+		name, ok := invocations[index]
+		if !ok {
+			continue
+		}
+
+		names = append(names, name)
+	}
 
 	i.logf("exported list of invoked services: %v", names)
 
@@ -105,6 +120,10 @@ func (i *Injector) HealthCheck() map[string]error {
 }
 
 func (i *Injector) Shutdown() error {
+	return i.ShutdownContext(context.Background())
+}
+
+func (i *Injector) ShutdownContext(ctx context.Context) error {
 	i.mu.RLock()
 	invocations := invertMap(i.orderedInvocation)
 	invocationIndex := i.orderedInvocationIndex
@@ -118,7 +137,7 @@ func (i *Injector) Shutdown() error {
 			continue
 		}
 
-		err := i.shutdownImplem(name)
+		err := i.shutdownContextImplem(ctx, name)
 		if err != nil {
 			return err
 		}
@@ -179,6 +198,10 @@ func (i *Injector) healthcheckImplem(name string) error {
 }
 
 func (i *Injector) shutdownImplem(name string) error {
+	return i.shutdownContextImplem(context.Background(), name)
+}
+
+func (i *Injector) shutdownContextImplem(ctx context.Context, name string) error {
 	i.mu.Lock()
 
 	serviceAny, ok := i.services[name]
@@ -189,13 +212,23 @@ func (i *Injector) shutdownImplem(name string) error {
 
 	i.mu.Unlock()
 
-	service, ok := serviceAny.(shutdownableService)
+	serviceWithCtx, ok := serviceAny.(shutdownableWithContextService)
 	if ok {
 		i.logf("requested shutdown for service %s", name)
 
-		err := service.shutdown()
+		err := serviceWithCtx.shutdownWithContext(ctx)
 		if err != nil {
 			return err
+		}
+	} else {
+		service, ok := serviceAny.(shutdownableService)
+		if ok {
+			i.logf("requested shutdown for service %s", name)
+
+			err := service.shutdown()
+			if err != nil {
+				return err
+			}
 		}
 	}
 

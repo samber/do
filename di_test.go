@@ -1,6 +1,7 @@
 package do
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
@@ -151,6 +152,71 @@ func TestInvoke(t *testing.T) {
 	_, err2 := Invoke[*test](i)
 	is.NotNil(err2)
 	is.Errorf(err2, "do: service not found")
+}
+
+func TestInvokeCircularDependency(t *testing.T) {
+	t.Run("simple circular dependency", func(t *testing.T) {
+		type test struct{}
+
+		is := assert.New(t)
+		i := New()
+
+		Provide(i, func(i *Injector) (test, error) {
+			return MustInvoke[test](i), nil
+		})
+
+		is.Panics(func() {
+			_ = MustInvoke[test](i)
+		}, "circular dependency was not detected (this message will only be read in here when the test never finishes because of infinite recursion)")
+
+	})
+
+	t.Run("subtle circular dependency", func(t *testing.T) {
+		type itest any
+
+		type test4 struct {
+			t itest
+		}
+		type test3 struct {
+			t itest
+		}
+		type test2 struct {
+			t itest
+		}
+		type test1 struct {
+			t itest
+		}
+
+		is := assert.New(t)
+		i := New()
+
+		// test1 -> test2 -> test3 -> test4 --
+		//    ^______________________________|
+		Provide(i, func(i *Injector) (test1, error) {
+			return test1{
+				t: MustInvoke[test2](i),
+			}, nil
+		})
+		Provide(i, func(i *Injector) (test2, error) {
+			return test2{
+				t: MustInvoke[test3](i),
+			}, nil
+		})
+		Provide(i, func(i *Injector) (test3, error) {
+			return test3{
+				t: MustInvoke[test4](i),
+			}, nil
+		})
+		Provide(i, func(i *Injector) (test4, error) {
+			return test4{
+				t: MustInvoke[test1](i),
+			}, nil
+		})
+
+		is.Panics(func() {
+			_ = MustInvoke[test1](i)
+		}, "circular dependency was not detected (this message will only be read in here when the test never finishes because of infinite recursion)")
+	})
 }
 
 func TestInvokeNamed(t *testing.T) {
@@ -332,6 +398,143 @@ func TestMustShutdownNamed(t *testing.T) {
 
 	is.Panics(func() {
 		MustShutdownNamed(i, "foobar")
+	})
+}
+
+type test struct {
+	waitForCtx bool
+}
+
+func (t test) Shutdown(ctx context.Context) error {
+	if t.waitForCtx {
+		<-ctx.Done()
+		return ctx.Err()
+	}
+
+	return nil
+}
+
+func TestShutdownContext(t *testing.T) {
+	t.Run("context without cancellation returns nil", func(t *testing.T) {
+		is := assert.New(t)
+
+		i := New()
+
+		Provide(i, func(i *Injector) (test, error) {
+			return test{waitForCtx: false}, nil
+		})
+
+		is.NotPanics(func() {
+			MustInvoke[test](i)
+		})
+
+		ctx := context.Background()
+		err := ShutdownContext[test](ctx, i)
+		is.NoError(err)
+
+		instance, err := Invoke[test](i)
+		is.Empty(instance)
+		is.Error(err)
+	})
+
+	t.Run("cancelled context returns an error", func(t *testing.T) {
+		is := assert.New(t)
+
+		i := New()
+
+		Provide(i, func(i *Injector) (test, error) {
+			return test{waitForCtx: true}, nil
+		})
+
+		is.NotPanics(func() {
+			MustInvoke[test](i)
+		})
+
+		ctx, cancel := context.WithCancel(context.Background())
+		cancel()
+		err := ShutdownContext[test](ctx, i)
+		is.Error(err)
+	})
+}
+
+func TestMustShutdownContext(t *testing.T) {
+	t.Run("context without cancellation returns nil", func(t *testing.T) {
+		is := assert.New(t)
+
+		i := New()
+
+		Provide(i, func(i *Injector) (test, error) {
+			return test{waitForCtx: false}, nil
+		})
+
+		is.NotPanics(func() {
+			MustInvoke[test](i)
+		})
+
+		ctx := context.Background()
+		is.NotPanics(func() {
+			MustShutdownContext[test](ctx, i)
+		})
+	})
+
+	t.Run("cancelled context returns an error", func(t *testing.T) {
+		is := assert.New(t)
+
+		i := New()
+
+		Provide(i, func(i *Injector) (test, error) {
+			return test{waitForCtx: true}, nil
+		})
+
+		is.NotPanics(func() {
+			MustInvoke[test](i)
+		})
+
+		ctx, cancel := context.WithCancel(context.Background())
+		cancel()
+		is.Panics(func() {
+			MustShutdownContext[test](ctx, i)
+		})
+	})
+}
+
+func TestShutdownContextNamed(t *testing.T) {
+	t.Run("cancelled context returns an error", func(t *testing.T) {
+		is := assert.New(t)
+
+		i := New()
+
+		ProvideNamedValue(i, "foobar", test{waitForCtx: true})
+
+		is.NotPanics(func() {
+			MustInvokeNamed[test](i, "foobar")
+		})
+
+		ctx, cancel := context.WithCancel(context.Background())
+		cancel()
+		err := ShutdownNamedContext(ctx, i, "foobar")
+		is.Error(err)
+
+	})
+
+	t.Run("context without cancellation returns nil", func(t *testing.T) {
+		is := assert.New(t)
+
+		i := New()
+
+		ProvideNamedValue(i, "foobar", test{waitForCtx: false})
+
+		is.NotPanics(func() {
+			MustInvokeNamed[test](i, "foobar")
+		})
+
+		ctx := context.Background()
+		err := ShutdownNamedContext(ctx, i, "foobar")
+		is.NoError(err)
+
+		instance, err := InvokeNamed[test](i, "foobar")
+		is.Empty(instance)
+		is.Error(err)
 	})
 }
 
