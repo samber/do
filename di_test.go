@@ -208,6 +208,37 @@ func TestMustInvoke(t *testing.T) {
 	})
 }
 
+func TestMustInvokeNestedPanicError(t *testing.T) {
+	is := assert.New(t)
+
+	i := New()
+
+	type a struct{}
+	type c struct{}
+
+	type b struct {
+		A a
+		C c
+	}
+
+	Provide(i, func(i *Injector) (a, error) {
+		return a{}, nil
+	})
+
+	Provide(i, func(i *Injector) (b, error) {
+		return b{
+			A: MustInvoke[a](i),
+			C: MustInvoke[c](i),
+		}, nil
+	})
+
+	is.PanicsWithError("invoke service `do.b` -> invoke service `do.c` -> DI: could not find service `do.c`, available services: `do.a`, `do.b`",
+		func() {
+			MustInvoke[b](i)
+		},
+	)
+}
+
 func TestMustInvokeNamed(t *testing.T) {
 	is := assert.New(t)
 
@@ -229,6 +260,37 @@ func TestMustInvokeNamed(t *testing.T) {
 		instance1 := MustInvokeNamed[int](i, "foobar")
 		is.EqualValues(42, instance1)
 	})
+}
+
+func TestMustInvokeNamedNestedPanicError(t *testing.T) {
+	is := assert.New(t)
+
+	i := New()
+
+	type a struct{}
+	type c struct{}
+
+	type b struct {
+		A a
+		C c
+	}
+
+	Provide(i, func(i *Injector) (a, error) {
+		return a{}, nil
+	})
+
+	ProvideNamed(i, "bName", func(i *Injector) (b, error) {
+		return b{
+			A: MustInvoke[a](i),
+			C: MustInvokeNamed[c](i, "cName"),
+		}, nil
+	})
+
+	is.PanicsWithError("invoke named service `do.b` name `bName` -> invoke named service `do.c` name `cName` -> DI: could not find service `cName`, available services: `do.a`, `bName`",
+		func() {
+			MustInvokeNamed[b](i, "bName")
+		},
+	)
 }
 
 func TestShutdown(t *testing.T) {
