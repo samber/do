@@ -63,6 +63,10 @@ func (s *virtualScope) Shutdown() *ShutdownReport { return s.self.Shutdown() }
 func (s *virtualScope) ShutdownWithContext(ctx context.Context) *ShutdownReport {
 	return s.self.ShutdownWithContext(ctx)
 }
+func (s *virtualScope) Delete() *ShutdownReport { return s.self.Delete() }
+func (s *virtualScope) DeleteWithContext(ctx context.Context) *ShutdownReport {
+	return s.self.DeleteWithContext(ctx)
+}
 func (s *virtualScope) clone(r *RootScope, p *Scope) *Scope              { return s.self.clone(r, p) }
 func (s *virtualScope) serviceExist(name string) bool                    { return s.self.serviceExist(name) }
 func (s *virtualScope) serviceExistRec(name string) bool                 { return s.self.serviceExistRec(name) }
