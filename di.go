@@ -588,6 +588,66 @@ func MustInvokeAs[T any](i Injector) T {
 	return must1(InvokeAs[T](i))
 }
 
+// InvokeAsAll invokes all services in the DI container that match the provided type or interface.
+// This function searches through all registered services to find all that can be cast to the requested type T.
+// Returns a slice of all matching services in deterministic order by service name.
+//
+// Parameters:
+//   - i: The injector to search for services
+//
+// Returns a slice of service instances and any error that occurred during invocation.
+// If no services match, returns an empty slice and no error.
+// If some services fail to invoke, returns successfully invoked services with an error describing the failures.
+//
+// Play: https://go.dev/play/p/spRqDOsXQLs
+//
+// Example:
+//
+//	// Register multiple database implementations
+//	do.Provide(injector, func(i do.Injector) (*PostgresDB, error) {
+//	    return &PostgresDB{}, nil
+//	})
+//	do.Provide(injector, func(i do.Injector) (*MySQLDB, error) {
+//	    return &MySQLDB{}, nil
+//	})
+//	// Both implement Database interface
+//
+//	// Invoke all databases
+//	databases, err := do.InvokeAsAll[Database](injector)
+//	// databases contains both PostgresDB and MySQLDB instances
+func InvokeAsAll[T any](i Injector) ([]T, error) {
+	return invokeAsAllByGenericType[T](i)
+}
+
+// MustInvokeAsAll invokes all services in the DI container that match the provided type or interface.
+// This function panics if an error occurs during invocation.
+// Returns a slice of all matching service instances in deterministic order.
+//
+// Parameters:
+//   - i: The injector to search for services
+//
+// Returns a slice of service instances.
+// Panics if any service cannot be found or invoked.
+//
+// Play: https://go.dev/play/p/spRqDOsXQLs
+//
+// Example:
+//
+//	// Register multiple repositories
+//	do.Provide(injector, func(i do.Injector) (*UserRepository, error) {
+//	    return &UserRepository{}, nil
+//	})
+//	do.Provide(injector, func(i do.Injector) (*ProductRepository, error) {
+//	    return &ProductRepository{}, nil
+//	})
+//	// Both implement Repository interface
+//
+//	// Invoke all repositories (panics on error)
+//	repositories := do.MustInvokeAsAll[Repository](injector)
+func MustInvokeAsAll[T any](i Injector) []T {
+	return must1(InvokeAsAll[T](i))
+}
+
 /////////////////////////////////////////////////////////////////////////////
 // 							Package-level declaration
 /////////////////////////////////////////////////////////////////////////////
