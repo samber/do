@@ -39,7 +39,7 @@
     "react-dom": "^19.1.1"
   },
   "devDependencies": {
-    "@docusaurus/module-type-aliases": "3.8.1",
+    "@docusaurus/module-type-aliases": "3.9.1",
     "@docusaurus/tsconfig": "3.8.1",
     "@docusaurus/types": "3.8.1",
     "prettier": "^3.0.0",
