@@ -23,7 +23,7 @@
     "start:en": "docusaurus start --locale en"
   },
   "dependencies": {
-    "@docusaurus/core": "3.8.1",
+    "@docusaurus/core": "3.9.1",
     "@docusaurus/faster": "^3.8.1",
     "@docusaurus/plugin-css-cascade-layers": "^3.8.1",
     "@docusaurus/plugin-ideal-image": "^3.8.1",
