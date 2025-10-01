@@ -29,7 +29,7 @@
     "@docusaurus/plugin-ideal-image": "^3.8.1",
     "@docusaurus/plugin-svgr": "^3.8.1",
     "@docusaurus/plugin-vercel-analytics": "^3.9.1",
-    "@docusaurus/preset-classic": "3.8.1",
+    "@docusaurus/preset-classic": "3.9.1",
     "@docusaurus/theme-mermaid": "^3.8.1",
     "@mdx-js/react": "^3.1.1",
     "classnames": "^2.3.2",
