@@ -24,13 +24,13 @@
   },
   "dependencies": {
     "@docusaurus/core": "3.9.1",
-    "@docusaurus/faster": "^3.8.1",
-    "@docusaurus/plugin-css-cascade-layers": "^3.8.1",
-    "@docusaurus/plugin-ideal-image": "^3.8.1",
-    "@docusaurus/plugin-svgr": "^3.8.1",
+    "@docusaurus/faster": "^3.9.1",
+    "@docusaurus/plugin-css-cascade-layers": "^3.9.1",
+    "@docusaurus/plugin-ideal-image": "^3.9.1",
+    "@docusaurus/plugin-svgr": "^3.9.1",
     "@docusaurus/plugin-vercel-analytics": "^3.9.1",
     "@docusaurus/preset-classic": "3.9.1",
-    "@docusaurus/theme-mermaid": "^3.8.1",
+    "@docusaurus/theme-mermaid": "^3.9.1",
     "@mdx-js/react": "^3.1.1",
     "classnames": "^2.3.2",
     "clsx": "^2.1.1",
@@ -40,7 +40,7 @@
   },
   "devDependencies": {
     "@docusaurus/module-type-aliases": "3.9.1",
-    "@docusaurus/tsconfig": "3.8.1",
+    "@docusaurus/tsconfig": "3.9.1",
     "@docusaurus/types": "3.9.1",
     "prettier": "^3.0.0",
     "typescript": "~5.9.2"
