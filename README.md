@@ -22,9 +22,9 @@ This library implements the Dependency Injection design pattern. It may replace 
 
 ----
 
-### 💖 Support This Project
+<h3 align="center">💖 Support This Project</h3>
 
-Help sustain development: Become an [individual sponsor](http://github.com/sponsors/samber) or join as a [corporate sponsor](mailto:hey@samuel-berthe.fr)
+<p align="center">Help sustain development: Become an <a href="http://github.com/sponsors/samber">individual sponsor</a> or join as a <a href="mailto:hey@samuel-berthe.fr">corporate sponsor</a>.</p>
 
 ----
 
