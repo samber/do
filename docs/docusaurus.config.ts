@@ -7,6 +7,28 @@ const config: Config = {
   tagline: 'Type-safe dependency injection for Go',
   favicon: 'img/favicon.ico',
 
+  // Future flags, see https://docusaurus.io/docs/api/docusaurus-config#future
+  future: {
+    v4: {
+      removeLegacyPostBuildHeadAttribute: true,
+      useCssCascadeLayers: true,
+    },
+    experimental_faster: {
+      swcJsLoader: true,
+      swcJsMinimizer: true,
+      swcHtmlMinimizer: true,
+      lightningCssMinimizer: true,
+      rspackBundler: true,
+      rspackPersistentCache: true,
+      ssgWorkerThreads: true,
+      mdxCrossCompilerCache: true,
+    },
+    experimental_storage: {
+      type: 'localStorage',
+      namespace: true,
+    },
+  },
+
   // Set the production url of your site here
   url: 'https://do.samber.dev',
   // Set the /<baseUrl>/ pathname under which your site is served
@@ -22,32 +44,14 @@ const config: Config = {
   // deploymentBranch: 'gh-pages',
   
   onBrokenLinks: 'throw',
-  onBrokenMarkdownLinks: 'warn',
-  onBrokenAnchors: 'warn',
+  onBrokenMarkdownLinks: 'throw',
+  onBrokenAnchors: 'throw',
 
   markdown: {
     anchors: {
       maintainCase: true,
     },
     mermaid: true,
-  },
-
-  future: {
-    experimental_faster: {
-      swcJsLoader: true,
-      swcJsMinimizer: true,
-      swcHtmlMinimizer: true,
-      lightningCssMinimizer: true,
-      rspackBundler: true,
-      mdxCrossCompilerCache: true,
-    },
-    experimental_storage: {
-      type: 'localStorage',
-      namespace: false,
-    },
-    v4: {
-      useCssCascadeLayers: true,
-    },
   },
 
   // Storage configuration for better performance
@@ -192,6 +196,11 @@ const config: Config = {
   themeConfig: {
     // Replace with your project's social card
     image: 'img/cover.png',
+    colorMode: {
+      defaultMode: 'light',
+      disableSwitch: false,
+      respectPrefersColorScheme: true,
+    },
     
     // Mermaid configuration
     mermaid: {
@@ -205,6 +214,7 @@ const config: Config = {
     metadata: [
       {name: 'og:type', content: 'website'},
     ],
+    
     navbar: {
       title: '⚙️ samber/do',
       logo: {
@@ -328,11 +338,6 @@ const config: Config = {
           block: {start: 'error-start', end: 'error-end'},
         },
       ],
-    },
-    colorMode: {
-      defaultMode: 'light',
-      disableSwitch: false,
-      respectPrefersColorScheme: true,
     },
     algolia: {
       appId: '9Q5MHPPFJM',

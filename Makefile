@@ -3,9 +3,9 @@ build:
 	go build -v ./...
 
 test:
-	go test -race -v ./...
+	go test -race ./...
 watch-test:
-	reflex -t 50ms -s -- sh -c 'gotest -race -v ./...'
+	reflex -t 50ms -s -- sh -c 'gotest -race ./...'
 
 bench:
 	go test -benchmem -count 3 -bench ./...
@@ -34,15 +34,15 @@ lint:
 lint-fix:
 	golangci-lint run --timeout 60s --max-same-issues 50 --fix ./...
 
-audit: tools
+audit:
 	go mod tidy
 	go list -json -m all | nancy sleuth
 
-outdated: tools
+outdated:
 	go mod tidy
 	go list -u -m -json all | go-mod-outdated -update -direct
 
-weight: tools
+weight:
 	goweight
 
 doc:
