@@ -262,7 +262,13 @@ const config: Config = {
           position: 'right',
         },
         {
+          to: 'https://github.com/sponsors/samber',
+          label: '💖 Sponsor',
+          position: 'right',
+        },
+        {
           href: 'https://github.com/samber/do',
+          // label: 'GitHub',
           position: 'right',
           className: 'header-github-link',
           'aria-label': 'GitHub repository',
@@ -295,6 +301,10 @@ const config: Config = {
               label: 'License',
               to: 'https://github.com/samber/do/blob/master/LICENSE',
             },
+            {
+              label: '💖 Sponsor',
+              to: 'https://github.com/sponsors/samber',
+            },
           ],
         },
         {
@@ -315,6 +325,10 @@ const config: Config = {
             {
               label: 'Twitter',
               to: 'https://twitter.com/samuelberthe',
+            },
+            {
+              label: 'Substack',
+              to: 'https://samuelberthe.substack.com',
             },
           ],
         },
@@ -351,7 +365,7 @@ const config: Config = {
       },
       searchPagePath: 'search',
       // Enhanced search features from 3.8+
-      insights: false,
+      insights: true,
     },
   } satisfies Preset.ThemeConfig,
 
