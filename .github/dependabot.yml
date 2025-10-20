@@ -16,11 +16,13 @@ updates:
     directory: /docs
     schedule:
       interval: monthly
+    ignore:
+      - dependency-name: '*'
+        update-types: ["version-update:semver-patch"]
     groups:
       docusaurus:
         patterns:
           - "@docusaurus/*"
-    groups:
       react:
         patterns:
           - "react"
