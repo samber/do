@@ -29,7 +29,7 @@
     "@docusaurus/plugin-ideal-image": "^3.9.1",
     "@docusaurus/plugin-svgr": "^3.9.2",
     "@docusaurus/plugin-vercel-analytics": "^3.9.1",
-    "@docusaurus/preset-classic": "3.9.1",
+    "@docusaurus/preset-classic": "3.9.2",
     "@docusaurus/theme-mermaid": "^3.9.1",
     "@mdx-js/react": "^3.1.1",
     "@mermaid-js/layout-elk": "^0.1.9",
