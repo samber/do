@@ -4,6 +4,7 @@ updates:
     directory: /
     schedule:
       interval: monthly
+
   - package-ecosystem: gomod
     directories:
       - /
@@ -11,6 +12,7 @@ updates:
       - /examples/**
     schedule:
       interval: weekly
+
   - package-ecosystem: npm
     directory: /docs
     schedule:
