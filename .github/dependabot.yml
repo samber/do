@@ -5,11 +5,10 @@ updates:
     schedule:
       interval: monthly
   - package-ecosystem: gomod
-    directory: /
-    schedule:
-      interval: weekly
-  - package-ecosystem: gomod
-    directory: /http/**
+    directories:
+      - /
+      - /http/**
+      - /examples/**
     schedule:
       interval: weekly
   - package-ecosystem: npm
