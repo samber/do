@@ -1,4 +1,4 @@
-name: Docs helpers validation
+name: Documentation
 
 on:
   pull_request:
@@ -9,7 +9,7 @@ on:
       - 'docs/**'
 
 jobs:
-  validate-docs-helpers:
+  build-docs:
     runs-on: ubuntu-latest
     defaults:
       run:
