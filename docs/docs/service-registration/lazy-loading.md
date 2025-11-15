@@ -22,8 +22,6 @@ type Provider[T any] func(do.Injector) (T, error)
 
 Example:
 
-**Play: https://go.dev/play/p/4JutUJ5Rqau**
-
 ```go
 type MyService struct {
     Hello string
@@ -33,6 +31,8 @@ func NewMyService(i do.Injector) (*MyService, error) {
     return &MyService{Hello: "world"}, nil
 }
 ```
+
+**Play: https://go.dev/play/p/4JutUJ5Rqau**
 
 ## Inject service into DI container
 

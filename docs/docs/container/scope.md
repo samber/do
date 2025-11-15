@@ -60,8 +60,6 @@ graph TD
 
 A root scope is created when calling `do.New()`. Multiple layers of child scopes can be added. Each nested scope shares the same root scope.
 
-**Play: https://go.dev/play/p/vwLEbyo0APp**
-
 ```go
 // root scope
 injector := do.New()
@@ -108,6 +106,8 @@ svc := do.MustInvokeNamed[*Passenger](passengersModule, "passenger-1")
 svc := do.MustInvokeNamed[*Passenger](passengersModule, "passenger-2")
 svc := do.MustInvokeNamed[*Passenger](passengersModule, "passenger-3")
 ```
+
+**Play: https://go.dev/play/p/vwLEbyo0APp**
 
 ## Debug
 

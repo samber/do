@@ -4,6 +4,9 @@ description: Let's discover samber/do in less than 5 minutes.
 sidebar_position: 1
 ---
 
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
 # Getting started
 
 Discover **samber/do in less than 5 minutes**.
@@ -55,104 +58,162 @@ graph LR
     D -- Invoke --> E
 ```
 
-Engine:
+### Declare constructors and invoke singleton
 
-```go
-// Provider
-func NewEngine(i do.Injector) (*Engine, error) {
-    return &Engine{
-        Started: false,
-    }, nil
-}
+<Tabs>
+  <TabItem value="car" label="car.go" default>
+    ```go
+    // Provider
+    func NewCar(i do.Injector) (*Car, error) {
+        return &Car{
+            // import dependency
+            Engine: do.MustInvoke[*Engine](i),
+            Wheels: [4]*Wheel{
+                do.MustInvokeNamed[*Wheel](i, "front-left"),
+                do.MustInvokeNamed[*Wheel](i, "front-right"),
+                do.MustInvokeNamed[*Wheel](i, "back-left"),
+                do.MustInvokeNamed[*Wheel](i, "back-right"),
+            },
+        }, nil
+    }
 
-type Engine struct {
-    Started bool
-}
+    type Car struct {
+        Engine *Engine
+        Wheels [4]*Wheel
+    }
 
-func (e *Engine) Shutdown() error {
-    // called on injector shutdown
-    e.Started = false
-    return nil
-}
-```
+    func (c *Car) Start() {
+        c.Engine.Started = true
+        println("vroooom")
+    }
+    ```
+  </TabItem>
+  <TabItem value="engine" label="engine.go">
+    ```go
+    // Provider
+    func NewEngine(i do.Injector) (*Engine, error) {
+        return &Engine{
+            Started: false,
+        }, nil
+    }
 
-Car:
+    type Engine struct {
+        Started bool
+    }
 
-```go
-// Provider
-func NewCar(i do.Injector) (*Car, error) {
-    return &Car{
-        // import dependency
-        Engine: do.MustInvoke[*Engine](i),
-    }, nil
-}
+    func (e *Engine) Shutdown() error {
+        // called on injector shutdown
+        e.Started = false
+        return nil
+    }
+    ```
+  </TabItem>
+  <TabItem value="wheel" label="wheel.go" default>
+    ```go
+    // Provider
+    func NewWheel(i do.Injector) (*Wheel, error) {
+        return &Wheel{
+            front: false,
+            left: true,
+        }, nil
+    }
 
-type Car struct {
-    Engine *Engine
-}
+    type Wheel struct {
+        Front bool
+        Left  bool
+    }
 
-func (c *Car) Start() {
-    c.Engine.Started = true
-    println("vroooom")
-}
-```
+    func (e *Engine) Brake() {
+        // stuff
+    }
+    ```
+  </TabItem>
+</Tabs>
 
 ### Register services using individual declaration
 
-**Play: https://go.dev/play/p/cp5wNpo-5wn**
+<Tabs>
+  <TabItem value="main" label="main.go" default>
+    ```go
+    func main() {
+        // Create DI container and inject services
+        injector := do.New()
 
-```go
-func main() {
-    // create DI container and inject package services
-    injector := do.New()
+        do.Provide(injector, NewCar)
+        do.Provide(injector, NewEngine)
+        do.ProvideNamed(injector, "front-left", NewWheel)
+        do.ProvideNamed(injector, "front-right", NewWheel)
+        do.ProvideNamed(injector, "back-left", NewWheel)
+        do.ProvideNamed(injector, "back-right", NewWheel)
+        do.ProvideValue(injector, &Config{
+            Port: 4242,
+        })
 
-    do.Provide(injector, NewCar)
-    do.Provide(injector, NewEngine)
-    do.ProvideValue(injector, &Config{
-        Port: 4242,
-    })
+        // Invoking Car will instantiate the singleton and its Engine+Wheel dependencies
+        car, err := do.Invoke[*Car](injector)
+        if err != nil {
+            log.Fatal(err.Error())
+        }
 
-    // invoking car will instantiate Car services and its Engine dependency
-    car, err := do.Invoke[*Car](injector)
-    if err != nil {
-        log.Fatal(err.Error())
+        car.Start() // that's all folks 🤗
+
+        // Handle ctrl-c and shutdown services
+        injector.ShutdownOnSignals(syscall.SIGTERM, os.Interrupt)
     }
+    ```
+  </TabItem>
+</Tabs>
 
-    car.Start() // that's all folks 🤗
-
-    // handle ctrl-c and shutdown services
-    injector.ShutdownOnSignals(syscall.SIGTERM, os.Interrupt)
-}
-```
+**Play: https://go.dev/play/p/cp5wNpo-5wn**
 
 ### Register services using package declaration
 
 The services can be assembled into a package, and then, imported all at once into a new container.
 
-**Play: https://go.dev/play/p/kmf8aOVyj96**
+<Tabs>
+  <TabItem value="package" label="pkg/car/package.go" default>
+    ```go
+    package car
 
-```go
-var Package = do.Package(
-    do.Lazy(NewCar),
-    do.Lazy(NewEngine),
-    do.Eager(&Config{
-        Port: 4242,
-    }),
-)
+    // Export every services of a package and make them available in a single big provider
+    var Package = do.Package(
+        do.Lazy(NewCar),
+        do.Lazy(NewEngine),
+        do.LazyNamed("front-left", NewWheel),
+        do.LazyNamed("front-right", NewWheel),
+        do.LazyNamed("back-left", NewWheel),
+        do.LazyNamed("back-right", NewWheel),
+    )
+    ```
+  </TabItem>
+  <TabItem value="main" label="cmd/main.go">
+    ```go
+    package main
+    
+    import "github.com/foo/bar/pkg/car"
 
-func main() {
-    // create DI container and inject package services
-    injector := do.New(Package)
+    func main() {
+        // Create DI container and inject services of the "car" package
+        injector := do.New(car.Package)
 
-    // invoking car will instantiate Car services and its Engine dependency
-    car, err := do.Invoke[*Car](injector)
-    if err != nil {
-        log.Fatal(err.Error())
+        // The traditional DI methods still works
+        do.ProvideValue(injector, &Config{
+            Port: 4242,
+        })
+
+        // Invoking Car will instantiate the singleton and its Engine+Wheel dependencies
+        c, err := do.Invoke[*car.Car](injector)
+        if err != nil {
+            log.Fatal(err.Error())
+        }
+
+        c.Start()  // that's all folks 🤗
+
+        // Handle ctrl-c and shutdown services
+        injector.ShutdownOnSignals(syscall.SIGTERM, os.Interrupt)
     }
+    ```
+  </TabItem>
+</Tabs>
 
-    car.Start()  // that's all folks 🤗
-
-    // handle ctrl-c and shutdown services
-    injector.ShutdownOnSignals(syscall.SIGTERM, os.Interrupt)
-}
-```
+**Play: https://go.dev/play/p/kmf8aOVyj96**

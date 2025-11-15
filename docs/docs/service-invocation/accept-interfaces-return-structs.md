@@ -29,8 +29,6 @@ Named invocation is not available for now. Feel free to open an issue to discuss
 
 Implicit aliasing is recommended for production.
 
-**Play: https://go.dev/play/p/29gb2TJG4m5**
-
 ```go
 type Metric interface {
     Inc()
@@ -55,6 +53,8 @@ do.Provide(i, func(i do.Injector) (*RequestPerSecond, error) {
 metric := do.MustInvokeAs[Metric](injector)
 metric.Inc()    // <- r.counter will be incremented
 ```
+
+**Play: https://go.dev/play/p/29gb2TJG4m5**
 
 :::info
 
@@ -86,8 +86,6 @@ If you rely a lot on `do.Scope`, explicit injection might be used to define cust
 - `do.AsNamed`
 - `do.MustAsNamed`
 
-**Play: https://go.dev/play/p/_wGjnRJfwV8**
-
 ```go
 type Metric interface {
     Inc()
@@ -118,6 +116,8 @@ if err != nil {
 metric := do.MustInvoke[Metric](injector)
 metric.Inc()    // <- r.counter will be incremented
 ```
+
+**Play: https://go.dev/play/p/_wGjnRJfwV8**
 
 :::danger
 
