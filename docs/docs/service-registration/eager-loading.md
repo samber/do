@@ -27,8 +27,6 @@ It is highly recommended to use anonymous service invocation to let the framewor
 
 :::
 
-**Play: https://go.dev/play/p/5TOSiI-c17Y**
-
 ```go
 type Config struct {
   Port int
@@ -43,6 +41,8 @@ do.ProvideValue(i, config)
 // or
 do.ProvideNamedValue(i, "my.really.cool.config", config)
 ```
+
+**Play: https://go.dev/play/p/5TOSiI-c17Y**
 
 ## Hot service replacement
 

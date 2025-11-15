@@ -48,9 +48,7 @@ type HealthcheckerWithContext interface {
 }
 ```
 
-Example:
-
-**Play: https://go.dev/play/p/ILV7UpAJDtc**
+### Example
 
 ```go
 // Ensure at compile-time MyService implements do.HealthcheckerWithContext
@@ -71,6 +69,8 @@ do.Invoke(i, ...)
 ctx := context.WithTimeout(10 * time.Second)
 i.HealthCheckWithContext(ctx)
 ```
+
+**Play: https://go.dev/play/p/ILV7UpAJDtc**
 
 ## Health check options
 

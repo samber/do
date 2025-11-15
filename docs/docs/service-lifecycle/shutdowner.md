@@ -70,9 +70,7 @@ type ShutdownerWithContextAndError interface {
 }
 ```
 
-Example:
-
-**Play: https://go.dev/play/p/nkiBBYow2d5**
+### Example
 
 ```go
 // Ensure at compile-time MyService implements do.ShutdownerWithContextAndError
@@ -96,3 +94,5 @@ if err != nil {
 	log.Println("shutdown error:", err)
 }
 ```
+
+**Play: https://go.dev/play/p/nkiBBYow2d5**
