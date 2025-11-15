@@ -76,7 +76,7 @@ I love the **short name** for such a utility library. This name is the sum of `D
 
 ```sh
 # v2 (latest)
-go get github.com/samber/do@v2
+go get github.com/samber/do/v2@latest
 
 # v1
 go get github.com/samber/do@v1.6.0
