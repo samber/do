@@ -5,7 +5,7 @@ go 1.18
 replace github.com/samber/do/v2 => ../../
 
 require (
-	github.com/gofiber/fiber/v2 v2.52.9
+	github.com/gofiber/fiber/v2 v2.52.10
 	github.com/samber/do/v2 v2.0.0-00010101000000-000000000000
 )
 
