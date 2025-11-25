@@ -1,6 +1,6 @@
 module github.com/samber/do/http/echo/v2
 
-go 1.18
+go 1.24.0
 
 replace github.com/samber/do/v2 => ../../
 
@@ -16,8 +16,8 @@ require (
 	github.com/samber/go-type-to-string v1.8.0 // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
 	github.com/valyala/fasttemplate v1.2.2 // indirect
-	golang.org/x/crypto v0.17.0 // indirect
-	golang.org/x/net v0.19.0 // indirect
-	golang.org/x/sys v0.15.0 // indirect
-	golang.org/x/text v0.14.0 // indirect
+	golang.org/x/crypto v0.45.0 // indirect
+	golang.org/x/net v0.47.0 // indirect
+	golang.org/x/sys v0.38.0 // indirect
+	golang.org/x/text v0.31.0 // indirect
 )
