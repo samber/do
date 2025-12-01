@@ -43,7 +43,7 @@
       "@docusaurus/module-type-aliases": "3.9.2",
       "@docusaurus/tsconfig": "3.9.2",
       "@docusaurus/types": "3.9.2",
-      "prettier": "^3.0.0",
+      "prettier": "^3.7.3",
       "typescript": "~5.9.3"
   },
   "browserslist": {
