@@ -27,7 +27,7 @@ go get -u github.com/samber/do/v2
 
 The simplest way to start is to use the default options:
 
-**Play: https://go.dev/play/p/g549GqBbj-n**
+**Play: <https://go.dev/play/p/g549GqBbj-n>**
 
 ```go
 import "github.com/samber/do/v2"
@@ -87,6 +87,7 @@ graph LR
         println("vroooom")
     }
     ```
+
   </TabItem>
   <TabItem value="engine" label="engine.go">
     ```go
@@ -107,14 +108,15 @@ graph LR
         return nil
     }
     ```
+
   </TabItem>
   <TabItem value="wheel" label="wheel.go" default>
     ```go
     // Provider
     func NewWheel(i do.Injector) (*Wheel, error) {
         return &Wheel{
-            front: false,
-            left: true,
+            Front: false,
+            Left: true,
         }, nil
     }
 
@@ -127,6 +129,7 @@ graph LR
         // stuff
     }
     ```
+
   </TabItem>
 </Tabs>
 
@@ -161,10 +164,11 @@ graph LR
         injector.ShutdownOnSignals(syscall.SIGTERM, os.Interrupt)
     }
     ```
+
   </TabItem>
 </Tabs>
 
-**Play: https://go.dev/play/p/cp5wNpo-5wn**
+**Play: <https://go.dev/play/p/cp5wNpo-5wn>**
 
 ### Register services using package declaration
 
@@ -185,11 +189,12 @@ The services can be assembled into a package, and then, imported all at once int
         do.LazyNamed("back-right", NewWheel),
     )
     ```
+
   </TabItem>
   <TabItem value="main" label="cmd/main.go">
     ```go
     package main
-    
+
     import "github.com/foo/bar/pkg/car"
 
     func main() {
@@ -213,7 +218,8 @@ The services can be assembled into a package, and then, imported all at once int
         injector.ShutdownOnSignals(syscall.SIGTERM, os.Interrupt)
     }
     ```
+
   </TabItem>
 </Tabs>
 
-**Play: https://go.dev/play/p/kmf8aOVyj96**
+**Play: <https://go.dev/play/p/kmf8aOVyj96>**
