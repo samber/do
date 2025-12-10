@@ -27,7 +27,7 @@ go get -u github.com/samber/do/v2
 
 The simplest way to start is to use the default options:
 
-**Play: <https://go.dev/play/p/g549GqBbj-n>**
+**Play: https://go.dev/play/p/g549GqBbj-n**
 
 ```go
 import "github.com/samber/do/v2"
@@ -168,7 +168,7 @@ graph LR
   </TabItem>
 </Tabs>
 
-**Play: <https://go.dev/play/p/cp5wNpo-5wn>**
+**Play: https://go.dev/play/p/cp5wNpo-5wn**
 
 ### Register services using package declaration
 
@@ -222,4 +222,4 @@ The services can be assembled into a package, and then, imported all at once int
   </TabItem>
 </Tabs>
 
-**Play: <https://go.dev/play/p/kmf8aOVyj96>**
+**Play: https://go.dev/play/p/kmf8aOVyj96**
