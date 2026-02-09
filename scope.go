@@ -740,10 +740,15 @@ func (s *Scope) serviceHealthCheck(ctx context.Context, name string) error {
 
 		// A timeout error is not triggered when the service is not a healthchecker.
 		// If the healthchecker does not support context.Timeout, the error will be triggered by raceWithTimeout().
-		return raceWithTimeout(
+
+		s.RootScope().opts.onBeforeHealthCheck(s, name)
+		err := raceWithTimeout(
 			ctx,
 			service.healthcheck,
 		)
+		s.RootScope().opts.onAfterHealthCheck(s, name)
+
+		return err
 	}
 
 	// Should never happen.
