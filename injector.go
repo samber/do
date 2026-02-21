@@ -128,6 +128,14 @@ type InjectorOpts struct {
 	// This hook can be used for logging, metrics collection, or error handling.
 	HookAfterShutdown []func(scope *Scope, serviceName string, err error)
 
+	// HookBeforeHealthCheck is called before a service health check.
+	// This hook can be used for cleanup preparation or logging.
+	HookBeforeHealthCheck []func(scope *Scope, serviceName string)
+
+	// HookAfterHealthCheck is called after a service is health checked.
+	// This hook can be used for logging, metrics collection, or error handling.
+	HookAfterHealthCheck []func(scope *Scope, serviceName string)
+
 	// Logf is the logging function used by the DI container for internal logging.
 	// If not provided, no logging will occur. This function should handle the format
 	// string and arguments similar to fmt.Printf.
@@ -151,7 +159,7 @@ type InjectorOpts struct {
 	// StructTagKey specifies the tag key used for struct field injection.
 	// Default: "do" (see DefaultStructTagKey constant).
 	// This allows customization of the struct tag format for injection.
-	StructTagKey string
+	StructTagKey          string
 }
 
 func (o *InjectorOpts) copy() *InjectorOpts {
@@ -162,6 +170,8 @@ func (o *InjectorOpts) copy() *InjectorOpts {
 		HookAfterInvocation:      append([]func(*Scope, string, error){}, o.HookAfterInvocation...),
 		HookBeforeShutdown:       append([]func(*Scope, string){}, o.HookBeforeShutdown...),
 		HookAfterShutdown:        append([]func(*Scope, string, error){}, o.HookAfterShutdown...),
+		HookBeforeHealthCheck:    append([]func(*Scope, string){}, o.HookBeforeHealthCheck...),
+		HookAfterHealthCheck:     append([]func(*Scope, string){}, o.HookAfterHealthCheck...),
 		Logf:                     o.Logf,
 		HealthCheckParallelism:   o.HealthCheckParallelism,
 		HealthCheckGlobalTimeout: o.HealthCheckGlobalTimeout,
@@ -203,5 +213,17 @@ func (o *InjectorOpts) onBeforeShutdown(scope *Scope, serviceName string) {
 func (o *InjectorOpts) onAfterShutdown(scope *Scope, serviceName string, err error) {
 	for _, fn := range o.HookAfterShutdown {
 		fn(scope, serviceName, err)
+	}
+}
+
+func (o *InjectorOpts) onBeforeHealthCheck(scope *Scope, serviceName string) {
+	for _, fn := range o.HookBeforeHealthCheck {
+		fn(scope, serviceName)
+	}
+}
+
+func (o *InjectorOpts) onAfterHealthCheck(scope *Scope, serviceName string) {
+	for _, fn := range o.HookAfterHealthCheck {
+		fn(scope, serviceName)
 	}
 }
