@@ -50,7 +50,7 @@ type Scope struct {
 	name        string            // Human-readable name for the scope (immutable)
 	rootScope   *RootScope        // Reference to the root scope (immutable)
 	parentScope *Scope            // Reference to the immediate parent scope (immutable)
-	childScopes map[string]*Scope // Map of child scopes (append only)
+	childScopes map[string]*Scope // Map of child scopes (managed under lock)
 
 	mu       sync.RWMutex   // Mutex for thread-safe operations
 	services map[string]any // Map of registered services
@@ -365,6 +365,40 @@ func (s *Scope) ShutdownWithContext(ctx context.Context) *ShutdownReport {
 	report := mergeShutdownReports(rep1, rep2)
 	report.ShutdownTime = time.Since(start)
 	report.Succeed = len(report.Errors) == 0
+	return report
+}
+
+// Delete gracefully shuts down the scope (including all descendants) and removes it from its parent scope.
+// When called on the root scope, this behaves like ShutdownWithContext.
+func (s *Scope) Delete() *ShutdownReport {
+	return s.DeleteWithContext(context.Background())
+}
+
+// DeleteWithContext gracefully shuts down the scope with context support and removes it from its parent scope.
+// It ensures the scope hierarchy stays consistent after deletion.
+func (s *Scope) DeleteWithContext(ctx context.Context) *ShutdownReport {
+	s.logf("requested delete")
+
+	parent := s.parentScope
+
+	report := s.ShutdownWithContext(ctx)
+
+	if parent != nil {
+		parent.mu.Lock()
+		for name, scope := range parent.childScopes {
+			if scope == s {
+				delete(parent.childScopes, name)
+				break
+			}
+		}
+		parent.mu.Unlock()
+		s.logf("delete completed; detached from parent `%s`", parent.name)
+	} else if s.rootScope != nil && s.rootScope.self == s {
+		s.logf("delete completed on root scope")
+	} else {
+		s.logf("delete completed on scope without parent")
+	}
+
 	return report
 }
 
