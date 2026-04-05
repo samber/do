@@ -51,6 +51,7 @@ func NewFrameFromCaller() (Frame, bool) {
 		}
 		function := shortFuncName(f.Name())
 
+		//nolint:staticcheck
 		isGoPkg := strings.Contains(file, runtime.GOROOT())                // skip frames in GOROOT
 		isDoPkg := strings.Contains(file, packageName)                     // skip frames in this package
 		isDoStacktracePkg := strings.Contains(file, packageNameStacktrace) // skip frames in this package

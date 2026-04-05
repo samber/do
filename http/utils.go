@@ -46,7 +46,7 @@ func getAllScopes(injector do.Injector) []do.ExplainInjectorScopeOutput {
 }
 
 func getAllScopesRec(scopes []do.ExplainInjectorScopeOutput) []do.ExplainInjectorScopeOutput {
-	output := []do.ExplainInjectorScopeOutput{}
+	output := make([]do.ExplainInjectorScopeOutput, 0, len(scopes))
 	for i := range scopes {
 		output = append(output, scopes[i])
 		output = append(output, getAllScopesRec(scopes[i].Children)...)

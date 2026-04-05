@@ -145,7 +145,7 @@ func (s *Scope) Children() []*Scope {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
-	scopes := []*Scope{}
+	scopes := make([]*Scope, 0, len(s.childScopes))
 	for _, scope := range s.childScopes {
 		scopes = append(scopes, scope)
 	}

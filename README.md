@@ -20,16 +20,22 @@ This library implements the Dependency Injection design pattern. It may replace 
 - [samber/ro](https://github.com/samber/ro): Reactive Programming for Go: declarative and composable API for event-driven applications
 - [samber/lo](https://github.com/samber/lo): A Lodash-style Go library based on Go 1.18+ Generics
 - [samber/mo](https://github.com/samber/mo): Monads based on Go 1.18+ Generics (Option, Result, Either...)
+- [samber/cc-skills-golang](https://github.com/samber/cc-skills-golang): AI Agent Skills for Golang
 
 ----
 
-<h3 align="center">💖 Support This Project</h3>
-
-<p align="center">
-	I’m going all-in on open-source for the coming months.
-	<br>
-	Help sustain development: Become an <a href="http://github.com/sponsors/samber">individual sponsor</a> or join as a <a href="mailto:hey@samuel-berthe.fr">corporate sponsor</a>.
-</p>
+<div align="center">
+  <sup><b>💖 Sponsored by:</b></sup>
+  <br>
+  <a href="https://www.dbos.dev/?utm_campaign=gh-smbr">
+    <div>
+	  <img width="200" alt="dbos" src="https://github.com/user-attachments/assets/d583cb62-7735-4d3c-beb7-e6ef1a5faf49" />
+    </div>
+    <div>
+      DBOS - Durable workflow orchestration library for Go
+    </div>
+  </a>
+</div>
 
 ----
 
@@ -80,6 +86,9 @@ go get github.com/samber/do/v2@latest
 
 # v1
 go get github.com/samber/do@v1.6.0
+
+# AI Agent Skill
+npx skills add https://github.com/samber/cc-skills-golang --skill golang-samber-do
 ```
 
 This library is v2 and follows SemVer strictly.
