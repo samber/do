@@ -1,0 +1,29 @@
+name: Documentation
+
+on:
+  pull_request:
+    paths:
+      - 'docs/**'
+  push:
+    paths:
+      - 'docs/**'
+
+jobs:
+  build-docs:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./docs
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+
+      - name: Install dependencies
+        run: npm i
+
+      - name: Build Docusaurus project
+        run: npm run build

@@ -1,0 +1,26 @@
+name: Lint
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+  schedule:
+    - cron: '0 3 * * 1'
+  workflow_dispatch: # Allow manual trigger
+
+jobs:
+  lint:
+    name: lint
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-go@v6
+
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@v9
+        with:
+          args: --timeout 120s --max-same-issues 50 --config=.golangci.yml
