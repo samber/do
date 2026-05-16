@@ -159,6 +159,13 @@ const config: Config = {
         content: 'samber/do',
       },
     },
+    {
+      tagName: 'meta',
+      attributes: {
+        name: 'msvalidate.01',
+        content: '4576E3F85783A82149A0DB35A150F7EB',
+      },
+    },
     // NOTE: do NOT add a global <link rel="canonical"> here.
     // Docusaurus injects a correct per-page canonical automatically
     // based on `url` + `baseUrl` + the page path. A static href here
