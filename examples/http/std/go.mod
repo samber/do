@@ -1,6 +1,6 @@
 module github.com/samber/do/v2/examples/http/std
 
-go 1.18
+go 1.23
 
 replace github.com/samber/do/v2 => ../../../
 
