@@ -184,6 +184,23 @@ func (s *RootScope) ShutdownWithContext(ctx context.Context) *ShutdownReport {
 	return s.self.ShutdownWithContext(ctx)
 }
 
+// Delete gracefully shuts down the root scope and removes it from the hierarchy.
+// Since the root scope has no parent, this behaves like Shutdown.
+func (s *RootScope) Delete() *ShutdownReport { return s.DeleteWithContext(context.Background()) }
+
+// DeleteWithContext gracefully shuts down the root scope with context support and removes it from the hierarchy.
+// This is equivalent to ShutdownWithContext but keeps API parity with Scope.
+func (s *RootScope) DeleteWithContext(ctx context.Context) *ShutdownReport {
+	defer func() {
+		if s.healthCheckPool != nil {
+			s.healthCheckPool.stop()
+			s.healthCheckPool = nil
+		}
+	}()
+
+	return s.self.DeleteWithContext(ctx)
+}
+
 func (s *RootScope) clone(root *RootScope, parent *Scope) *Scope      { return s.self.clone(root, parent) }
 func (s *RootScope) serviceExist(name string) bool                    { return s.self.serviceExist(name) }
 func (s *RootScope) serviceExistRec(name string) bool                 { return s.self.serviceExistRec(name) }
