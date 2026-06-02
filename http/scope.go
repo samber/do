@@ -94,8 +94,8 @@ func ScopeTreeHTML(basePath string, injector do.Injector, scopeID string) (strin
 	</body>
 </html>`,
 		map[string]any{
-			"BasePath": basePath,
-			"Scopes": mAp(description.DAG, func(item do.ExplainInjectorScopeOutput) string {
+			keyBasePath: basePath,
+			keyScopes: mAp(description.DAG, func(item do.ExplainInjectorScopeOutput) string {
 				return scopeTreeScopeToHTML(basePath, item)
 			}),
 		},
@@ -131,13 +131,13 @@ func scopeTreeScopeToHTML(basePath string, description do.ExplainInjectorScopeOu
 			{{end}}
 		`,
 		map[string]any{
-			"BasePath":  basePath,
-			"ScopeID":   description.ScopeID,
-			"ScopeName": description.ScopeName,
-			"Services": mAp(description.Services, func(item do.ExplainInjectorServiceOutput) string {
+			keyBasePath:  basePath,
+			keyScopeID:   description.ScopeID,
+			keyScopeName: description.ScopeName,
+			keyServices: mAp(description.Services, func(item do.ExplainInjectorServiceOutput) string {
 				return scopeTreeServiceToHTML(basePath, description.ScopeID, item)
 			}),
-			"Scopes": mAp(description.Children, func(item do.ExplainInjectorScopeOutput) string {
+			keyScopes: mAp(description.Children, func(item do.ExplainInjectorScopeOutput) string {
 				return scopeTreeScopeToHTML(basePath, item)
 			}),
 		},
@@ -165,11 +165,11 @@ func scopeTreeServiceToHTML(basePath string, scopeID string, description do.Expl
 			{{.FeaturesIcons}}
 		`,
 		map[string]any{
-			"BasePath":        basePath,
-			"ScopeID":         scopeID,
-			"ServiceName":     description.ServiceName,
-			"ServiceTypeIcon": description.ServiceTypeIcon,
-			"FeaturesIcons":   featuresIcons,
+			keyBasePath:        basePath,
+			keyScopeID:         scopeID,
+			keyServiceName:     description.ServiceName,
+			keyServiceTypeIcon: description.ServiceTypeIcon,
+			keyFeaturesIcons:   featuresIcons,
 		},
 	)
 	return html

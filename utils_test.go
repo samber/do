@@ -119,7 +119,7 @@ func TestTypesEqual(t *testing.T) {
 	is.True(typeIsAssignable[int, int]())
 	is.True(typeIsAssignable[struct{}, struct{}]())
 	is.True(typeIsAssignable[struct{ int }, struct{ int }]())
-	is.True(typeIsAssignable[interface{}, any]())
+	is.True(typeIsAssignable[any, any]())
 	is.True(typeIsAssignable[interface{ fun() }, interface{ fun() }]())
 
 	is.False(typeIsAssignable[int, any]())

@@ -49,7 +49,7 @@ func IndexHTML(basePath string) (string, error) {
 	</body>
 </html>`,
 		map[string]any{
-			"BasePath": basePath,
+			keyBasePath: basePath,
 		},
 	)
 }
