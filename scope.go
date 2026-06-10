@@ -817,6 +817,10 @@ func (s *Scope) onServiceInvoke(name string) {
 //   - format: The format string for the log message
 //   - args: Arguments to format the message with
 func (s *Scope) logf(format string, args ...any) {
+	if !s.rootScope.opts.logfEnabled {
+		return
+	}
+
 	format = fmt.Sprintf("DI <scope=%s>: %s", s.name, format)
 	s.RootScope().opts.Logf(format, args...)
 }

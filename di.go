@@ -173,7 +173,9 @@ func provide[T any, A any](i Injector, name string, valueOrProvider A, serviceCt
 	service := serviceCtor(name, valueOrProvider)
 	_i.serviceSet(name, service)
 
-	_i.RootScope().opts.Logf("DI: service %s injected", name)
+	if opts := _i.RootScope().opts; opts.logfEnabled {
+		opts.Logf("DI: service %s injected", name)
+	}
 }
 
 // Override replaces the service in the DI container, using type inference to determine the service name.
@@ -264,7 +266,9 @@ func override[T any, A any](i Injector, name string, valueOrProvider A, serviceC
 	service := serviceCtor(name, valueOrProvider)
 	_i.serviceSet(name, service) // @TODO: should we unload/shutdown the previous service ?
 
-	_i.RootScope().opts.Logf("DI: service %s overridden", name)
+	if opts := _i.RootScope().opts; opts.logfEnabled {
+		opts.Logf("DI: service %s overridden", name)
+	}
 }
 
 // Invoke retrieves and instantiates a service from the DI container using type inference.

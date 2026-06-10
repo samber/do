@@ -61,7 +61,9 @@ func invokeAnyByName(i Injector, name string) (any, error) {
 
 	serviceScope.onServiceInvoke(name)
 
-	injector.RootScope().opts.Logf("DI: service %s invoked", name)
+	if opts := injector.RootScope().opts; opts.logfEnabled {
+		opts.Logf("DI: service %s invoked", name)
+	}
 
 	return instance, nil
 }
@@ -118,7 +120,9 @@ func invokeByName[T any](i Injector, name string) (T, error) {
 
 	serviceScope.onServiceInvoke(name)
 
-	injector.RootScope().opts.Logf("DI: service %s invoked", name)
+	if opts := injector.RootScope().opts; opts.logfEnabled {
+		opts.Logf("DI: service %s invoked", name)
+	}
 
 	return instance, nil
 }
@@ -193,7 +197,9 @@ func invokeByGenericType[T any](i Injector) (T, error) {
 
 	serviceScope.onServiceInvoke(serviceRealName)
 
-	injector.RootScope().opts.Logf("DI: service %s invoked", serviceAliasName)
+	if opts := injector.RootScope().opts; opts.logfEnabled {
+		opts.Logf("DI: service %s invoked", serviceAliasName)
+	}
 
 	return instance.(T), nil //nolint:errcheck,forcetypeassert
 }

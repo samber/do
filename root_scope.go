@@ -63,6 +63,7 @@ func NewWithOpts(opts *InjectorOpts, packages ...func(Injector)) *RootScope {
 		opts = &InjectorOpts{}
 	}
 
+	opts.logfEnabled = opts.Logf != nil
 	if opts.Logf == nil {
 		opts.Logf = noOpLogf
 	}

@@ -152,6 +152,11 @@ type InjectorOpts struct {
 	// Default: "do" (see DefaultStructTagKey constant).
 	// This allows customization of the struct tag format for injection.
 	StructTagKey string
+
+	// logfEnabled reports whether a Logf callback was supplied at construction
+	// time. Hot paths check it to skip message formatting and argument boxing
+	// entirely when logging is disabled.
+	logfEnabled bool
 }
 
 func (o *InjectorOpts) copy() *InjectorOpts {
@@ -167,6 +172,7 @@ func (o *InjectorOpts) copy() *InjectorOpts {
 		HealthCheckGlobalTimeout: o.HealthCheckGlobalTimeout,
 		HealthCheckTimeout:       o.HealthCheckTimeout,
 		StructTagKey:             o.StructTagKey,
+		logfEnabled:              o.logfEnabled,
 	}
 }
 
