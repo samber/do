@@ -216,15 +216,30 @@ func (s *RootScope) queueServiceHealthcheck(ctx context.Context, scope *Scope, s
 	if s.opts.HealthCheckParallelism == 0 || s.healthCheckPool == nil {
 		err := make(chan error, 1) // a single message will be sent (nil or error)
 
+		// When the context cannot expire, there is no timeout to race
+		// against and a single goroutine is enough.
+		if ctx.Done() == nil {
+			go func() {
+				defer cancel()
+
+				err <- scope.serviceHealthCheck(ctx, serviceName)
+				close(err)
+			}()
+
+			return err
+		}
+
+		// The health check may block past the deadline, so it runs in its own
+		// goroutine and is raced against the context. Both channels are
+		// buffered so neither goroutine leaks.
+		check := make(chan error, 1)
+		go func() { check <- scope.serviceHealthCheck(ctx, serviceName) }()
+
 		go func() {
 			defer cancel()
 
 			select {
-			case e := <-func() chan error {
-				c := make(chan error, 1)
-				go func() { c <- scope.serviceHealthCheck(ctx, serviceName) }()
-				return c
-			}():
+			case e := <-check:
 				err <- e
 				close(err)
 			case <-ctx.Done():
