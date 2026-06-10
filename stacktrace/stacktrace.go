@@ -37,16 +37,36 @@ var (
 // This function is used internally by the DI container to track service
 // invocation locations for debugging and explanation purposes.
 func NewFrameFromCaller() (Frame, bool) {
-	// Capture the candidate frames in a single stack walk: calling
-	// runtime.Caller(i) in a loop re-walks the stack on every iteration.
-	// skip=1 makes the first reported frame NewFrameFromCaller itself,
-	// matching the previous runtime.Caller(0) referent.
-	var pcs [10]uintptr
-	n := runtime.Callers(1, pcs[:])
-	frames := runtime.CallersFrames(pcs[:n])
-
 	//nolint:staticcheck
 	goRoot := runtime.GOROOT()
+
+	// Capture candidate frames with runtime.Callers instead of calling
+	// runtime.Caller(i) in a loop, which re-walks the stack on every
+	// iteration. skip=1 makes the first reported frame NewFrameFromCaller
+	// itself, matching the previous runtime.Caller(0) referent.
+	//
+	// The first eligible frame is usually one of the immediate callers, so
+	// walk a small batch first and fall back to a full capture only when the
+	// batch is exhausted without a match.
+	var pcs [10]uintptr
+	n := runtime.Callers(1, pcs[:4])
+
+	if frame, ok := findEligibleFrame(pcs[:n], goRoot); ok {
+		return frame, true
+	}
+
+	if n == 4 {
+		n = runtime.Callers(1, pcs[:])
+		return findEligibleFrame(pcs[:n], goRoot)
+	}
+
+	return Frame{}, false
+}
+
+// findEligibleFrame scans at most 10 logical frames for the first one that is
+// not in the do package or Go runtime, applying the historical frame filter.
+func findEligibleFrame(pcs []uintptr, goRoot string) (Frame, bool) {
+	frames := runtime.CallersFrames(pcs)
 
 	// find the first frame that is not in this package
 	for i := 0; i < 10; i++ {
