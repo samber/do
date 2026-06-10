@@ -435,20 +435,17 @@ func (s *Scope) shutdownServicesInParallel(ctx context.Context) *ShutdownReport 
 		return keys(s.services)
 	}
 
-	for len(listServices()) > 0 {
+	for {
+		// loop over the services that have not been shutdown already
 		services := listServices()
-		servicesToShutdown := []string{}
-
-		// loop over the service that have not been shutdown already
-		for _, name := range services {
-			// Check the service has no dependents (dependencies allowed here).
-			// Services having dependents must be shutdown first.
-			// The next iteration will shutdown current service.
-			_, dependents := s.rootScope.dag.explainService(s.id, s.name, name)
-			if len(dependents) == 0 {
-				servicesToShutdown = append(servicesToShutdown, name)
-			}
+		if len(services) == 0 {
+			break
 		}
+
+		// Check, under a single DAG lock, which services have no dependents
+		// (dependencies allowed here). Services having dependents must be
+		// shutdown first; the next iteration will shutdown the current service.
+		servicesToShutdown := s.rootScope.dag.servicesWithoutDependents(s.id, s.name, services)
 
 		if len(servicesToShutdown) > 0 {
 			r := s.shutdownServicesWithoutDependenciesInParallel(ctx, servicesToShutdown)
