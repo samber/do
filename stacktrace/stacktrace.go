@@ -37,22 +37,29 @@ var (
 // This function is used internally by the DI container to track service
 // invocation locations for debugging and explanation purposes.
 func NewFrameFromCaller() (Frame, bool) {
+	// Capture the candidate frames in a single stack walk: calling
+	// runtime.Caller(i) in a loop re-walks the stack on every iteration.
+	// skip=1 makes the first reported frame NewFrameFromCaller itself,
+	// matching the previous runtime.Caller(0) referent.
+	var pcs [10]uintptr
+	n := runtime.Callers(1, pcs[:])
+	frames := runtime.CallersFrames(pcs[:n])
+
+	//nolint:staticcheck
+	goRoot := runtime.GOROOT()
+
 	// find the first frame that is not in this package
 	for i := 0; i < 10; i++ {
-		pc, file, line, ok := runtime.Caller(i)
-		if !ok {
+		frame, more := frames.Next()
+		if frame.Function == "" {
+			// non-Go or exhausted frame, equivalent to runtime.FuncForPC() == nil
 			break
 		}
-		file = removeGoPath(file)
 
-		f := runtime.FuncForPC(pc)
-		if f == nil {
-			break
-		}
-		function := shortFuncName(f.Name())
+		file := removeGoPath(frame.File)
+		function := shortFuncName(frame.Function)
 
-		//nolint:staticcheck
-		isGoPkg := strings.Contains(file, runtime.GOROOT())                // skip frames in GOROOT
+		isGoPkg := strings.Contains(file, goRoot)                          // skip frames in GOROOT
 		isDoPkg := strings.Contains(file, packageName)                     // skip frames in this package
 		isDoStacktracePkg := strings.Contains(file, packageNameStacktrace) // skip frames in this package
 		isExamplePkg := strings.Contains(
@@ -63,11 +70,15 @@ func NewFrameFromCaller() (Frame, bool) {
 
 		if !isGoPkg && (!isDoPkg || !isDoStacktracePkg || isExamplePkg || isTestPkg) {
 			return Frame{
-				PC:       pc,
+				PC:       frame.PC,
 				File:     file,
 				Function: function,
-				Line:     line,
+				Line:     frame.Line,
 			}, true
+		}
+
+		if !more {
+			break
 		}
 	}
 
