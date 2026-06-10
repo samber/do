@@ -808,6 +808,15 @@ func (s *Scope) serviceShutdown(ctx context.Context, name string) error {
 // Parameters:
 //   - name: The name of the service that was invoked
 func (s *Scope) onServiceInvoke(name string) {
+	// Fast path: after the first invocation the entry already exists, so a
+	// read lock is enough and concurrent invocations do not serialize.
+	s.mu.RLock()
+	_, ok := s.orderedInvocation[name]
+	s.mu.RUnlock()
+	if ok {
+		return
+	}
+
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
