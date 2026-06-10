@@ -111,8 +111,8 @@ func reverseSlice[S ~[]E, E any](s S) {
 }
 
 func orderedUniq[V comparable](in []V) []V {
-	out := []V{}
-	present := map[V]struct{}{}
+	out := make([]V, 0, len(in))
+	present := make(map[V]struct{}, len(in))
 
 	for _, v := range in {
 		if _, ok := present[v]; !ok {
