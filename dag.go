@@ -81,6 +81,17 @@ func (d *DAG) addDependency(fromScopeID, fromScopeName, fromServiceName, toScope
 	from := newServiceDescription(fromScopeID, fromScopeName, fromServiceName)
 	to := newServiceDescription(toScopeID, toScopeName, toServiceName)
 
+	// Fast path: the edge already exists (e.g. repeated invocations through
+	// a transient or alias service), so a read lock is enough and concurrent
+	// resolutions do not serialize on the global DAG mutex.
+	d.mu.RLock()
+	_, dependencyExists := d.dependencies[from][to]
+	_, dependentExists := d.dependents[to][from]
+	d.mu.RUnlock()
+	if dependencyExists && dependentExists {
+		return
+	}
+
 	d.mu.Lock()
 	defer d.mu.Unlock()
 
