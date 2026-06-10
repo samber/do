@@ -140,6 +140,26 @@ func (d *DAG) removeService(scopeID, scopeName, serviceName string) {
 	delete(d.dependents, desc)
 }
 
+// servicesWithoutDependents returns the subset of the provided service names
+// (all belonging to the scope identified by scopeID/scopeName) that have no
+// dependents registered in the graph. It takes a single read lock for the
+// whole batch and does not allocate per-service dependency lists, unlike
+// repeated explainService calls.
+func (d *DAG) servicesWithoutDependents(scopeID, scopeName string, serviceNames []string) []string {
+	d.mu.RLock()
+	defer d.mu.RUnlock()
+
+	out := make([]string, 0, len(serviceNames))
+	for _, name := range serviceNames {
+		desc := newServiceDescription(scopeID, scopeName, name)
+		if len(d.dependents[desc]) == 0 {
+			out = append(out, name)
+		}
+	}
+
+	return out
+}
+
 // explainService provides information about a service's dependencies and dependents in the DAG.
 // This function returns the list of services that the specified service depends on,
 // as well as the list of services that depend on the specified service.
