@@ -128,11 +128,18 @@ func (s *Scope) RootScope() *RootScope {
 //
 // Play: https://go.dev/play/p/e_oxd7b-q9h
 func (s *Scope) Ancestors() []*Scope {
-	if s.parentScope == nil {
-		return []*Scope{}
+	// parentScope is immutable, so the chain can be walked without locking.
+	depth := 0
+	for p := s.parentScope; p != nil; p = p.parentScope {
+		depth++
 	}
 
-	return append([]*Scope{s.parentScope}, s.parentScope.Ancestors()...)
+	ancestors := make([]*Scope, 0, depth)
+	for p := s.parentScope; p != nil; p = p.parentScope {
+		ancestors = append(ancestors, p)
+	}
+
+	return ancestors
 }
 
 // Children returns the list of immediate child scopes.
