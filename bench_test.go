@@ -9,24 +9,27 @@ import (
 // Benchmark fixtures
 //
 
-type benchSvcA struct{ v int }
-type benchSvcB struct{ v int }
-type benchSvcC struct{ v int }
-type benchSvcTop struct{ v int }
+type benchSvcA struct{}
+
+type benchSvcB struct{}
+
+type benchSvcC struct{}
+
+type benchSvcTop struct{}
 
 type benchIface interface {
 	benchMethod()
 }
 
-type benchSvcImpl struct{ v int }
+type benchSvcImpl struct{}
 
 func (s *benchSvcImpl) benchMethod() {}
 
-type benchHealthchecker struct{ v int }
+type benchHealthchecker struct{}
 
 func (s *benchHealthchecker) HealthCheck() error { return nil }
 
-type benchShutdowner struct{ v int }
+type benchShutdowner struct{}
 
 func (s *benchShutdowner) Shutdown() {}
 
@@ -111,7 +114,7 @@ func BenchmarkInvokeAlias(b *testing.B) {
 func BenchmarkInvokeAs(b *testing.B) {
 	injector := New()
 	for j := 0; j < 19; j++ {
-		ProvideNamedValue(injector, fmt.Sprintf("bench-filler-%d", j), &benchSvcA{v: j})
+		ProvideNamedValue(injector, fmt.Sprintf("bench-filler-%d", j), &benchSvcA{})
 	}
 	Provide(injector, func(i Injector) (*benchSvcImpl, error) {
 		return &benchSvcImpl{}, nil
@@ -185,7 +188,7 @@ func BenchmarkProvide(b *testing.B) {
 	for n := 0; n < b.N; n++ {
 		injector := New()
 		for j := 0; j < 100; j++ {
-			ProvideNamedValue(injector, names[j], &benchSvcA{v: j})
+			ProvideNamedValue(injector, names[j], &benchSvcA{})
 		}
 	}
 }
@@ -252,7 +255,7 @@ func BenchmarkListProvidedServices(b *testing.B) {
 	var scope Injector = injector
 	for level := 0; level < 3; level++ {
 		for j := 0; j < 10; j++ {
-			ProvideNamedValue(scope, fmt.Sprintf("bench-svc-%d-%d", level, j), &benchSvcA{v: j})
+			ProvideNamedValue(scope, fmt.Sprintf("bench-svc-%d-%d", level, j), &benchSvcA{})
 		}
 		scope = scope.Scope(fmt.Sprintf("level-%d", level+1))
 	}
