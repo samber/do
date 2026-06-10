@@ -75,7 +75,11 @@ func (s *serviceLazy[T]) getInstance(i Injector) (T, error) {
 	// Collect up to 100 invokation frames.
 	// In the future, we can implement a LFU list, to evict the oldest
 	// frames and keep the most recent ones, but it would be much more costly.
-	if atomic.AddUint32(&s.invokationFramesCounter, 1) < MaxInvocationFrames {
+	// The atomic.AddUint32 call remains the authoritative gate; the initial
+	// atomic.LoadUint32 only avoids the contended read-modify-write (and the
+	// stack walk) once the cap has been reached.
+	if atomic.LoadUint32(&s.invokationFramesCounter) < MaxInvocationFrames &&
+		atomic.AddUint32(&s.invokationFramesCounter, 1) < MaxInvocationFrames {
 		frame, ok := stacktrace.NewFrameFromCaller()
 		if ok {
 			s.mu.Lock()
@@ -83,6 +87,17 @@ func (s *serviceLazy[T]) getInstance(i Injector) (T, error) {
 			s.mu.Unlock()
 		}
 	}
+
+	// Fast path: the instance has already been built. Both this read and the
+	// writes in build()/shutdown() happen under s.mu, so the RWMutex provides
+	// the necessary happens-before ordering.
+	s.mu.RLock()
+	if s.built {
+		instance := s.instance
+		s.mu.RUnlock()
+		return instance, nil
+	}
+	s.mu.RUnlock()
 
 	s.mu.Lock()
 	defer s.mu.Unlock()
