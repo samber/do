@@ -1,8 +1,10 @@
-package do
+package bench
 
 import (
 	"fmt"
 	"testing"
+
+	"github.com/samber/do/v2"
 )
 
 //
@@ -38,99 +40,99 @@ func (s *benchShutdowner) Shutdown() {}
 //
 
 func BenchmarkInvokeLazySteadyState(b *testing.B) {
-	injector := New()
-	Provide(injector, func(i Injector) (*benchSvcA, error) {
+	injector := do.New()
+	do.Provide(injector, func(i do.Injector) (*benchSvcA, error) {
 		return &benchSvcA{}, nil
 	})
-	_ = MustInvoke[*benchSvcA](injector)
+	_ = do.MustInvoke[*benchSvcA](injector)
 
 	b.ReportAllocs()
 	b.ResetTimer()
 	for n := 0; n < b.N; n++ {
-		_, _ = Invoke[*benchSvcA](injector)
+		_, _ = do.Invoke[*benchSvcA](injector)
 	}
 }
 
 func BenchmarkInvokeLazyParallel(b *testing.B) {
-	injector := New()
-	Provide(injector, func(i Injector) (*benchSvcA, error) {
+	injector := do.New()
+	do.Provide(injector, func(i do.Injector) (*benchSvcA, error) {
 		return &benchSvcA{}, nil
 	})
-	_ = MustInvoke[*benchSvcA](injector)
+	_ = do.MustInvoke[*benchSvcA](injector)
 
 	b.ReportAllocs()
 	b.ResetTimer()
 	b.RunParallel(func(pb *testing.PB) {
 		for pb.Next() {
-			_, _ = Invoke[*benchSvcA](injector)
+			_, _ = do.Invoke[*benchSvcA](injector)
 		}
 	})
 }
 
 func BenchmarkInvokeNamed(b *testing.B) {
-	injector := New()
-	ProvideNamed(injector, "bench-svc", func(i Injector) (*benchSvcA, error) {
+	injector := do.New()
+	do.ProvideNamed(injector, "bench-svc", func(i do.Injector) (*benchSvcA, error) {
 		return &benchSvcA{}, nil
 	})
-	_ = MustInvokeNamed[*benchSvcA](injector, "bench-svc")
+	_ = do.MustInvokeNamed[*benchSvcA](injector, "bench-svc")
 
 	b.ReportAllocs()
 	b.ResetTimer()
 	for n := 0; n < b.N; n++ {
-		_, _ = InvokeNamed[*benchSvcA](injector, "bench-svc")
+		_, _ = do.InvokeNamed[*benchSvcA](injector, "bench-svc")
 	}
 }
 
 func BenchmarkInvokeTransient(b *testing.B) {
-	injector := New()
-	ProvideTransient(injector, func(i Injector) (*benchSvcA, error) {
+	injector := do.New()
+	do.ProvideTransient(injector, func(i do.Injector) (*benchSvcA, error) {
 		return &benchSvcA{}, nil
 	})
 
 	b.ReportAllocs()
 	b.ResetTimer()
 	for n := 0; n < b.N; n++ {
-		_, _ = Invoke[*benchSvcA](injector)
+		_, _ = do.Invoke[*benchSvcA](injector)
 	}
 }
 
 func BenchmarkInvokeAlias(b *testing.B) {
-	injector := New()
-	Provide(injector, func(i Injector) (*benchSvcImpl, error) {
+	injector := do.New()
+	do.Provide(injector, func(i do.Injector) (*benchSvcImpl, error) {
 		return &benchSvcImpl{}, nil
 	})
-	if err := As[*benchSvcImpl, benchIface](injector); err != nil {
+	if err := do.As[*benchSvcImpl, benchIface](injector); err != nil {
 		b.Fatal(err)
 	}
-	_ = MustInvoke[benchIface](injector)
+	_ = do.MustInvoke[benchIface](injector)
 
 	b.ReportAllocs()
 	b.ResetTimer()
 	for n := 0; n < b.N; n++ {
-		_, _ = Invoke[benchIface](injector)
+		_, _ = do.Invoke[benchIface](injector)
 	}
 }
 
 func BenchmarkInvokeAs(b *testing.B) {
-	injector := New()
+	injector := do.New()
 	for j := 0; j < 19; j++ {
-		ProvideNamedValue(injector, fmt.Sprintf("bench-filler-%d", j), &benchSvcA{})
+		do.ProvideNamedValue(injector, fmt.Sprintf("bench-filler-%d", j), &benchSvcA{})
 	}
-	Provide(injector, func(i Injector) (*benchSvcImpl, error) {
+	do.Provide(injector, func(i do.Injector) (*benchSvcImpl, error) {
 		return &benchSvcImpl{}, nil
 	})
-	_ = MustInvokeAs[benchIface](injector)
+	_ = do.MustInvokeAs[benchIface](injector)
 
 	b.ReportAllocs()
 	b.ResetTimer()
 	for n := 0; n < b.N; n++ {
-		_, _ = InvokeAs[benchIface](injector)
+		_, _ = do.InvokeAs[benchIface](injector)
 	}
 }
 
 func BenchmarkInvokeNestedScopes(b *testing.B) {
-	injector := New()
-	Provide(injector, func(i Injector) (*benchSvcA, error) {
+	injector := do.New()
+	do.Provide(injector, func(i do.Injector) (*benchSvcA, error) {
 		return &benchSvcA{}, nil
 	})
 
@@ -138,38 +140,38 @@ func BenchmarkInvokeNestedScopes(b *testing.B) {
 	for j := 2; j <= 5; j++ {
 		scope = scope.Scope(fmt.Sprintf("level-%d", j))
 	}
-	_ = MustInvoke[*benchSvcA](scope)
+	_ = do.MustInvoke[*benchSvcA](scope)
 
 	b.ReportAllocs()
 	b.ResetTimer()
 	for n := 0; n < b.N; n++ {
-		_, _ = Invoke[*benchSvcA](scope)
+		_, _ = do.Invoke[*benchSvcA](scope)
 	}
 }
 
 func BenchmarkProviderChainTransient(b *testing.B) {
-	injector := New()
-	Provide(injector, func(i Injector) (*benchSvcA, error) {
+	injector := do.New()
+	do.Provide(injector, func(i do.Injector) (*benchSvcA, error) {
 		return &benchSvcA{}, nil
 	})
-	Provide(injector, func(i Injector) (*benchSvcB, error) {
+	do.Provide(injector, func(i do.Injector) (*benchSvcB, error) {
 		return &benchSvcB{}, nil
 	})
-	Provide(injector, func(i Injector) (*benchSvcC, error) {
+	do.Provide(injector, func(i do.Injector) (*benchSvcC, error) {
 		return &benchSvcC{}, nil
 	})
-	ProvideTransient(injector, func(i Injector) (*benchSvcTop, error) {
-		_ = MustInvoke[*benchSvcA](i)
-		_ = MustInvoke[*benchSvcB](i)
-		_ = MustInvoke[*benchSvcC](i)
+	do.ProvideTransient(injector, func(i do.Injector) (*benchSvcTop, error) {
+		_ = do.MustInvoke[*benchSvcA](i)
+		_ = do.MustInvoke[*benchSvcB](i)
+		_ = do.MustInvoke[*benchSvcC](i)
 		return &benchSvcTop{}, nil
 	})
-	_ = MustInvoke[*benchSvcTop](injector)
+	_ = do.MustInvoke[*benchSvcTop](injector)
 
 	b.ReportAllocs()
 	b.ResetTimer()
 	for n := 0; n < b.N; n++ {
-		_, _ = Invoke[*benchSvcTop](injector)
+		_, _ = do.Invoke[*benchSvcTop](injector)
 	}
 }
 
@@ -186,9 +188,9 @@ func BenchmarkProvide(b *testing.B) {
 	b.ReportAllocs()
 	b.ResetTimer()
 	for n := 0; n < b.N; n++ {
-		injector := New()
+		injector := do.New()
 		for j := 0; j < 100; j++ {
-			ProvideNamedValue(injector, names[j], &benchSvcA{})
+			do.ProvideNamedValue(injector, names[j], &benchSvcA{})
 		}
 	}
 }
@@ -196,7 +198,7 @@ func BenchmarkProvide(b *testing.B) {
 func BenchmarkNew(b *testing.B) {
 	b.ReportAllocs()
 	for n := 0; n < b.N; n++ {
-		_ = New()
+		_ = do.New()
 	}
 }
 
@@ -205,13 +207,13 @@ func BenchmarkNew(b *testing.B) {
 //
 
 func BenchmarkHealthCheck(b *testing.B) {
-	injector := New()
+	injector := do.New()
 	for j := 0; j < 50; j++ {
 		name := fmt.Sprintf("bench-hc-%d", j)
-		ProvideNamed(injector, name, func(i Injector) (*benchHealthchecker, error) {
+		do.ProvideNamed(injector, name, func(i do.Injector) (*benchHealthchecker, error) {
 			return &benchHealthchecker{}, nil
 		})
-		_ = MustInvokeNamed[*benchHealthchecker](injector, name)
+		_ = do.MustInvokeNamed[*benchHealthchecker](injector, name)
 	}
 
 	b.ReportAllocs()
@@ -227,19 +229,19 @@ func BenchmarkShutdown(b *testing.B) {
 		b.StopTimer()
 
 		// Build a 20-service dependency chain, fully instantiated.
-		injector := New()
-		ProvideNamed(injector, "bench-chain-0", func(i Injector) (*benchShutdowner, error) {
+		injector := do.New()
+		do.ProvideNamed(injector, "bench-chain-0", func(i do.Injector) (*benchShutdowner, error) {
 			return &benchShutdowner{}, nil
 		})
 		for j := 1; j < 20; j++ {
 			name := fmt.Sprintf("bench-chain-%d", j)
 			dependency := fmt.Sprintf("bench-chain-%d", j-1)
-			ProvideNamed(injector, name, func(i Injector) (*benchShutdowner, error) {
-				_ = MustInvokeNamed[*benchShutdowner](i, dependency)
+			do.ProvideNamed(injector, name, func(i do.Injector) (*benchShutdowner, error) {
+				_ = do.MustInvokeNamed[*benchShutdowner](i, dependency)
 				return &benchShutdowner{}, nil
 			})
 		}
-		_ = MustInvokeNamed[*benchShutdowner](injector, "bench-chain-19")
+		_ = do.MustInvokeNamed[*benchShutdowner](injector, "bench-chain-19")
 
 		b.StartTimer()
 		_ = injector.Shutdown()
@@ -251,11 +253,11 @@ func BenchmarkShutdown(b *testing.B) {
 //
 
 func BenchmarkListProvidedServices(b *testing.B) {
-	injector := New()
-	var scope Injector = injector
+	injector := do.New()
+	var scope do.Injector = injector
 	for level := 0; level < 3; level++ {
 		for j := 0; j < 10; j++ {
-			ProvideNamedValue(scope, fmt.Sprintf("bench-svc-%d-%d", level, j), &benchSvcA{})
+			do.ProvideNamedValue(scope, fmt.Sprintf("bench-svc-%d-%d", level, j), &benchSvcA{})
 		}
 		scope = scope.Scope(fmt.Sprintf("level-%d", level+1))
 	}
@@ -268,7 +270,7 @@ func BenchmarkListProvidedServices(b *testing.B) {
 }
 
 func BenchmarkAncestors(b *testing.B) {
-	injector := New()
+	injector := do.New()
 	scope := injector.Scope("level-1")
 	for j := 2; j <= 10; j++ {
 		scope = scope.Scope(fmt.Sprintf("level-%d", j))
