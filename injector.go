@@ -57,6 +57,12 @@ type Injector interface {
 	// ShutdownWithContext gracefully shuts down the injector and all its descendant scopes with context support.
 	ShutdownWithContext(context.Context) *ShutdownReport
 
+	// Delete gracefully shuts down the injector scope and removes it from its parent when applicable.
+	Delete() *ShutdownReport
+
+	// DeleteWithContext gracefully shuts down the injector scope with context support and removes it from its parent when applicable.
+	DeleteWithContext(context.Context) *ShutdownReport
+
 	// clone creates a deep copy of the injector with all its services and child scopes.
 	clone(*RootScope, *Scope) *Scope
 
