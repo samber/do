@@ -81,6 +81,17 @@ func (d *DAG) addDependency(fromScopeID, fromScopeName, fromServiceName, toScope
 	from := newServiceDescription(fromScopeID, fromScopeName, fromServiceName)
 	to := newServiceDescription(toScopeID, toScopeName, toServiceName)
 
+	// Fast path: the edge already exists (e.g. repeated invocations through
+	// a transient or alias service), so a read lock is enough and concurrent
+	// resolutions do not serialize on the global DAG mutex.
+	d.mu.RLock()
+	_, dependencyExists := d.dependencies[from][to]
+	_, dependentExists := d.dependents[to][from]
+	d.mu.RUnlock()
+	if dependencyExists && dependentExists {
+		return
+	}
+
 	d.mu.Lock()
 	defer d.mu.Unlock()
 
@@ -127,6 +138,26 @@ func (d *DAG) removeService(scopeID, scopeName, serviceName string) {
 
 	delete(d.dependencies, desc)
 	delete(d.dependents, desc)
+}
+
+// servicesWithoutDependents returns the subset of the provided service names
+// (all belonging to the scope identified by scopeID/scopeName) that have no
+// dependents registered in the graph. It takes a single read lock for the
+// whole batch and does not allocate per-service dependency lists, unlike
+// repeated explainService calls.
+func (d *DAG) servicesWithoutDependents(scopeID, scopeName string, serviceNames []string) []string {
+	d.mu.RLock()
+	defer d.mu.RUnlock()
+
+	out := make([]string, 0, len(serviceNames))
+	for _, name := range serviceNames {
+		desc := newServiceDescription(scopeID, scopeName, name)
+		if len(d.dependents[desc]) == 0 {
+			out = append(out, name)
+		}
+	}
+
+	return out
 }
 
 // explainService provides information about a service's dependencies and dependents in the DAG.

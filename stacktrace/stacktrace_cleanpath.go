@@ -11,7 +11,19 @@ import (
 	"path/filepath"
 	"sort"
 	"strings"
+	"sync/atomic"
 )
+
+// gopathCacheEntry caches the split and sorted $GOPATH directories, keyed by
+// the raw environment value. $GOPATH is still read on every call because it
+// can be mutated at runtime; the cache only avoids re-splitting and
+// re-sorting when the value has not changed.
+type gopathCacheEntry struct {
+	raw  string
+	dirs []string
+}
+
+var gopathCache atomic.Value // stores gopathCacheEntry
 
 // removeGoPath makes a path relative to one of the src directories in the $GOPATH
 // environment variable. This function is used to clean up file paths in stack traces
@@ -38,9 +50,17 @@ import (
 //	GOPATH: "/home/user/go"
 //	Output: "github.com/user/project/main.go"
 func removeGoPath(path string) string {
-	dirs := filepath.SplitList(os.Getenv("GOPATH"))
-	// Sort in decreasing order by length so the longest matching prefix is removed
-	sort.Stable(longestFirst(dirs))
+	raw := os.Getenv("GOPATH")
+
+	var dirs []string
+	if cached, ok := gopathCache.Load().(gopathCacheEntry); ok && cached.raw == raw {
+		dirs = cached.dirs
+	} else {
+		dirs = filepath.SplitList(raw)
+		// Sort in decreasing order by length so the longest matching prefix is removed
+		sort.Stable(longestFirst(dirs))
+		gopathCache.Store(gopathCacheEntry{raw: raw, dirs: dirs})
+	}
 	for _, dir := range dirs {
 		srcdir := filepath.Join(dir, "src")
 		rel, err := filepath.Rel(srcdir, path)

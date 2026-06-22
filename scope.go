@@ -128,11 +128,18 @@ func (s *Scope) RootScope() *RootScope {
 //
 // Play: https://go.dev/play/p/e_oxd7b-q9h
 func (s *Scope) Ancestors() []*Scope {
-	if s.parentScope == nil {
-		return []*Scope{}
+	// parentScope is immutable, so the chain can be walked without locking.
+	depth := 0
+	for p := s.parentScope; p != nil; p = p.parentScope {
+		depth++
 	}
 
-	return append([]*Scope{s.parentScope}, s.parentScope.Ancestors()...)
+	ancestors := make([]*Scope, 0, depth)
+	for p := s.parentScope; p != nil; p = p.parentScope {
+		ancestors = append(ancestors, p)
+	}
+
+	return ancestors
 }
 
 // Children returns the list of immediate child scopes.
@@ -428,20 +435,17 @@ func (s *Scope) shutdownServicesInParallel(ctx context.Context) *ShutdownReport 
 		return keys(s.services)
 	}
 
-	for len(listServices()) > 0 {
+	for {
+		// loop over the services that have not been shutdown already
 		services := listServices()
-		servicesToShutdown := []string{}
-
-		// loop over the service that have not been shutdown already
-		for _, name := range services {
-			// Check the service has no dependents (dependencies allowed here).
-			// Services having dependents must be shutdown first.
-			// The next iteration will shutdown current service.
-			_, dependents := s.rootScope.dag.explainService(s.id, s.name, name)
-			if len(dependents) == 0 {
-				servicesToShutdown = append(servicesToShutdown, name)
-			}
+		if len(services) == 0 {
+			break
 		}
+
+		// Check, under a single DAG lock, which services have no dependents
+		// (dependencies allowed here). Services having dependents must be
+		// shutdown first; the next iteration will shutdown the current service.
+		servicesToShutdown := s.rootScope.dag.servicesWithoutDependents(s.id, s.name, services)
 
 		if len(servicesToShutdown) > 0 {
 			r := s.shutdownServicesWithoutDependenciesInParallel(ctx, servicesToShutdown)
@@ -801,6 +805,15 @@ func (s *Scope) serviceShutdown(ctx context.Context, name string) error {
 // Parameters:
 //   - name: The name of the service that was invoked
 func (s *Scope) onServiceInvoke(name string) {
+	// Fast path: after the first invocation the entry already exists, so a
+	// read lock is enough and concurrent invocations do not serialize.
+	s.mu.RLock()
+	_, ok := s.orderedInvocation[name]
+	s.mu.RUnlock()
+	if ok {
+		return
+	}
+
 	s.mu.Lock()
 	defer s.mu.Unlock()
 

@@ -72,7 +72,11 @@ func (s *serviceAlias[Initial, Alias]) getInstance(i Injector) (Alias, error) {
 	// Collect up to 100 invokation frames.
 	// In the future, we can implement a LFU list, to evict the oldest
 	// frames and keep the most recent ones, but it would be much more costly.
-	if atomic.AddUint32(&s.invokationFramesCounter, 1) < MaxInvocationFrames {
+	// The atomic.AddUint32 call remains the authoritative gate; the initial
+	// atomic.LoadUint32 only avoids the contended read-modify-write (and the
+	// stack walk) once the cap has been reached.
+	if atomic.LoadUint32(&s.invokationFramesCounter) < MaxInvocationFrames &&
+		atomic.AddUint32(&s.invokationFramesCounter, 1) < MaxInvocationFrames {
 		frame, ok := stacktrace.NewFrameFromCaller()
 		if ok {
 			s.mu.Lock()
