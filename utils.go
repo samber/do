@@ -3,6 +3,7 @@ package do
 import (
 	"context"
 	"crypto/rand"
+	"encoding/hex"
 	"fmt"
 	"io"
 	"reflect"
@@ -111,8 +112,8 @@ func reverseSlice[S ~[]E, E any](s S) {
 }
 
 func orderedUniq[V comparable](in []V) []V {
-	out := []V{}
-	present := map[V]struct{}{}
+	out := make([]V, 0, len(in))
+	present := make(map[V]struct{}, len(in))
 
 	for _, v := range in {
 		if _, ok := present[v]; !ok {
@@ -156,7 +157,15 @@ func newUUID() (string, error) {
 	uuid[8] = uuid[8]&^0xc0 | 0x80
 	// version 4 (pseudo-random); see section 4.1.3
 	uuid[6] = uuid[6]&^0xf0 | 0x40
-	return fmt.Sprintf("%x-%x-%x-%x-%x", uuid[0:4], uuid[4:6], uuid[6:8], uuid[8:10], uuid[10:]), nil
+
+	var buf [36]byte
+	buf[8], buf[13], buf[18], buf[23] = '-', '-', '-', '-'
+	hex.Encode(buf[0:8], uuid[0:4])
+	hex.Encode(buf[9:13], uuid[4:6])
+	hex.Encode(buf[14:18], uuid[6:8])
+	hex.Encode(buf[19:23], uuid[8:10])
+	hex.Encode(buf[24:36], uuid[10:16])
+	return string(buf[:]), nil
 }
 
 func newJobPool[R any](parallelism uint) *jobPool[R] {
