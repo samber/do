@@ -9,6 +9,7 @@ import (
 
 func BenchmarkNewFrameFromCaller(b *testing.B) {
 	b.ReportAllocs()
+	b.ResetTimer()
 	for n := 0; n < b.N; n++ {
 		_, _ = stacktrace.NewFrameFromCaller()
 	}
