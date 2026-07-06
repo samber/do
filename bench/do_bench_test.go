@@ -197,6 +197,7 @@ func BenchmarkProvide(b *testing.B) {
 
 func BenchmarkNew(b *testing.B) {
 	b.ReportAllocs()
+	b.ResetTimer()
 	for n := 0; n < b.N; n++ {
 		_ = do.New()
 	}
