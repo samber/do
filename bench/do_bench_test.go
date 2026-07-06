@@ -226,9 +226,9 @@ func BenchmarkHealthCheck(b *testing.B) {
 
 func BenchmarkShutdown(b *testing.B) {
 	b.ReportAllocs()
+	b.ResetTimer()
+	b.StopTimer()
 	for n := 0; n < b.N; n++ {
-		b.StopTimer()
-
 		// Build a 20-service dependency chain, fully instantiated.
 		injector := do.New()
 		do.ProvideNamed(injector, "bench-chain-0", func(i do.Injector) (*benchShutdowner, error) {
@@ -246,6 +246,7 @@ func BenchmarkShutdown(b *testing.B) {
 
 		b.StartTimer()
 		_ = injector.Shutdown()
+		b.StopTimer()
 	}
 }
 
