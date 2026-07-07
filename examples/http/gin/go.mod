@@ -1,6 +1,6 @@
 module github.com/samber/do/examples/http/gin/v2
 
-go 1.18
+go 1.23
 
 replace github.com/samber/do/v2 => ../../../
 
@@ -34,7 +34,7 @@ require (
 	golang.org/x/arch v0.3.0 // indirect
 	golang.org/x/crypto v0.17.0 // indirect
 	golang.org/x/net v0.19.0 // indirect
-	golang.org/x/sys v0.15.0 // indirect
+	golang.org/x/sys v0.28.0 // indirect
 	golang.org/x/text v0.14.0 // indirect
 	google.golang.org/protobuf v1.33.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
