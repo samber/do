@@ -11,7 +11,40 @@ import (
 	"path/filepath"
 	"sort"
 	"strings"
+	"sync"
 )
+
+// goPathCacheKey/goPathCacheVal cache the split and sorted $GOPATH directory
+// list, keyed on the raw $GOPATH string: GOPATH does not change during a
+// real process's lifetime, so re-reading, re-splitting, and re-sorting it on
+// every call to removeGoPath is wasted work. The cache is keyed (rather than
+// computed once with sync.Once) because tests exercise removeGoPath against
+// several GOPATH values via os.Setenv within the same process.
+var (
+	goPathCacheMu  sync.Mutex
+	goPathCacheKey string
+	goPathCacheVal []string
+)
+
+func sortedGoPathDirs() []string {
+	current := os.Getenv("GOPATH")
+
+	goPathCacheMu.Lock()
+	defer goPathCacheMu.Unlock()
+
+	if goPathCacheVal != nil && current == goPathCacheKey {
+		return goPathCacheVal
+	}
+
+	dirs := filepath.SplitList(current)
+	// Sort in decreasing order by length so the longest matching prefix is removed
+	sort.Stable(longestFirst(dirs))
+
+	goPathCacheKey = current
+	goPathCacheVal = dirs
+
+	return dirs
+}
 
 // removeGoPath makes a path relative to one of the src directories in the $GOPATH
 // environment variable. This function is used to clean up file paths in stack traces
@@ -38,10 +71,7 @@ import (
 //	GOPATH: "/home/user/go"
 //	Output: "github.com/user/project/main.go"
 func removeGoPath(path string) string {
-	dirs := filepath.SplitList(os.Getenv("GOPATH"))
-	// Sort in decreasing order by length so the longest matching prefix is removed
-	sort.Stable(longestFirst(dirs))
-	for _, dir := range dirs {
+	for _, dir := range sortedGoPathDirs() {
 		srcdir := filepath.Join(dir, "src")
 		rel, err := filepath.Rel(srcdir, path)
 		// filepath.Rel can traverse parent directories, don't want those
