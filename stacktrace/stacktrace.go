@@ -19,6 +19,11 @@ var (
 	packageName           = "do"
 	packageNameStacktrace = packageName + "/stacktrace/"
 	packageNameExamples   = packageName + "/examples/"
+
+	// goroot is read once at package init: runtime.GOROOT() re-reads an
+	// env var on every call, and it cannot change during the process lifetime.
+	//nolint:staticcheck
+	goroot = runtime.GOROOT()
 )
 
 // NewFrameFromCaller creates a new Frame from the current call stack.
@@ -51,8 +56,7 @@ func NewFrameFromCaller() (Frame, bool) {
 		}
 		function := shortFuncName(f.Name())
 
-		//nolint:staticcheck
-		isGoPkg := strings.Contains(file, runtime.GOROOT())                // skip frames in GOROOT
+		isGoPkg := strings.Contains(file, goroot)                          // skip frames in GOROOT
 		isDoPkg := strings.Contains(file, packageName)                     // skip frames in this package
 		isDoStacktracePkg := strings.Contains(file, packageNameStacktrace) // skip frames in this package
 		isExamplePkg := strings.Contains(
