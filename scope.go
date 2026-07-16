@@ -129,6 +129,11 @@ func (s *Scope) RootScope() *RootScope {
 // Play: https://go.dev/play/p/e_oxd7b-q9h
 func (s *Scope) Ancestors() []*Scope {
 	// parentScope is immutable, so the chain can be walked without locking.
+	// This reaches into the unexported parentScope field of other *Scope
+	// instances (not just s), which breaks normal encapsulation, but it lets
+	// the whole chain be walked in a single pass with one right-sized
+	// allocation instead of the O(n^2) allocations of the previous recursive,
+	// method-based traversal.
 	depth := 0
 	for p := s.parentScope; p != nil; p = p.parentScope {
 		depth++
