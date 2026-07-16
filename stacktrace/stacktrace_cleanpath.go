@@ -13,6 +13,16 @@ import (
 	"strings"
 )
 
+// goPathDirs is computed once at package init: GOPATH does not change during
+// a process's lifetime, so re-reading, re-splitting, and re-sorting it on
+// every call to removeGoPath is wasted work.
+var goPathDirs = func() []string {
+	dirs := filepath.SplitList(os.Getenv("GOPATH"))
+	// Sort in decreasing order by length so the longest matching prefix is removed
+	sort.Stable(longestFirst(dirs))
+	return dirs
+}()
+
 // removeGoPath makes a path relative to one of the src directories in the $GOPATH
 // environment variable. This function is used to clean up file paths in stack traces
 // by removing the GOPATH prefix to make paths more readable and consistent.
@@ -23,12 +33,6 @@ import (
 // Returns the cleaned path relative to GOPATH, or the original path if it's not
 // within GOPATH or if GOPATH is empty.
 //
-// The function:
-//   - Splits GOPATH into individual directories
-//   - Sorts directories by length (longest first) to find the best match
-//   - Makes the path relative to the longest matching GOPATH/src directory
-//   - Returns the original path if no match is found
-//
 // This function is used internally by the stacktrace package to provide
 // cleaner, more readable file paths in debugging output.
 //
@@ -38,9 +42,17 @@ import (
 //	GOPATH: "/home/user/go"
 //	Output: "github.com/user/project/main.go"
 func removeGoPath(path string) string {
-	dirs := filepath.SplitList(os.Getenv("GOPATH"))
-	// Sort in decreasing order by length so the longest matching prefix is removed
-	sort.Stable(longestFirst(dirs))
+	return removeGoPathDirs(path, goPathDirs)
+}
+
+// removeGoPathDirs holds the matching logic, parameterized on the GOPATH
+// directory list, so it can be tested against arbitrary directories without
+// touching the process-wide GOPATH env var.
+//
+// The function:
+//   - Makes the path relative to the longest matching dir/src directory
+//   - Returns the original path if no match is found
+func removeGoPathDirs(path string, dirs []string) string {
 	for _, dir := range dirs {
 		srcdir := filepath.Join(dir, "src")
 		rel, err := filepath.Rel(srcdir, path)
