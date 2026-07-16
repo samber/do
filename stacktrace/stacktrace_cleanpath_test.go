@@ -7,9 +7,7 @@ package stacktrace
 ///
 
 import (
-	"os"
-	"path/filepath"
-	"strings"
+	"sort"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -54,11 +52,11 @@ func TestRemoveGoPath(t *testing.T) {
 			expected: "pkg/prog.go",
 		},
 	} {
-		gopath := strings.Join(testcase.gopath, string(filepath.ListSeparator))
-		err := os.Setenv("GOPATH", gopath)
-		assert.NoError(t, err, "error setting gopath")
+		dirs := make([]string, len(testcase.gopath))
+		copy(dirs, testcase.gopath)
+		sort.Stable(longestFirst(dirs))
 
-		cleaned := removeGoPath(testcase.path)
+		cleaned := removeGoPathDirs(testcase.path, dirs)
 		assert.Equal(t, testcase.expected, cleaned, "testcase: %+v", testcase)
 	}
 }

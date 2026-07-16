@@ -11,40 +11,17 @@ import (
 	"path/filepath"
 	"sort"
 	"strings"
-	"sync"
 )
 
-// goPathCacheKey/goPathCacheVal cache the split and sorted $GOPATH directory
-// list, keyed on the raw $GOPATH string: GOPATH does not change during a
-// real process's lifetime, so re-reading, re-splitting, and re-sorting it on
-// every call to removeGoPath is wasted work. The cache is keyed (rather than
-// computed once with sync.Once) because tests exercise removeGoPath against
-// several GOPATH values via os.Setenv within the same process.
-var (
-	goPathCacheMu  sync.Mutex
-	goPathCacheKey string
-	goPathCacheVal []string
-)
-
-func sortedGoPathDirs() []string {
-	current := os.Getenv("GOPATH")
-
-	goPathCacheMu.Lock()
-	defer goPathCacheMu.Unlock()
-
-	if goPathCacheVal != nil && current == goPathCacheKey {
-		return goPathCacheVal
-	}
-
-	dirs := filepath.SplitList(current)
+// goPathDirs is computed once at package init: GOPATH does not change during
+// a process's lifetime, so re-reading, re-splitting, and re-sorting it on
+// every call to removeGoPath is wasted work.
+var goPathDirs = func() []string {
+	dirs := filepath.SplitList(os.Getenv("GOPATH"))
 	// Sort in decreasing order by length so the longest matching prefix is removed
 	sort.Stable(longestFirst(dirs))
-
-	goPathCacheKey = current
-	goPathCacheVal = dirs
-
 	return dirs
-}
+}()
 
 // removeGoPath makes a path relative to one of the src directories in the $GOPATH
 // environment variable. This function is used to clean up file paths in stack traces
@@ -56,12 +33,6 @@ func sortedGoPathDirs() []string {
 // Returns the cleaned path relative to GOPATH, or the original path if it's not
 // within GOPATH or if GOPATH is empty.
 //
-// The function:
-//   - Splits GOPATH into individual directories
-//   - Sorts directories by length (longest first) to find the best match
-//   - Makes the path relative to the longest matching GOPATH/src directory
-//   - Returns the original path if no match is found
-//
 // This function is used internally by the stacktrace package to provide
 // cleaner, more readable file paths in debugging output.
 //
@@ -71,7 +42,18 @@ func sortedGoPathDirs() []string {
 //	GOPATH: "/home/user/go"
 //	Output: "github.com/user/project/main.go"
 func removeGoPath(path string) string {
-	for _, dir := range sortedGoPathDirs() {
+	return removeGoPathDirs(path, goPathDirs)
+}
+
+// removeGoPathDirs holds the matching logic, parameterized on the GOPATH
+// directory list, so it can be tested against arbitrary directories without
+// touching the process-wide GOPATH env var.
+//
+// The function:
+//   - Makes the path relative to the longest matching dir/src directory
+//   - Returns the original path if no match is found
+func removeGoPathDirs(path string, dirs []string) string {
+	for _, dir := range dirs {
 		srcdir := filepath.Join(dir, "src")
 		rel, err := filepath.Rel(srcdir, path)
 		// filepath.Rel can traverse parent directories, don't want those
