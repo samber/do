@@ -129,11 +129,14 @@ func (f Frame) String() string {
 	return fmt.Sprintf("%s:%s:%d", f.File, f.Function, f.Line)
 }
 
-// ptrReceiverReplacer strips the pointer-receiver syntax characters left over
-// after splitting off the package path, e.g. "(*PtrReceiver).MethodName" ->
-// "PtrReceiver.MethodName". A single strings.NewReplacer pass avoids the
-// intermediate string allocated by each of 3 sequential strings.Replace calls.
-var ptrReceiverReplacer = strings.NewReplacer("(", "", "*", "", ")", "")
+// ptrReceiverReplacer strips the pointer-receiver syntax left over after
+// splitting off the package path, e.g. "(*PtrReceiver).MethodName" ->
+// "PtrReceiver.MethodName". The pattern is "(*" (not bare "(" and "*"
+// separately) so a generic receiver's type arguments, which can themselves
+// contain '*' (e.g. "(*ServiceLazy[*int]).getInstance"), are left untouched;
+// NewReplacer tries the longest match at each position, so "(*" wins over
+// the bare "(" fallback whenever both would apply.
+var ptrReceiverReplacer = strings.NewReplacer("(*", "", "(", "", ")", "")
 
 func shortFuncName(longName string) string {
 	// f.Name() is like one of these:
