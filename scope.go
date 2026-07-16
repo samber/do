@@ -139,9 +139,9 @@ func (s *Scope) Ancestors() []*Scope {
 		depth++
 	}
 
-	ancestors := make([]*Scope, 0, depth)
-	for p := s.parentScope; p != nil; p = p.parentScope {
-		ancestors = append(ancestors, p)
+	ancestors := make([]*Scope, depth)
+	for i, p := 0, s.parentScope; p != nil; i, p = i+1, p.parentScope {
+		ancestors[i] = p
 	}
 
 	return ancestors
