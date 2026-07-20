@@ -1,8 +1,0 @@
-{
-  "label": "🕵️ Troubleshooting",
-  "position": 5,
-  "link": {
-    "type": "generated-index",
-    "description": "Debug your scope tree and service dependencies"
-  }
-}
