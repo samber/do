@@ -12,6 +12,9 @@ jobs:
   release:
     if: github.triggering_actor == 'samber'
     runs-on: ubuntu-latest
+    # required to push the release tag and create the GitHub release
+    permissions:
+      contents: write
     steps:
     - uses: actions/checkout@v7
 
