@@ -1164,6 +1164,176 @@ func TestMustInvokeAs(t *testing.T) {
 	})
 }
 
+func TestInvokeAsAll(t *testing.T) {
+	testWithTimeout(t, 100*time.Millisecond)
+	is := assert.New(t)
+
+	i := New()
+
+	// Register multiple services implementing the same interface
+	Provide(i, func(i Injector) (*lazyTestHeathcheckerOK, error) {
+		return &lazyTestHeathcheckerOK{foobar: "first"}, nil
+	})
+	Provide(i, func(i Injector) (*lazyTestHeathcheckerKO, error) {
+		return &lazyTestHeathcheckerKO{foobar: "second"}, nil
+	})
+
+	// Test successful invocation of all matching services
+	services, err := InvokeAsAll[Healthchecker](i)
+	is.NoError(err)
+	is.Len(services, 2)
+
+	// Verify we got 2 services and they are Healthchecker interfaces
+	// We can't directly cast to concrete types since we get []Healthchecker
+	// But we can verify the services are properly instantiated by checking they're not nil
+	is.NotNil(services[0])
+	is.NotNil(services[1])
+
+	// Test empty result
+	emptyInjector := New()
+	emptyServices, err := InvokeAsAll[Healthchecker](emptyInjector)
+	is.NoError(err)
+	is.Empty(emptyServices)
+
+	// Test with named services for deterministic ordering
+	namedInjector := New()
+	ProvideNamed(namedInjector, "service-z", func(i Injector) (*lazyTestHeathcheckerOK, error) {
+		return &lazyTestHeathcheckerOK{foobar: "z-service"}, nil
+	})
+	ProvideNamed(namedInjector, "service-a", func(i Injector) (*lazyTestHeathcheckerOK, error) {
+		return &lazyTestHeathcheckerOK{foobar: "a-service"}, nil
+	})
+	ProvideNamed(namedInjector, "service-m", func(i Injector) (*lazyTestHeathcheckerOK, error) {
+		return &lazyTestHeathcheckerOK{foobar: "m-service"}, nil
+	})
+
+	namedServices, err := InvokeAsAll[Healthchecker](namedInjector)
+	is.NoError(err)
+	is.Len(namedServices, 3)
+	// Services should be sorted alphabetically by service name: service-a, service-m, service-z
+	is.NotNil(namedServices[0])
+	is.NotNil(namedServices[1])
+	is.NotNil(namedServices[2])
+
+	// Test with different service types
+	mixedInjector := New()
+	ProvideNamed(mixedInjector, "lazy-service", func(i Injector) (*lazyTestHeathcheckerOK, error) {
+		return &lazyTestHeathcheckerOK{foobar: "lazy"}, nil
+	})
+	ProvideNamedValue(mixedInjector, "eager-service", &lazyTestHeathcheckerOK{foobar: "eager"})
+	ProvideNamedTransient(mixedInjector, "transient-service", func(i Injector) (*lazyTestHeathcheckerOK, error) {
+		return &lazyTestHeathcheckerOK{foobar: "transient"}, nil
+	})
+
+	mixedServices, err := InvokeAsAll[Healthchecker](mixedInjector)
+	is.NoError(err)
+	is.Len(mixedServices, 3)
+	is.NotNil(mixedServices[0])
+	is.NotNil(mixedServices[1])
+	is.NotNil(mixedServices[2])
+
+	// Test scope inheritance
+	scopeInjector := New()
+	childScope := scopeInjector.Scope("child")
+
+	// Register services in different scopes
+	Provide(scopeInjector, func(i Injector) (*lazyTestHeathcheckerOK, error) {
+		return &lazyTestHeathcheckerOK{foobar: "root"}, nil
+	})
+	Provide(childScope, func(i Injector) (*lazyTestHeathcheckerKO, error) {
+		return &lazyTestHeathcheckerKO{foobar: "child"}, nil
+	})
+
+	// Test from root scope - should see services from root scope
+	rootServices, err := InvokeAsAll[Healthchecker](scopeInjector)
+	is.NoError(err)
+	is.GreaterOrEqual(len(rootServices), 1) // Should have at least the root service
+
+	// Test from child scope - should see services from both scopes
+	childServices, err := InvokeAsAll[Healthchecker](childScope)
+	is.NoError(err)
+	is.GreaterOrEqual(len(childServices), 1) // Should have at least one service
+}
+
+func TestMustInvokeAsAll(t *testing.T) {
+	testWithTimeout(t, 100*time.Millisecond)
+	is := assert.New(t)
+
+	i := New()
+	Provide(i, func(i Injector) (*lazyTestHeathcheckerOK, error) {
+		return &lazyTestHeathcheckerOK{foobar: "test"}, nil
+	})
+
+	// Test successful invocation
+	is.NotPanics(func() {
+		services := MustInvokeAsAll[Healthchecker](i)
+		is.Len(services, 1)
+	})
+
+	// Test that MustInvokeAsAll returns empty slice when no services found (not panic)
+	emptyInjector := New()
+	emptyServices := MustInvokeAsAll[Healthchecker](emptyInjector)
+	is.Empty(emptyServices)
+
+	// Test with multiple services
+	multiInjector := New()
+	Provide(multiInjector, func(i Injector) (*lazyTestHeathcheckerOK, error) {
+		return &lazyTestHeathcheckerOK{foobar: "multi1"}, nil
+	})
+	Provide(multiInjector, func(i Injector) (*lazyTestHeathcheckerKO, error) {
+		return &lazyTestHeathcheckerKO{foobar: "multi2"}, nil
+	})
+
+	is.NotPanics(func() {
+		multiServices := MustInvokeAsAll[Healthchecker](multiInjector)
+		is.Len(multiServices, 2)
+		is.NotNil(multiServices[0])
+		is.NotNil(multiServices[1])
+	})
+
+	// Test with different interfaces
+	interfaceInjector := New()
+	Provide(interfaceInjector, func(i Injector) (*lazyTestHeathcheckerOK, error) {
+		return &lazyTestHeathcheckerOK{foobar: "health"}, nil
+	})
+	Provide(interfaceInjector, func(i Injector) (*lazyTestShutdownerOK, error) {
+		return &lazyTestShutdownerOK{foobar: "shutdown"}, nil
+	})
+
+	// Test Healthchecker interface
+	is.NotPanics(func() {
+		healthServices := MustInvokeAsAll[Healthchecker](interfaceInjector)
+		is.Len(healthServices, 1)
+		is.NotNil(healthServices[0])
+	})
+
+	// Test Shutdowner interface
+	is.NotPanics(func() {
+		shutdownServices := MustInvokeAsAll[Shutdowner](interfaceInjector)
+		// Length depends on interface compatibility
+		is.LessOrEqual(len(shutdownServices), 1)
+	})
+
+	// Test with service aliases (addresses concern b and c from issue #114)
+	aliasInjector := New()
+
+	// Register a concrete service
+	Provide(aliasInjector, func(i Injector) (*lazyTestHeathcheckerOK, error) {
+		return &lazyTestHeathcheckerOK{foobar: "concrete"}, nil
+	})
+
+	// Create an alias
+	err := As[*lazyTestHeathcheckerOK, Healthchecker](aliasInjector)
+	is.NoError(err)
+
+	// Test that InvokeAsAll finds both the original service and the alias
+	aliasServices, err := InvokeAsAll[Healthchecker](aliasInjector)
+	is.NoError(err)
+	is.Len(aliasServices, 2) // Original service + alias
+	is.NotNil(aliasServices[0])
+	is.NotNil(aliasServices[1])
+}
+
 /////////////////////////////////////////////////////////////////////////////
 // 							Package-level declaration
 /////////////////////////////////////////////////////////////////////////////

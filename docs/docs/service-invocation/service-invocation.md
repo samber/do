@@ -14,9 +14,17 @@ In the context of the Go code you're working with, there are several helper func
 
 - `do.InvokeNamed[T any](do.Injector, string) (T, error)`: This function is similar to `do.Invoke`, but it allows you to invoke a service by its name. This is useful when you have multiple instances of the same type and you want to distinguish between them.
 
+- `do.InvokeAs[T any](do.Injector) (T, error)`: This function invokes a service by finding the first service that matches the provided interface type T. It's useful for interface-based dependency injection without explicit aliasing.
+
+- `do.InvokeAsAll[T any](do.Injector) ([]T, error)`: This function invokes all services that match the provided interface type T, returning them as a slice. Services are returned in deterministic order based on their registration names. This is useful when you need to work with multiple implementations of the same interface.
+
 - `do.MustInvoke[T any](do.Injector) T`: This function is a variant of `do.Invoke` that panics if the service cannot be created. This is useful when you're sure that the service should always be available, and if it's not, it's an error that should stop the program.
 
 - `do.MustInvokeNamed[T any](do.Injector, string) T`: This function is a variant of `do.InvokeNamed` that also panics if the service cannot be created.
+
+- `do.MustInvokeAs[T any](do.Injector) T`: This function is a variant of `do.InvokeAs` that panics if the service cannot be found or created.
+
+- `do.MustInvokeAsAll[T any](do.Injector) []T`: This function is a variant of `do.InvokeAsAll` that panics if any service cannot be found or created.
 
 🚀 Lazy services are loaded in invocation order.
 
@@ -139,3 +147,92 @@ func NewMyService(i do.Injector) (*MyService, error) {
     }, nil
 }
 ```
+
+## Bulk service invocation
+
+When you need to work with multiple services that implement the same interface, you can use `do.InvokeAsAll` to retrieve all matching services as a slice:
+
+```go
+type Database interface {
+    Name() string
+    Connect() error
+}
+
+type PostgresDB struct {
+    name string
+}
+
+func (p *PostgresDB) Name() string { return p.name }
+func (p *PostgresDB) Connect() error { return nil }
+
+type MySQLDB struct {
+    name string
+}
+
+func (m *MySQLDB) Name() string { return m.name }
+func (m *MySQLDB) Connect() error { return nil }
+
+func main() {
+    i := do.New()
+
+    // Register multiple database implementations
+    do.Provide(i, func(i do.Injector) (*PostgresDB, error) {
+        return &PostgresDB{name: "postgres"}, nil
+    })
+    do.Provide(i, func(i do.Injector) (*MySQLDB, error) {
+        return &MySQLDB{name: "mysql"}, nil
+    })
+
+    // Invoke all databases
+    databases, err := do.InvokeAsAll[Database](i)
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    // databases contains both PostgresDB and MySQLDB instances
+    // in deterministic order (sorted by service name)
+    for _, db := range databases {
+        fmt.Printf("Connecting to %s database\n", db.Name())
+        db.Connect()
+    }
+}
+```
+
+### Key characteristics of InvokeAsAll
+
+- **Returns a slice**: `[]T` instead of `T`
+- **Deterministic ordering**: Services sorted alphabetically by registration name
+- **Partial failure handling**: Returns successfully invoked services even if some fail
+- **Empty results**: Returns empty slice (not error) when no services match
+- **Scope inheritance**: Finds services across the entire scope hierarchy
+
+Example:
+```go
+// Register multiple storage backends
+do.Provide(i, NewS3Storage)
+do.Provide(i, NewLocalStorage)
+
+// Invoke all storage services
+storages, err := do.InvokeAsAll[Storage](i)
+// Returns []Storage{S3Storage, LocalStorage} in deterministic order
+```
+
+### Use cases
+
+`InvokeAsAll` is particularly useful for:
+
+- **Multiple database connections**: PostgreSQL, MySQL, MongoDB instances
+- **Multiple message queues**: Redis, RabbitMQ, Kafka processors
+- **Multiple storage backends**: S3, local filesystem, database storage
+- **Plugin systems**: Multiple implementations of the same interface
+- **Load balancing**: Multiple instances of the same service type
+
+### Error handling
+
+Unlike `InvokeAs` which returns an error when no service is found, `InvokeAsAll` treats "no services found" as a valid empty result. It only returns an error if:
+
+- A service fails to instantiate
+- A circular dependency is detected
+- A type assertion fails during invocation
+
+This makes `InvokeAsAll` more suitable for scenarios where having zero services of a given type is acceptable.
