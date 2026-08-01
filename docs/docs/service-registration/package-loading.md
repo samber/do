@@ -164,18 +164,17 @@ This requires each service to be exposed through an interface (see [Accept inter
   </TabItem>
   <TabItem value="test" label="pkg/auth/auth_test.go">
     ```go
-    package auth_test
+    package auth
 
     import (
         "testing"
 
-        "github.com/foo/bar/pkg/auth"
         "github.com/foo/bar/pkg/repositories"
     )
 
     func TestAuthRegister(t *testing.T) {
         injector := do.New(
-            auth.Package,
+            Package,
             repositories.PackageMock,
         )
 
