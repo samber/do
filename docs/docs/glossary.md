@@ -115,3 +115,7 @@ An alternative name given to a service in DI. It allows a service to be accessed
 
 A mechanism that groups multiple service registrations into a single unit that can be imported and registered with a DI container. Package loaders use `do.Package()` to assemble services with different loading strategies (lazy, eager, transient) and can include named services and interface bindings. This allows for modular service organization where related services can be bundled together and imported as a cohesive unit, promoting modularity and reusability across different parts of an application.
 
+## Bulk Service Invocation
+
+A technique for retrieving all services that implement a specific interface, returning them as a slice rather than a single instance. This is useful when you need to work with multiple implementations of the same interface, such as multiple database connections, message queue processors, or storage backends.
+

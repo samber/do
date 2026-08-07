@@ -198,6 +198,97 @@ func invokeByGenericType[T any](i Injector) (T, error) {
 	return instance.(T), nil //nolint:errcheck,forcetypeassert
 }
 
+// invokeAsAllByGenericType finds and invokes all services matching type T.
+// This function performs a two-phase operation:
+// 1. Discovery phase: Find all services that can be cast to T
+// 2. Invocation phase: Invoke each matching service and collect results
+//
+// The function returns services in deterministic order (sorted by service name)
+// and handles partial failures by returning successfully invoked services
+// along with detailed error information.
+func invokeAsAllByGenericType[T any](i Injector) ([]T, error) {
+	injector := getInjectorOrDefault(i)
+	results := make([]T, 0)
+
+	var invokerChain []string
+	vScope, isVirtualScope := injector.(*virtualScope)
+	if isVirtualScope {
+		invokerChain = vScope.invokerChain
+	}
+
+	// Discovery phase: collect all matching services
+	type serviceMatch struct {
+		name     string
+		instance any
+		scope    *Scope
+	}
+	var matches []serviceMatch
+
+	injector.serviceForEachRec(func(name string, scope *Scope, s any) bool {
+		if serviceCanCastToGeneric[T](s) {
+			serviceWrapper, ok := s.(serviceWrapperGetName) //nolint:forcetypeassert
+			if !ok {
+				return true
+			}
+			matches = append(matches, serviceMatch{
+				name:     serviceWrapper.getName(),
+				instance: s,
+				scope:    scope,
+			})
+		}
+		return true
+	})
+
+	if len(matches) == 0 {
+		// For InvokeAsAll, returning no services is not an error
+		return nil, nil
+	}
+
+	// Sort matches for deterministic ordering
+	sort.Slice(matches, func(i, j int) bool {
+		return matches[i].name < matches[j].name
+	})
+
+	// Invocation phase: invoke each matching service
+	for _, match := range matches {
+		if isVirtualScope {
+			if err := vScope.detectCircularDependency(match.name); err != nil {
+				// Return partial results with error on circular dependency
+				return results, fmt.Errorf("circular dependency detected involving service %s: %w", match.name, err)
+			}
+		}
+
+		// Use the interface name for hooks to maintain consistency with InvokeAs
+		interfaceName := inferServiceName[T]()
+		injector.RootScope().opts.onBeforeInvocation(match.scope, interfaceName)
+
+		serviceInstanceWrapper, ok := match.instance.(serviceWrapperGetInstanceAny) //nolint:forcetypeassert
+		if !ok {
+			return results, fmt.Errorf("failed to invoke service %s: service does not support invocation", match.name)
+		}
+		instance, err := serviceInstanceWrapper.getInstanceAny( //nolint:errcheck
+			newVirtualScope(match.scope, append(invokerChain, match.name)))
+
+		injector.RootScope().opts.onAfterInvocation(match.scope, interfaceName, err)
+
+		if err != nil {
+			// Return partial results with specific error details
+			return results, fmt.Errorf("failed to invoke service %s: %w", match.name, err)
+		}
+
+		if isVirtualScope {
+			vScope.addDependency(injector, match.name, match.scope)
+		}
+
+		match.scope.onServiceInvoke(match.name)
+		injector.RootScope().opts.Logf("DI: service %s invoked", match.name)
+
+		results = append(results, instance.(T)) //nolint:errcheck,forcetypeassert
+	}
+
+	return results, nil
+}
+
 // invokeByTag injects services into struct fields based on struct tags.
 // This function supports automatic dependency injection into struct fields
 // using the `do` tag or a custom tag key specified in the injector options.

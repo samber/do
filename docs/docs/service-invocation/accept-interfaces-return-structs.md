@@ -14,16 +14,19 @@ Aliases must be Go interfaces. It can be declared explicitly on injection using 
 
 1. **Implicit alias invocation**:
    - provide struct, invoke interface
-   - `do.InvokeAs()`
+   - `do.InvokeAs()` (single service)
+   - `do.InvokeAsAll()` (all matching services)
 2. **Explicit alias injection**:
    - provide struct, bind interface, invoke interface
    - `do.As()`
 
 ## Implicit invocation (preferred)
 
-2 methods are available for implicit invocation:
-- `do.InvokeAs`
-- `do.MustInvokeAs`
+4 methods are available for implicit invocation:
+- `do.InvokeAs` (single service)
+- `do.MustInvokeAs` (single service, panics on error)
+- `do.InvokeAsAll` (all matching services)
+- `do.MustInvokeAsAll` (all matching services, panics on error)
 
 Named invocation is not available for now. Feel free to open an issue to discuss your needs.
 
@@ -61,6 +64,61 @@ metric.Inc()    // <- r.counter will be incremented
 The first matching service in the scope tree is returned.
 
 :::
+
+## Bulk implicit invocation
+
+For scenarios where you need to work with multiple services that implement the same interface, use `do.InvokeAsAll`:
+
+```go
+type Processor interface {
+    Process(data string) error
+}
+
+type FileProcessor struct {}
+func (f *FileProcessor) Process(data string) error { return nil }
+
+type NetworkProcessor struct {}
+func (n *NetworkProcessor) Process(data string) error { return nil }
+
+i := do.New()
+
+// Register multiple processors
+do.Provide(i, func(i do.Injector) (*FileProcessor, error) {
+    return &FileProcessor{}, nil
+})
+do.Provide(i, func(i do.Injector) (*NetworkProcessor, error) {
+    return &NetworkProcessor{}, nil
+})
+
+// Invoke all processors
+processors, err := do.InvokeAsAll[Processor](i)
+if err != nil {
+    log.Fatal(err)
+}
+
+// Process with all available processors
+for _, processor := range processors {
+    processor.Process("data")
+}
+```
+
+### Characteristics of InvokeAsAll
+
+- **Returns a slice**: `[]T` instead of single `T`
+- **Deterministic ordering**: Services sorted by registration name
+- **Scope inheritance**: Finds services across all scopes
+- **Partial failures**: Returns successful services even if some fail
+- **Empty results**: Valid empty slice when no services match
+
+### When to use InvokeAsAll vs InvokeAs
+
+| Scenario | Use InvokeAs | Use InvokeAsAll |
+|----------|--------------|-----------------|
+| Single service needed | ✅ | ❌ |
+| Multiple services needed | ❌ | ✅ |
+| Fail-fast on missing service | ✅ | ❌ |
+| Graceful handling of zero services | ❌ | ✅ |
+| Load balancing across services | ❌ | ✅ |
 
 :::warning
 
