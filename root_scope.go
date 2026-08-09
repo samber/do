@@ -85,6 +85,12 @@ func NewWithOpts(opts *InjectorOpts, packages ...func(Injector)) *RootScope {
 	if opts.HookAfterShutdown == nil {
 		opts.HookAfterShutdown = []func(*Scope, string, error){}
 	}
+	if opts.HookBeforeHealthCheck == nil {
+		opts.HookBeforeHealthCheck = []func(*Scope, string){}
+	}
+	if opts.HookAfterHealthCheck == nil {
+		opts.HookAfterHealthCheck = []func(*Scope, string){}
+	}
 
 	root := &RootScope{
 		self:            newScope(DefaultRootScopeName, nil, nil),
@@ -287,6 +293,20 @@ func (s *RootScope) AddBeforeShutdownHook(hook func(*Scope, string)) {
 // Play: https://go.dev/play/p/FFKDcV0hMJx
 func (s *RootScope) AddAfterShutdownHook(hook func(*Scope, string, error)) {
 	s.opts.HookAfterShutdown = append(s.opts.HookAfterShutdown, hook)
+}
+
+// AddBeforeHealthCheckHook adds a hook that will be called before a service health check.
+//
+// Play: https://go.dev/play/p/wtKubQHkFLK
+func (s *RootScope) AddBeforeHealthCheckHook(hook func(*Scope, string)) {
+	s.opts.HookBeforeHealthCheck = append(s.opts.HookBeforeHealthCheck, hook)
+}
+
+// AddAfterHealthCheckHook adds a hook that will be called after a service is health checked.
+//
+// Play: https://go.dev/play/p/wtKubQHkFLK
+func (s *RootScope) AddAfterHealthCheckHook(hook func(*Scope, string)) {
+	s.opts.HookAfterHealthCheck = append(s.opts.HookAfterHealthCheck, hook)
 }
 
 // Clone clones injector with provided services but not with invoked instances.
