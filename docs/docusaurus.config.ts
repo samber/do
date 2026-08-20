@@ -14,22 +14,22 @@ const config: Config = {
       useCssCascadeLayers: true,
     },
     faster: {
-        swcJsLoader: true,
-        swcJsMinimizer: true,
-        swcHtmlMinimizer: true,
-        lightningCssMinimizer: true,
-        rspackBundler: true,
-        rspackPersistentCache: true,
-        ssgWorkerThreads: true,
-        mdxCrossCompilerCache: true,
+      swcJsLoader: true,
+      swcJsMinimizer: true,
+      swcHtmlMinimizer: true,
+      lightningCssMinimizer: true,
+      rspackBundler: true,
+      rspackPersistentCache: true,
+      ssgWorkerThreads: true,
+      mdxCrossCompilerCache: true,
     },
   },
-    storage: {
-        type: 'localStorage',
-        namespace: true,
-    },
+  storage: {
+    type: 'localStorage',
+    namespace: true,
+  },
 
-    // Set the production url of your site here
+  // Set the production url of your site here
   url: 'https://do.samber.dev',
   // Set the /<baseUrl>/ pathname under which your site is served
   // For GitHub pages deployment, it is often '/<projectName>/'
@@ -62,9 +62,7 @@ const config: Config = {
   // router: 'hash',
 
   // Future-proofing configurations
-  clientModules: [
-    require.resolve('./src/theme/prism-include-languages.js'),
-  ],
+  clientModules: [require.resolve('./src/theme/prism-include-languages.js')],
 
   // Even if you don't use internationalization, you can use this field to set
   // useful metadata like html lang. For example, if your site is Chinese, you
@@ -74,17 +72,17 @@ const config: Config = {
     locales: ['en'],
   },
 
-    headTags: [
-        // SEO
-        {
-        tagName: 'script',
-        attributes: {
-            'async': 'true',
-            'src': 'https://analytics.ahrefs.com/analytics.js',
-            'data-key': 'ZlVVDleFCGZPB8Nd2KkKrw'
-        },
+  headTags: [
+    // SEO
+    {
+      tagName: 'script',
+      attributes: {
+        async: 'true',
+        src: 'https://analytics.ahrefs.com/analytics.js',
+        'data-key': 'ZlVVDleFCGZPB8Nd2KkKrw',
+      },
     },
-        // DNS prefetch for better performance
+    // DNS prefetch for better performance
     {
       tagName: 'link',
       attributes: {
@@ -98,13 +96,6 @@ const config: Config = {
         rel: 'preconnect',
         href: 'https://fonts.gstatic.com',
         crossorigin: 'anonymous',
-      },
-    },
-    {
-      tagName: 'meta',
-      attributes: {
-        name: 'keywords',
-        content: 'go, golang, dependency injection, DI, IoC, container, generics, type-safe, framework, library, samber',
       },
     },
     {
@@ -143,14 +134,10 @@ const config: Config = {
         content: '@samuelberthe',
       },
     },
-    // og:locale signals language/region to crawlers and social platforms
-    {
-      tagName: 'meta',
-      attributes: {
-        property: 'og:locale',
-        content: 'en_US',
-      },
-    },
+    // NOTE: do NOT add a static <meta property="og:locale"> here.
+    // Docusaurus already emits one automatically from `i18n.defaultLocale`
+    // (rendered as `en`); a second static tag here previously conflicted
+    // with it (`en_US`), which is an invalid/duplicate signal for crawlers.
     // og:site_name provides branding context in social share cards
     {
       tagName: 'meta',
@@ -193,8 +180,7 @@ const config: Config = {
           sidebarPath: './sidebars.ts',
           // Please change this to your repo.
           // Remove this to remove the "edit this page" links.
-          editUrl:
-            'https://github.com/samber/do/tree/master/docs/',
+          editUrl: 'https://github.com/samber/do/tree/master/docs/',
           showLastUpdateAuthor: true,
           showLastUpdateTime: true,
           // Enhanced docs features from 3.8+
@@ -210,6 +196,9 @@ const config: Config = {
           remarkPlugins: [],
           rehypePlugins: [],
         },
+        // The blog feature is unused (no posts). Leaving it on the default
+        // `blog: {}` creates an empty, indexable /blog page with thin content.
+        blog: false,
         sitemap: {
           lastmod: 'date',
           changefreq: 'weekly',
@@ -218,11 +207,14 @@ const config: Config = {
           filename: 'sitemap.xml',
           // Enhanced sitemap features from 3.8+
           createSitemapItems: async (params) => {
-            const {defaultCreateSitemapItems, ...rest} = params ;
+            const {defaultCreateSitemapItems, ...rest} = params;
             const items = await defaultCreateSitemapItems(rest);
             // Add custom priority for specific pages
             return items.map((item) => {
-              if (item.url.includes('/docs/getting-started')) {
+              if (
+                item.url === 'https://do.samber.dev/' ||
+                item.url.includes('/docs/getting-started')
+              ) {
                 return {...item, priority: 1.0};
               }
               if (item.url.includes('/docs/')) {
@@ -266,7 +258,11 @@ const config: Config = {
     metadata: [
       {name: 'og:type', content: 'website'},
       // Fallback description for pages that don't set their own
-      {name: 'description', content: 'Type-safe dependency injection for Go using generics. A drop-in replacement for uber/dig with a fluent API and zero reflection.'},
+      {
+        name: 'description',
+        content:
+          'Type-safe dependency injection for Go using generics. A drop-in replacement for uber/dig with a fluent API and zero reflection.',
+      },
     ],
 
     navbar: {
@@ -306,8 +302,8 @@ const config: Config = {
           label: 'v2',
           position: 'right',
           items: [
-            { label: 'v2', to: '/docs/about', disabled: true },
-            { label: 'v1', href: 'https://github.com/samber/do/tree/v1' },
+            {label: 'v2', to: '/docs/about', disabled: true},
+            {label: 'v1', href: 'https://github.com/samber/do/tree/v1'},
           ],
         },
         {
@@ -425,20 +421,20 @@ const config: Config = {
 
   themes: ['@docusaurus/theme-mermaid'],
 
-    plugins: [
-        [
-        "posthog-docusaurus",
-        {
-            apiKey: "phc_oP3YQLnt3fvhiBEaAU3rrmQdRNXGJM3hoM8j4oCSayrx",
-            appHost: "https://hogpost.samber.dev",
-            enableInDevelopment: false, // optional,
-            disableSessionRecording: true,
-        },
+  plugins: [
+    [
+      'posthog-docusaurus',
+      {
+        apiKey: 'phc_oP3YQLnt3fvhiBEaAU3rrmQdRNXGJM3hoM8j4oCSayrx',
+        appHost: 'https://hogpost.samber.dev',
+        enableInDevelopment: false, // optional,
+        disableSessionRecording: true,
+      },
     ],
-        // Add ideal image plugin for better image optimization
-        [
-        '@docusaurus/plugin-ideal-image',
-        {
+    // Add ideal image plugin for better image optimization
+    [
+      '@docusaurus/plugin-ideal-image',
+      {
         quality: 70,
         max: 1030,
         min: 640,
@@ -453,6 +449,7 @@ const config: Config = {
         mode: 'auto',
       },
     ],
+    require.resolve('./plugins/structured-data'),
   ],
 };
 
