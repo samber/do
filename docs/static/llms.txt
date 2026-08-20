@@ -1406,7 +1406,7 @@ func TestWithTestContainer(t *testing.T) {
     MockService(tc, &mockDatabase{})
     MockService(tc, &mockEmailService{})
 
-    userService := GetService[UserService](tc)
+    userService := do.MustInvoke[UserService](tc.injector)
     // Test with mocked services
 }
 ```

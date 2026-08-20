@@ -22,7 +22,7 @@ import Head from '@docusaurus/Head';
 
 # ✌️ Dependency Injection in Go
 
-⚙️ Dependency injection (DI) in Go is the practice of supplying a component with the services it depends on, instead of letting it construct them itself — making code easier to test, swap, and reason about. `samber/do` is a DI toolkit for Go that implements this pattern using **1.18+ generics** instead of reflection, giving you a type-safe API with **no code generation** and **zero external dependencies**.
+Dependency injection (DI) in Go is the practice of supplying a component with the services it depends on, instead of letting it construct them itself — making code easier to test, swap, and reason about. `samber/do` is a DI toolkit for Go that implements this pattern using **1.18+ generics** instead of reflection, giving you a type-safe API with **no code generation** and **zero external dependencies**.
 
 <img
   src="/img/cover.webp"

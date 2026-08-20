@@ -75,9 +75,6 @@ function HomepageFeatures(): JSX.Element {
   return (
     <section className={styles.features}>
       <div className="container">
-        <Heading as="h2" className={styles.visuallyHidden}>
-          Features
-        </Heading>
         <div className="row">
           {FeatureList.map((props, idx) => (
             <Feature key={idx} {...props} />
