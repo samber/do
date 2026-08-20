@@ -415,9 +415,8 @@ const config: Config = {
         // facetFilters: ['type:lvl1'],
       },
       searchPagePath: 'search',
-      // Disabled: pulls the extra search-insights client and no one reads
-      // the Algolia search analytics dashboard for this project.
-      insights: false,
+      // Enhanced search features from 3.8+
+      insights: true,
     },
   } satisfies Preset.ThemeConfig,
 
