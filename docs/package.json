@@ -18,8 +18,9 @@
     "build:analyze": "npm run build -- --bundle-analyzer",
     "start:no-cache": "docusaurus clear && docusaurus start",
     "build:fast": "docusaurus build --no-minify",
-    "lint": "docusaurus write-heading-ids && prettier --check --cache .",
-    "lint:fix": "docusaurus write-heading-ids && prettier --write --cache .",
+    "check:go-examples": "node scripts/validate-go-code-blocks.js",
+    "lint": "docusaurus write-heading-ids && prettier --check --cache . && npm run check:go-examples",
+    "lint:fix": "docusaurus write-heading-ids && prettier --write --cache . && npm run check:go-examples",
     "build:en": "docusaurus build --locale en",
     "start:en": "docusaurus start --locale en"
   },
@@ -50,9 +51,11 @@
   },
   "browserslist": {
     "production": [
-      ">0.5%",
-      "not dead",
-      "not op_mini all"
+      "chrome >= 100",
+      "edge >= 100",
+      "firefox >= 100",
+      "safari >= 15.4",
+      "not dead"
     ],
     "development": [
       "last 3 chrome version",
