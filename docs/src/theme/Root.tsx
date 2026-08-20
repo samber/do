@@ -1,15 +1,22 @@
-import React, { useEffect } from 'react';
+import React, {useEffect} from 'react';
 
-declare const window: Window & { posthog?: { capture: (event: string, props?: Record<string, unknown>) => void } };
+declare const window: Window & {
+  posthog?: {capture: (event: string, props?: Record<string, unknown>) => void};
+};
 
 function getOutboundLinkType(href: string): string | null {
-  if (href.includes('go.dev/play') || href.includes('play.golang.org')) return 'playground';
+  if (href.includes('go.dev/play') || href.includes('play.golang.org'))
+    return 'playground';
   if (href.includes('pkg.go.dev')) return 'godoc';
-  if (href.includes('github.com/samber/do') && !href.includes('github.com/sponsors')) return 'source';
+  if (
+    href.includes('github.com/samber/do') &&
+    !href.includes('github.com/sponsors')
+  )
+    return 'source';
   return null;
 }
 
-export default function Root({ children }: { children: React.ReactNode }) {
+export default function Root({children}: {children: React.ReactNode}) {
   useEffect(() => {
     const handleClick = (e: MouseEvent) => {
       const anchor = (e.target as HTMLElement).closest('a');
@@ -17,7 +24,7 @@ export default function Root({ children }: { children: React.ReactNode }) {
       const href = anchor.getAttribute('href') ?? '';
       const type = getOutboundLinkType(href);
       if (type) {
-        window.posthog?.capture('link_clicked', { type, href });
+        window.posthog?.capture('link_clicked', {type, href});
       }
     };
 
@@ -29,7 +36,7 @@ export default function Root({ children }: { children: React.ReactNode }) {
       searchTimeout = setTimeout(() => {
         const query = target.value.trim();
         if (query) {
-          window.posthog?.capture('search_queried', { query });
+          window.posthog?.capture('search_queried', {query});
         }
       }, 500);
     };

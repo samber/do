@@ -8,7 +8,7 @@ sidebar_position: 3
 
 Transient loading is similar to lazy loading, but a new instance is provided at every invocation. It can be considered as a factory registry.
 
-## Provider
+## Provider {#provider}
 
 A transient service must be defined with a `provider` (kind of constructor). This provider will be called at every invocation.
 
@@ -28,7 +28,7 @@ func NewMyService(i do.Injector) (*MyService, error) {
 }
 ```
 
-## Inject service into DI container
+## Inject service into DI container {#inject-service-into-di-container}
 
 A service can be injected in many ways. Here is the full list of transient loading service injections.
 
@@ -55,11 +55,11 @@ do.ProvideNamedTransient(i, "my.really.cool.service", NewMyService)
 
 **Play: https://go.dev/play/p/j69I52whJr2**
 
-## Error handling
+## Error handling {#error-handling}
 
 On invocation, panics are caught by the framework and returned as an error.
 
-## Hot service replacement
+## Hot service replacement {#hot-service-replacement}
 
 By default, providing a service twice will panic. Service can be replaced at runtime using `do.Override` helper.
 
