@@ -82,22 +82,6 @@ const config: Config = {
         'data-key': 'ZlVVDleFCGZPB8Nd2KkKrw',
       },
     },
-    // DNS prefetch for better performance
-    {
-      tagName: 'link',
-      attributes: {
-        rel: 'dns-prefetch',
-        href: '//fonts.googleapis.com',
-      },
-    },
-    {
-      tagName: 'link',
-      attributes: {
-        rel: 'preconnect',
-        href: 'https://fonts.gstatic.com',
-        crossorigin: 'anonymous',
-      },
-    },
     {
       tagName: 'meta',
       attributes: {
@@ -166,8 +150,8 @@ const config: Config = {
         name: 'DBOS',
         url: 'https://www.dbos.dev/?utm_campaign=gh-smbr',
         title: 'DBOS - Durable workflow orchestration library for Go',
-        logo_light: '/img/sponsors/dbos-black.png',
-        logo_dark: '/img/sponsors/dbos-white.png',
+        logo_light: '/img/sponsors/dbos-black.webp',
+        logo_dark: '/img/sponsors/dbos-white.webp',
       },
     ],
   },
@@ -431,8 +415,9 @@ const config: Config = {
         // facetFilters: ['type:lvl1'],
       },
       searchPagePath: 'search',
-      // Enhanced search features from 3.8+
-      insights: true,
+      // Disabled: pulls the extra search-insights client and no one reads
+      // the Algolia search analytics dashboard for this project.
+      insights: false,
     },
   } satisfies Preset.ThemeConfig,
 
@@ -443,7 +428,10 @@ const config: Config = {
       'posthog-docusaurus',
       {
         apiKey: 'phc_oP3YQLnt3fvhiBEaAU3rrmQdRNXGJM3hoM8j4oCSayrx',
-        appHost: 'https://hogpost.samber.dev',
+        // posthog-docusaurus reads `appUrl`, not `appHost` — the previous
+        // key name was silently ignored and PostHog fell back to its
+        // us.i.posthog.com default instead of this self-hosted proxy.
+        appUrl: 'https://hogpost.samber.dev',
         enableInDevelopment: false, // optional,
         disableSessionRecording: true,
       },
@@ -467,6 +455,7 @@ const config: Config = {
       },
     ],
     require.resolve('./plugins/structured-data'),
+    require.resolve('./plugins/chunk-splitting'),
   ],
 };
 
