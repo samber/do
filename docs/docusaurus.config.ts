@@ -382,6 +382,23 @@ const config: Config = {
             },
           ],
         },
+        {
+          title: 'Comparisons',
+          items: [
+            {
+              label: 'vs uber/fx',
+              to: '/docs/comparison/samber-do-vs-uber-fx',
+            },
+            {
+              label: 'vs google/wire',
+              to: '/docs/comparison/samber-do-vs-google-wire',
+            },
+            {
+              label: 'vs uber/dig',
+              to: '/docs/comparison/samber-do-vs-uber-dig',
+            },
+          ],
+        },
       ],
       copyright: `Copyright © ${new Date().getFullYear()} do.`,
     },
