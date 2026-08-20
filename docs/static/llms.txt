@@ -1382,12 +1382,14 @@ func NewTestContainer() *TestContainer {
     }
 }
 
-func (tc *TestContainer) MockService[T any](mock T) *TestContainer {
+// Go does not allow type parameters on methods, so MockService and
+// GetService take the container explicitly instead of being methods on it.
+func MockService[T any](tc *TestContainer, mock T) *TestContainer {
     do.ProvideValue(tc.injector, mock)
     return tc
 }
 
-func (tc *TestContainer) GetService[T any]() T {
+func GetService[T any](tc *TestContainer) T {
     return do.MustInvoke[T](tc.injector)
 }
 
@@ -1400,11 +1402,11 @@ func (tc *TestContainer) Clone() *TestContainer {
 
 // Usage example
 func TestWithTestContainer(t *testing.T) {
-    tc := NewTestContainer().
-        MockService(&mockDatabase{}).
-        MockService(&mockEmailService{})
+    tc := NewTestContainer()
+    MockService(tc, &mockDatabase{})
+    MockService(tc, &mockEmailService{})
 
-    userService := tc.GetService[UserService]()
+    userService := do.MustInvoke[UserService](tc.injector)
     // Test with mocked services
 }
 ```

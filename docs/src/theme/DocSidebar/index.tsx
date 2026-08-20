@@ -53,6 +53,10 @@ export default function DocSidebarWrapper(props: DocSidebarProps) {
                     }
                     alt={sponsor.name}
                     className="sidebar-spnsors__logo"
+                    width={320}
+                    height={91}
+                    loading="lazy"
+                    decoding="async"
                   />
                   <div className="sidebar-spnsors__logo-title">
                     {sponsor.title}

@@ -1,5 +1,5 @@
 ---
-title: Dependency Injection in Go
+title: ✌️ Dependency Injection in Go
 description: samber/do is a type-safe dependency injection toolkit for Go, built on 1.18+ generics instead of reflection or code generation. Compare it to uber/dig, uber/fx, and google/wire.
 sidebar_position: 0
 ---
@@ -20,11 +20,28 @@ import Head from '@docusaurus/Head';
   </script>
 </Head>
 
-# Dependency Injection in Go
+# ✌️ Dependency Injection in Go
 
 Dependency injection (DI) in Go is the practice of supplying a component with the services it depends on, instead of letting it construct them itself — making code easier to test, swap, and reason about. `samber/do` is a DI toolkit for Go that implements this pattern using **1.18+ generics** instead of reflection, giving you a type-safe API with **no code generation** and **zero external dependencies**.
 
-![samber/do — type-safe dependency injection for Go using generics](/img/cover.webp)
+<img
+  src="/img/cover.webp"
+  srcSet="/img/cover-640.webp 640w, /img/cover.webp 1200w"
+  sizes="(max-width: 640px) 100vw, 1200px"
+  width={1200}
+  height={404}
+  decoding="async"
+  alt="samber/do — type-safe dependency injection for Go using generics"
+/>
+
+**See also:**
+
+- [samber/lo](https://github.com/samber/lo): A Lodash-style Go library based on Go 1.18+ Generics
+- [samber/mo](https://github.com/samber/mo): Monads based on Go 1.18+ Generics (Option, Result, Either...)
+
+**Why this name?**
+
+I love the **short name** for such a utility library. This name is the sum of `DI` and `Go` and no Go package uses this name.
 
 ## samber/do vs uber/dig vs uber/fx vs google/wire {#samberdo-vs-uberdig-vs-uberfx-vs-googlewire}
 
@@ -39,15 +56,6 @@ Dependency injection (DI) in Go is the practice of supplying a component with th
 | **External dependencies** | None                                    | None          | Several (dig, zap, ...)   | `wire` build tool             | None         |
 
 **When to use `samber/do`**: you want compile-time-checked service resolution without a build step, plus built-in health checks and graceful shutdown for production services. See the detailed comparisons: [do vs uber/fx](./comparison/samber-do-vs-uber-fx.md), [do vs google/wire](./comparison/samber-do-vs-google-wire.md), and [do vs uber/dig](./comparison/samber-do-vs-uber-dig.md). Already using one of these? Check the [migration guides](./migrating/migrating-from-dig.md).
-
-**See also:**
-
-- [samber/lo](https://github.com/samber/lo): A Lodash-style Go library based on Go 1.18+ Generics
-- [samber/mo](https://github.com/samber/mo): Monads based on Go 1.18+ Generics (Option, Result, Either...)
-
-**Why this name?**
-
-I love the **short name** for such a utility library. This name is the sum of `DI` and `Go` and no Go package uses this name.
 
 ## 💡 Features {#-features}
 
