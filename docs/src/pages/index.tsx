@@ -21,8 +21,8 @@ const FeatureList: FeatureItem[] = [
     // src: "/img/street-sign.svg",
     description: (
       <>
-        DO was designed from the ground up to increase modularity
-        by making things less connected and dependent.
+        DO was designed from the ground up to increase modularity by making
+        things less connected and dependent.
       </>
     ),
   },
@@ -34,8 +34,8 @@ const FeatureList: FeatureItem[] = [
     // src: "/img/compass.svg",
     description: (
       <>
-        DO provides an API to check the health of active services and to
-        unload an application gracefully in reverse dependency order.
+        DO provides an API to check the health of active services and to unload
+        an application gracefully in reverse dependency order.
       </>
     ),
   },
@@ -47,9 +47,9 @@ const FeatureList: FeatureItem[] = [
     // src: "/img/telescope.svg",
     description: (
       <>
-        Debugging IoC can be painful.
-        DO offers an API to describe the application layout and visualize
-        a service with its full dependency tree.
+        Debugging IoC can be painful. DO offers an API to describe the
+        application layout and visualize a service with its full dependency
+        tree.
       </>
     ),
   },
@@ -97,14 +97,16 @@ function HomepageHeader() {
         <div className={styles.buttons} style={{marginBottom: '10px'}}>
           <Link
             className="button button--secondary button--lg"
-            to="/docs/about">
+            to="/docs/about"
+          >
             Intro
           </Link>
         </div>
         <div className={styles.buttons}>
           <Link
             className="button button--secondary button--lg"
-            to="/docs/getting-started">
+            to="/docs/getting-started"
+          >
             Getting started - 5min ⏱️
           </Link>
         </div>
@@ -114,11 +116,11 @@ function HomepageHeader() {
 }
 
 export default function Home(): JSX.Element {
-  const {siteConfig} = useDocusaurusContext();
   return (
     <Layout
-      title={`⚙️ ${siteConfig.title}: ${siteConfig.tagline}`}
-      description="A dependency injection toolkit based on Go 1.18+ Generics.">
+      title="Type-Safe DI for Go"
+      description="samber/do is a type-safe dependency injection toolkit for Go, built on 1.18+ generics instead of reflection. A drop-in replacement for uber/dig."
+    >
       <HomepageHeader />
       <main>
         <HomepageFeatures />
