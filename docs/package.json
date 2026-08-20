@@ -5,6 +5,7 @@
   "scripts": {
     "docusaurus": "docusaurus",
     "start": "docusaurus start",
+    "prebuild": "(git rev-parse --is-shallow-repository 2>/dev/null | grep -q true && git fetch --unshallow --quiet) || true",
     "build": "docusaurus build",
     "swizzle": "docusaurus swizzle",
     "deploy": "docusaurus deploy",
@@ -42,24 +43,24 @@
   },
   "devDependencies": {
     "@docusaurus/module-type-aliases": "3.10.0",
-      "@docusaurus/tsconfig": "3.10.0",
-      "@docusaurus/types": "3.10.0",
-      "prettier": "^3.9.4",
-      "typescript": "~6.0.2"
+    "@docusaurus/tsconfig": "3.10.0",
+    "@docusaurus/types": "3.10.0",
+    "prettier": "^3.9.4",
+    "typescript": "~6.0.2"
   },
-    "browserslist": {
-        "production": [
-            ">0.5%",
-            "not dead",
-            "not op_mini all"
-        ],
-        "development": [
-            "last 3 chrome version",
-            "last 3 firefox version",
-            "last 5 safari version"
-        ]
-    },
-    "engines": {
-        "node": ">=18.0"
-    }
+  "browserslist": {
+    "production": [
+      ">0.5%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 3 chrome version",
+      "last 3 firefox version",
+      "last 5 safari version"
+    ]
+  },
+  "engines": {
+    "node": ">=18.0"
+  }
 }

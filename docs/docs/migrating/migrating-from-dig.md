@@ -8,14 +8,14 @@ sidebar_position: 3
 
 This guide will help you migrate your dependency injection setup from Uber Dig to `samber/do`.
 
-## Overview
+## Overview {#overview}
 
 Uber Dig and `samber/do` are both runtime dependency injection libraries for Go, but they have different APIs and features:
 
 - **Uber Dig**: Uses a builder pattern with `dig.New()` and `Provide`/`Invoke` methods
 - **samber/do**: Uses a fluent API with `do.New()` and similar `Provide`/`Invoke` methods
 
-## Key Differences
+## Key Differences {#key-differences}
 
 | Feature               | Uber Dig                      | samber/do                      |
 | --------------------- | ----------------------------- | ------------------------------ |
@@ -26,9 +26,9 @@ Uber Dig and `samber/do` are both runtime dependency injection libraries for Go,
 | **Health Checks**     | Not built-in                  | Built-in support               |
 | **Graceful Shutdown** | Manual                        | Built-in support               |
 
-## Migration Steps
+## Migration Steps {#migration-steps}
 
-### 1. Remove Dig Dependencies
+### 1. Remove Dig Dependencies {#1-remove-dig-dependencies}
 
 Remove Dig from your `go.mod`:
 
@@ -38,9 +38,10 @@ go mod edit -droprequire go.uber.org/dig
 
 Remove Dig imports from your code.
 
-### 2. Replace Container Creation
+### 2. Replace Container Creation {#2-replace-container-creation}
 
 **Before (Dig):**
+
 ```go
 import "go.uber.org/dig"
 
@@ -51,6 +52,7 @@ func main() {
 ```
 
 **After (samber/do):**
+
 ```go
 import "github.com/samber/do/v2"
 
@@ -60,9 +62,10 @@ func main() {
 }
 ```
 
-### 3. Update Service Registration
+### 3. Update Service Registration {#3-update-service-registration}
 
 **Before (Dig):**
+
 ```go
 err := container.Provide(NewDatabase)
 if err != nil {
@@ -76,14 +79,16 @@ if err != nil {
 ```
 
 **After (samber/do):**
+
 ```go
 do.Provide(injector, NewDatabase)
 do.Provide(injector, NewUserService)
 ```
 
-### 4. Update Service Invocation
+### 4. Update Service Invocation {#4-update-service-invocation}
 
 **Before (Dig):**
+
 ```go
 err := container.Invoke(func(app *App) {
     app.Run()
@@ -94,6 +99,7 @@ if err != nil {
 ```
 
 **After (samber/do):**
+
 ```go
 app, err := do.Invoke[*App](injector)
 if err != nil {
@@ -105,11 +111,12 @@ app := do.MustInvoke[*App](injector)
 app.Run()
 ```
 
-### 5. Handle Constructor Functions
+### 5. Handle Constructor Functions {#5-handle-constructor-functions}
 
 Dig and `samber/do` use different constructor function signatures. `samber/do` constructors receive `do.Injector` as the first parameter and return an additional error:
 
 **Before (Dig):**
+
 ```go
 func NewUserService(db *Database) *UserService {
     return &UserService{db: db}
@@ -121,6 +128,7 @@ func NewDatabase(config *Config) *Database {
 ```
 
 **After (samber/do):**
+
 ```go
 func NewUserService(i do.Injector) (*UserService, error) {
     // if service is not found, `do` will catch the panic and return an `error`
@@ -134,9 +142,10 @@ func NewDatabase(i do.Injector) (*Database, error) {
 }
 ```
 
-### 6. Update Interface Bindings
+### 6. Update Interface Bindings {#6-update-interface-bindings}
 
 **Before (Dig):**
+
 ```go
 err := container.Provide(func() Repository {
     return &UserRepository{}
@@ -144,6 +153,7 @@ err := container.Provide(func() Repository {
 ```
 
 **After (samber/do):**
+
 ```go
 do.Provide(injector, func(i do.Injector) (Repository, error) {
     return &UserRepository{}, nil
@@ -176,11 +186,12 @@ do.Provide(injector, func(i do.Injector) (*UserRepository, error) {
 userRepository, err := do.InvokeAs[Repository](i)
 ```
 
-## Advanced Migration Patterns
+## Advanced Migration Patterns {#advanced-migration-patterns}
 
-### Provider Groups
+### Provider Groups {#provider-groups}
 
 **Before (Dig):**
+
 ```go
 type Result struct {
     dig.Out
@@ -199,6 +210,7 @@ err := container.Provide(ProvideServices)
 ```
 
 **After (samber/do):**
+
 ```go
 type Result struct {
     Service1 *Service1 `do:""`
@@ -210,9 +222,10 @@ do.Provide(injector, NewService2)
 do.Provide(injector, do.InvokeStruct[*Result])
 ```
 
-### Parameter Structs
+### Parameter Structs {#parameter-structs}
 
 **Before (Dig):**
+
 ```go
 type Params struct {
     dig.In
@@ -229,11 +242,12 @@ func NewUserService(params Params) *UserService {
 ```
 
 **After (samber/do):**
+
 ```go
 func NewUserService(i do.Injector) (*UserService, error) {
     db := do.MustInvoke[*Database](i)
     logger := do.MustInvoke[*Logger](i)
-    
+
     return &UserService{
         db:     db,
         logger: logger,
@@ -241,9 +255,10 @@ func NewUserService(i do.Injector) (*UserService, error) {
 }
 ```
 
-### Optional Dependencies
+### Optional Dependencies {#optional-dependencies}
 
 **Before (Dig):**
+
 ```go
 type Params struct {
     dig.In
@@ -260,6 +275,7 @@ func NewUserService(params Params) *UserService {
 ```
 
 **After (samber/do):**
+
 ```go
 func NewUserService(i do.Injector) (*UserService, error) {
     db := do.MustInvoke[*Database](i)
@@ -280,9 +296,10 @@ func RegisterServices(injector do.Injector, useCache bool) {
 }
 ```
 
-### Value Groups
+### Value Groups {#value-groups}
 
 **Before (Dig):**
+
 ```go
 type Result struct {
     dig.Out
@@ -306,9 +323,10 @@ type Params struct {
 **After (samber/do):**
 Should be available starting do v2.1
 
-## Complete Example
+## Complete Example {#complete-example}
 
 **Before (Dig):**
+
 ```go
 package main
 
@@ -319,22 +337,22 @@ import (
 
 func main() {
     container := dig.New()
-    
+
     err := container.Provide(NewDatabase)
     if err != nil {
         log.Fatal(err)
     }
-    
+
     err = container.Provide(NewUserService)
     if err != nil {
         log.Fatal(err)
     }
-    
+
     err = container.Provide(NewApp)
     if err != nil {
         log.Fatal(err)
     }
-    
+
     err = container.Invoke(func(app *App) {
         app.Run()
     })
@@ -345,6 +363,7 @@ func main() {
 ```
 
 **After (samber/do):**
+
 ```go
 package main
 
@@ -355,26 +374,26 @@ import (
 
 func main() {
     injector := do.New()
-    
+
     // Register services
     do.Provide(injector, NewDatabase)
     do.Provide(injector, NewUserService)
     do.Provide(injector, NewApp)
-    
+
     // Get the app and run it
     app, err := do.Invoke[*App](injector)
     if err != nil {
         log.Fatal(err)
     }
-    
+
     // Optional: Graceful shutdown
     defer injector.ShutdownOnSignals(syscall.SIGTERM, os.Interrupt)
-    
+
     app.Run()
 }
 ```
 
-## Benefits of Migration
+## Benefits of Migration {#benefits-of-migration}
 
 1. **Simpler API** - More intuitive fluent API
 2. **Better error messages** - More detailed error information
@@ -383,32 +402,32 @@ func main() {
 5. **No external dependencies** - Pure Go implementation
 6. **Better testing support** - Easier to mock and test
 
-## Common Pitfalls
+## Common Pitfalls {#common-pitfalls}
 
 1. **Error handling** - `samber/do` returns errors from `Invoke()`, not `Provide()`
 2. **Circular dependencies** - `samber/do` will detect and report these
 3. **Interface bindings** - Use `do.As` for interface implementations
-4. **Error handling** - Use `do.MustInvoke` instead of `do.Invoke` as runtime errors and handled automatically
+4. **Panics vs errors** - Prefer `do.MustInvoke` over `do.Invoke` when a missing service should stop the program immediately instead of being handled as a recoverable error
 
-## Testing
+## Testing {#testing}
 
 Your existing tests should work with minimal changes:
 
 ```go
 func TestUserService(t *testing.T) {
     injector := do.New()
-    
+
     // Register test dependencies
     do.Provide(injector, NewMockDatabase)
     do.Provide(injector, NewUserService)
-    
+
     service := do.MustInvoke[*UserService](injector)
-    
+
     // Your test logic here
 }
 ```
 
-## Next Steps
+## Next Steps {#next-steps}
 
 After migration, consider exploring these `samber/do` features:
 

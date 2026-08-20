@@ -1,12 +1,12 @@
 ---
 title: Service health check
-description: Service health check
+description: Check the health of samber/do services individually or globally by implementing the Healthchecker interface, with configurable parallelism and timeouts.
 sidebar_position: 1
 ---
 
 # Service health check
 
-If your service relies on a dependency, you might want to periodically check its state.
+A health check verifies that a service's dependencies (a database, a cache, an external API...) are still reachable, on demand. If your service relies on a dependency, you might want to periodically check its state.
 
 When the `do.HealthCheck[type]()` or the `injector.HealthCheck()` function is called, the framework triggers the `HealthCheck` method of each service implementing the `do.Healthchecker` interface, in reverse invocation order.
 
@@ -14,7 +14,7 @@ When the `do.HealthCheck[type]()` or the `injector.HealthCheck()` function is ca
 
 Lazy services that were not invoked are not checked.
 
-## Trigger health check
+## Trigger health check {#trigger-health-check}
 
 A health check can be triggered for a root injector:
 
@@ -34,7 +34,7 @@ do.HealthCheckNamed[T any](do.Injector, string) error
 do.HealthCheckNamedWithContext[T any](context.Context, do.Injector, string) error
 ```
 
-## Healthchecker interfaces
+## Healthchecker interfaces {#healthchecker-interfaces}
 
 Your service can implement one of the following signatures:
 
@@ -48,7 +48,7 @@ type HealthcheckerWithContext interface {
 }
 ```
 
-### Example
+### Example {#example}
 
 ```go
 // Ensure at compile-time MyService implements do.HealthcheckerWithContext
@@ -72,7 +72,7 @@ i.HealthCheckWithContext(ctx)
 
 **Play: https://go.dev/play/p/ILV7UpAJDtc**
 
-## Health check options
+## Health check options {#health-check-options}
 
 The root scope can be created with health check parameters, for controlling parallelism or timeouts.
 

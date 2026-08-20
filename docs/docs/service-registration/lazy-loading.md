@@ -12,7 +12,7 @@ Lazy loading limits the number of components that load in an app.
 
 🐎 Lazy service invocation is protected against concurrent loading.
 
-## Provider
+## Provider {#provider}
 
 A lazy service must be defined with a `provider` (kind of constructor). This provider will be called once and must return the singleton or an error.
 
@@ -34,7 +34,7 @@ func NewMyService(i do.Injector) (*MyService, error) {
 
 **Play: https://go.dev/play/p/4JutUJ5Rqau**
 
-## Inject service into DI container
+## Inject service into DI container {#inject-service-into-di-container}
 
 A service can be injected in many ways. Here is the full list of lazy loading service injections.
 
@@ -61,11 +61,11 @@ do.Provide(i, NewMyService)
 do.ProvideNamed(i, "my.really.cool.service", NewMyService)
 ```
 
-## Error handling
+## Error handling {#error-handling}
 
 On invocation, panics are caught by the framework and returned as an error.
 
-## Hot service replacement
+## Hot service replacement {#hot-service-replacement}
 
 By default, providing a service twice will panic. Service can be replaced at runtime using `do.Override` helper.
 

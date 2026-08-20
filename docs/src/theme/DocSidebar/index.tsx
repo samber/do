@@ -4,7 +4,9 @@ import type DocSidebarProps from '@theme/DocSidebar';
 import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
 import {useColorMode} from '@docusaurus/theme-common';
 
-declare const window: Window & { posthog?: { capture: (event: string, props?: Record<string, unknown>) => void } };
+declare const window: Window & {
+  posthog?: {capture: (event: string, props?: Record<string, unknown>) => void};
+};
 
 type Sponsor = {
   name: string;
@@ -35,11 +37,20 @@ export default function DocSidebarWrapper(props: DocSidebarProps) {
                 rel="noopener noreferrer"
                 className="sidebar-spnsors__logo-link"
                 title={sponsor.title}
-                onClick={() => window.posthog?.capture('sponsor_clicked', { name: sponsor.name, position: 'sidebar' })}
+                onClick={() =>
+                  window.posthog?.capture('sponsor_clicked', {
+                    name: sponsor.name,
+                    position: 'sidebar',
+                  })
+                }
               >
                 <div className="sidebar-spnsors__logo-wrapper">
                   <img
-                    src={colorMode === 'dark' ? sponsor.logo_dark : sponsor.logo_light}
+                    src={
+                      colorMode === 'dark'
+                        ? sponsor.logo_dark
+                        : sponsor.logo_light
+                    }
                     alt={sponsor.name}
                     className="sidebar-spnsors__logo"
                   />
@@ -55,4 +66,3 @@ export default function DocSidebarWrapper(props: DocSidebarProps) {
     </div>
   );
 }
-

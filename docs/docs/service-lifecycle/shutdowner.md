@@ -12,7 +12,7 @@ When the `do.Shutdown[type]()` or the `injector.Shutdown()` function is called, 
 
 🛑 Services can be shut down properly, in reverse initialization order. Requesting a shutdown on a scope also shuts down its children recursively.
 
-## Trigger shutdown
+## Trigger shutdown {#trigger-shutdown}
 
 A shutdown can be triggered on a root scope:
 
@@ -20,7 +20,7 @@ A shutdown can be triggered on a root scope:
 // on demand
 injector.Shutdown() *do.ShutdownReport
 injector.ShutdownWithContext(context.Context) *do.ShutdownReport
- 
+
 // on signal (helper methods on the root scope)
 injector.ShutdownOnSignals(...os.Signal) (os.Signal, *do.ShutdownReport)
 injector.ShutdownOnSignalsWithContext(context.Context, ...os.Signal) (os.Signal, *do.ShutdownReport)
@@ -48,7 +48,7 @@ If no signal is passed to `injector.ShutdownOnSignals(...)`, both `syscall.SIGTE
 
 :::
 
-## Shutdowner interfaces
+## Shutdowner interfaces {#shutdowner-interfaces}
 
 Your service can implement one of the following signatures:
 
@@ -70,7 +70,7 @@ type ShutdownerWithContextAndError interface {
 }
 ```
 
-### Example
+### Example {#example}
 
 ```go
 // Ensure at compile-time MyService implements do.ShutdownerWithContextAndError
