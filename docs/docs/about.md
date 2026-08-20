@@ -1,16 +1,44 @@
 ---
-title: ✌️ About
-description: Discover "do", the dependency injection toolkit for Go
+title: Dependency Injection in Go
+description: samber/do is a type-safe dependency injection toolkit for Go, built on 1.18+ generics instead of reflection or code generation. Compare it to uber/dig, uber/fx, and google/wire.
 sidebar_position: 0
 ---
 
-# ✌️ About
+import Head from '@docusaurus/Head';
 
-**⚙️ A dependency injection toolkit based on Go 1.18+ Generics.**
+<Head>
+  <script type="application/ld+json">
+    {JSON.stringify({
+      '@context': 'https://schema.org',
+      '@type': 'TechArticle',
+      headline: 'Dependency Injection in Go',
+      description: 'samber/do is a type-safe dependency injection toolkit for Go, built on 1.18+ generics instead of reflection or code generation.',
+      about: {'@id': 'https://do.samber.dev/#software'},
+      author: {'@id': 'https://do.samber.dev/#person-samber'},
+      mainEntityOfPage: 'https://do.samber.dev/docs/about',
+    })}
+  </script>
+</Head>
 
-This library implements the Dependency Injection design pattern. It may replace the fantastic `uber/dig` package. `samber/do` uses Go 1.18+ generics instead of reflection and therefore offers a type‑safe API.
+# Dependency Injection in Go
 
-![samber/do — type-safe dependency injection for Go using generics](/img/cover.png)
+Dependency injection (DI) in Go is the practice of supplying a component with the services it depends on, instead of letting it construct them itself — making code easier to test, swap, and reason about. `samber/do` is a DI toolkit for Go that implements this pattern using **1.18+ generics** instead of reflection, giving you a type-safe API with **no code generation** and **zero external dependencies**.
+
+![samber/do — type-safe dependency injection for Go using generics](/img/cover.webp)
+
+## samber/do vs uber/dig vs uber/fx vs google/wire {#samberdo-vs-uberdig-vs-uberfx-vs-googlewire}
+
+|                           | `samber/do`                             | `uber/dig`    | `uber/fx`                 | `google/wire`                 | Manual DI    |
+| ------------------------- | --------------------------------------- | ------------- | ------------------------- | ----------------------------- | ------------ |
+| **Mechanism**             | Generics                                | Reflection    | Reflection (built on dig) | Code generation               | Hand-written |
+| **Type safety**           | Compile-time                            | Runtime       | Runtime                   | Compile-time                  | Compile-time |
+| **Code generation**       | None                                    | None          | None                      | Required (`wire` CLI)         | None         |
+| **Lifecycle management**  | Health checks, graceful shutdown, hooks | None built-in | Start/stop hooks          | None                          | Hand-written |
+| **Scopes / modules**      | Full scope tree                         | Limited       | Modules                   | Provider sets                 | Hand-written |
+| **Debugging tools**       | Scope tree, dependency graph, Web UI    | None built-in | `fx.WithLogger`           | None (inspect generated code) | N/A          |
+| **External dependencies** | None                                    | None          | Several (dig, zap, ...)   | `wire` build tool             | None         |
+
+**When to use `samber/do`**: you want compile-time-checked service resolution without a build step, plus built-in health checks and graceful shutdown for production services. See the detailed comparisons: [do vs uber/fx](./comparison/samber-do-vs-uber-fx.md), [do vs google/wire](./comparison/samber-do-vs-google-wire.md), and [do vs uber/dig](./comparison/samber-do-vs-uber-dig.md). Already using one of these? Check the [migration guides](./migrating/migrating-from-dig.md).
 
 **See also:**
 
@@ -21,39 +49,46 @@ This library implements the Dependency Injection design pattern. It may replace 
 
 I love the **short name** for such a utility library. This name is the sum of `DI` and `Go` and no Go package uses this name.
 
-## 💡 Features
+## 💡 Features {#-features}
 
 `samber/do` is built with high attention to the developer and contributor experience.
 
-- **📒 Service registration**
+- **📒 [Service registration](./service-registration/lazy-loading.md)**
   - Register by type
   - Register by name
   - Register multiple services from a package at once
-- **🪃 Service invocation**
-  - Eager loading
-  - Lazy loading
-  - Transient loading
+- **🪃 [Service invocation](./service-invocation/service-invocation.md)**
+  - [Eager loading](./service-registration/eager-loading.md)
+  - [Lazy loading](./service-registration/lazy-loading.md)
+  - [Transient loading](./service-registration/transient-loading.md)
   - Tag-based invocation
   - Circular dependency detection
-- **🧙‍♂️ Service aliasing**
+- **🧙‍♂️ [Service aliasing](./service-invocation/accept-interfaces-return-structs.md)**
   - Implicit (provide struct, invoke interface)
   - Explicit (provide struct, bind interface, invoke interface)
 - **🔁 Service lifecycle**
-  - Health check
-  - Graceful unload (shutdown)
+  - [Health check](./service-lifecycle/healthchecker.md)
+  - [Graceful unload (shutdown)](./service-lifecycle/shutdowner.md)
   - Dependency-aware parallel shutdown
   - Lifecycle hooks
-- **📦 Scope (a.k.a. module) tree**
+- **📦 [Scope (a.k.a. module) tree](./container/scope.md)**
   - Visibility control
   - Dependency grouping
-- **📤 Container**
+- **📤 [Container](./container/options.md)**
   - Dependency graph resolution and visualization
   - Default container
-  - Container cloning
+  - [Container cloning](./container/clone.md)
   - Service override
 - **🧪 Debugging & introspection**
-  - Explain APIs: scope tree and service dependencies
-  - Web UI & HTTP middleware (std, Gin, Fiber, Echo, Chi)
+  - Explain APIs: [scope tree](./troubleshooting/scope-tree.md) and [service dependencies](./troubleshooting/service-dependencies.md)
+  - [Web UI](./troubleshooting/web-ui.md) & HTTP middleware (std, Gin, Fiber, Echo, Chi)
 - **🌈 Lightweight, no dependencies**
 - **🔅 No code generation**
 - **😷 Type‑safe API**
+
+## Where to go next {#where-to-go-next}
+
+- New to `samber/do`? Start with [Getting started](./getting-started.md).
+- Coming from another DI library? Read the [migration guides](./migrating/migrating-from-dig.md) or the [comparison pages](./comparison/samber-do-vs-uber-fx.md).
+- Have a specific question? Check the [FAQ](./faq.md) or the [glossary](./glossary.md).
+- Upgrading from v1? See the [v1 to v2 upgrade guide](./upgrading/from-v1-x-to-v2.md).
