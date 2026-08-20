@@ -1,12 +1,12 @@
 ---
-title: Accept interfaces, return structs
-description: Accept interfaces, return structs
+title: Interface binding
+description: Bind and invoke Go interfaces with samber/do using implicit aliasing (do.InvokeAs) or explicit binding (do.As), following "accept interfaces, return structs".
 sidebar_position: 2
 ---
 
 # Interface binding
 
-You have probably already heard the Go proverb "Accept interfaces, return structs". The basic idea is to let the consumer define the interfaces it uses while the producer returns concrete types.
+Interface binding in `samber/do` lets you register a concrete struct and invoke it through an interface it implements, either implicitly (`do.InvokeAs`) or explicitly (`do.As`). You have probably already heard the Go proverb "Accept interfaces, return structs". The basic idea is to let the consumer define the interfaces it uses while the producer returns concrete types.
 
 This library offers a great API for assembling a large number of modules with loose coupling and a clear separation of concerns.
 
@@ -19,9 +19,10 @@ Aliases must be Go interfaces. It can be declared explicitly on injection using 
    - provide struct, bind interface, invoke interface
    - `do.As()`
 
-## Implicit invocation (preferred)
+## Implicit invocation (preferred) {#implicit-invocation-preferred}
 
 2 methods are available for implicit invocation:
+
 - `do.InvokeAs`
 - `do.MustInvokeAs`
 
@@ -70,17 +71,18 @@ Eg: `fmt.Stringer` might match dozens of services in a container.
 
 :::
 
-### InvokeStruct and implicit aliasing
+### InvokeStruct and implicit aliasing {#invokestruct-and-implicit-aliasing}
 
 When using `do.InvokeStruct`, if a field is tagged with an empty tag (eg: `` `do:""` ``) and the inferred name does not match a registered service, the injector will fall back to the first registered service that is assignable to the field type, equivalent to `do.InvokeAs[T]` resolution. Prefer explicit names when multiple assignable services exist.
 
-## Explicit injection
+## Explicit injection {#explicit-injection}
 
 Explicit injection will be used in rare cases when you need to adapt to legacy code or change the catalog of services at runtime.
 
 If you rely a lot on `do.Scope`, explicit injection might be used to define custom aliases in the scope tree branches.
 
 4 methods are available for explicit aliasing:
+
 - `do.As`
 - `do.MustAs`
 - `do.AsNamed`

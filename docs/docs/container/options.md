@@ -1,12 +1,14 @@
 ---
 title: Container options
-description: Container options
+description: Configure a samber/do injector — default options, the global container, package initialization, custom hooks, and health check timeouts.
 sidebar_position: 2
 ---
 
-# Container
+# Container options
 
-## Default options
+The DI container in `samber/do` is called an injector (`do.Injector`, implemented by `*do.RootScope`). It can be created with sensible defaults via `do.New()`, or tuned with `do.NewWithOpts()` for hooks, logging, and health check behavior.
+
+## Default options {#default-options}
 
 The simplest way to start is to use the default parameters:
 
@@ -16,7 +18,7 @@ import "github.com/samber/do/v2"
 injector := do.New()
 ```
 
-## Global container
+## Global container {#global-container}
 
 For a quick start, you may use the default global container. This is highly discouraged in production.
 
@@ -32,7 +34,7 @@ do.Provide(do.DefaultRootScope, ...)
 do.Invoke(do.DefaultRootScope, ...)
 ```
 
-## Register services on container initialization
+## Register services on container initialization {#register-services-on-container-initialization}
 
 The services can be assembled into a package, and then, imported all at once into a new container.
 
@@ -55,7 +57,7 @@ import "example/pkg/stores"
 injector := do.New(stores.Package)
 ```
 
-## Custom options
+## Custom options {#custom-options}
 
 ```go
 import "github.com/samber/do/v2"
@@ -78,7 +80,7 @@ injector := do.NewWithOpts(&do.InjectorOpts{
 })
 ```
 
-### Add hooks at runtime
+### Add hooks at runtime {#add-hooks-at-runtime}
 
 Hooks can also be registered after the injector is created using helper methods on the root scope. These append to the corresponding hook lists in `do.InjectorOpts` and apply to subsequent registrations/invocations/shutdowns.
 

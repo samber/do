@@ -11,10 +11,9 @@ import TabItem from '@theme/TabItem';
 
 Package loading groups multiple service registrations.
 
-## Registration
+## Registration {#registration}
 
 The services can be assembled into a package, and then, exported all at once.
-
 
 <Tabs>
   <TabItem value="stores" label="pkg/stores/package.go" default>
@@ -27,6 +26,7 @@ The services can be assembled into a package, and then, exported all at once.
         do.Lazy(NewArticleRepository),
     )
     ```
+
   </TabItem>
   <TabItem value="observability" label="pkg/observability/package.go">
     ```go
@@ -37,6 +37,7 @@ The services can be assembled into a package, and then, exported all at once.
         do.EagerNamed("prometheus.collector", DefaultMetricCollector),
     )
     ```
+
   </TabItem>
   <TabItem value="main" label="cmd/main.go">
     ```go
@@ -63,6 +64,7 @@ The services can be assembled into a package, and then, exported all at once.
         scope := injector.Scope("handlers", handlers.Package)
     }
     ```
+
   </TabItem>
 </Tabs>
 
@@ -79,11 +81,11 @@ The traditional vocab can be translated for package registration:
 - `As[Initial, Alias](Injector)` -> `Bind[Initial, Alias]()`
 - `AsNamed[Initial, Alias](Injector, string, string)` -> `BindNamed[Initial, Alias](string, string)`
 
-## Testing and mocking
+## Testing and mocking {#testing-and-mocking}
 
 A package can ship a second variant, exposing test doubles behind the same interfaces as the production services. Swapping `Package` for its mock counterpart in a test injector replaces every service it registers, without touching the code under test.
 
-This requires each service to be exposed through an interface (see [Accept interfaces, return structs](../service-invocation/accept-interfaces-return-structs.md)), with both the real and the mock implementation satisfying it.
+This requires each service to be exposed through an interface (see [Interface binding](../service-invocation/accept-interfaces-return-structs.md)), with both the real and the mock implementation satisfying it.
 
 <Tabs>
   <TabItem value="repository" label="pkg/repositories/user_repository.go" default>
@@ -109,6 +111,7 @@ This requires each service to be exposed through an interface (see [Accept inter
 
     var _ UserRepository = (*userRepository)(nil)
     ```
+
   </TabItem>
   <TabItem value="mock" label="pkg/repositories/user_repository_mock.go">
     ```go
@@ -128,6 +131,7 @@ This requires each service to be exposed through an interface (see [Accept inter
 
     var _ UserRepository = (*userRepositoryMock)(nil)
     ```
+
   </TabItem>
   <TabItem value="package" label="pkg/repositories/package.go">
     ```go
@@ -144,6 +148,7 @@ This requires each service to be exposed through an interface (see [Accept inter
         do.Lazy(newBillingRepositoryMock),
     )
     ```
+
   </TabItem>
   <TabItem value="main" label="cmd/main.go">
     ```go
@@ -161,6 +166,7 @@ This requires each service to be exposed through an interface (see [Accept inter
         )
     }
     ```
+
   </TabItem>
   <TabItem value="test" label="pkg/auth/auth_test.go">
     ```go
@@ -181,6 +187,7 @@ This requires each service to be exposed through an interface (see [Accept inter
         // ...
     }
     ```
+
   </TabItem>
 </Tabs>
 

@@ -1,10 +1,14 @@
 ---
 title: Web UI
-description: Learn how to troubleshoot scopes and services via Web UI
+description: Mount samber/do's debug Web UI (std, Gin, Fiber, Echo, or Chi) to inspect scopes, services, and dependency graphs from a browser.
 sidebar_position: 4
 ---
 
 # Web UI
+
+The debug Web UI is an HTTP handler that renders the same scope tree and dependency graph as [`do.ExplainInjector`](./scope-tree.md), but as a browsable page instead of a text dump. Mount it on any router — the standard library, Gin, Fiber, Echo, or Chi are all supported.
+
+Once mounted, the handler serves the scope tree, per-service dependency details, and health-check status under the path prefix you choose (`/debug/do` in the examples below). It's a thin read-only layer over the same [`ExplainInjector`](./scope-tree.md) / [`ExplainService`](./service-dependencies.md) APIs used for text-based debugging — useful when you'd rather click through a running instance than reproduce the issue with a script.
 
 > Caution
 >
@@ -14,7 +18,7 @@ sidebar_position: 4
 > restrictions (IP allowlist, VPN). Apply your auth middleware to the router
 > group before mounting the debug handlers.
 
-## Without framework
+## Without framework {#without-framework}
 
 ```bash
 go get github.com/samber/do/http/std/v2
@@ -33,7 +37,7 @@ mux.Handle("/debug/do/", std.Use("/debug/do", injector))
 http.ListenAndServe(":8080", mux)
 ```
 
-## Gin
+## Gin {#gin}
 
 ```bash
 go get github.com/samber/do/http/gin/v2
@@ -51,7 +55,7 @@ ginhttp.Use(router.Group("/debug/do"), injector)
 router.Run(":8080")
 ```
 
-## Fiber
+## Fiber {#fiber}
 
 ```bash
 go get github.com/samber/do/http/fiber/v2
@@ -69,7 +73,7 @@ fiberhttp.Use(router.Group("/debug/do"), "/debug/do", injector)
 router.Listen(":8080")
 ```
 
-## Echo
+## Echo {#echo}
 
 ```bash
 go get github.com/samber/do/http/echo/v2
@@ -87,7 +91,7 @@ echohttp.Use(router.Group("/debug/do"), "/debug/do", injector)
 router.Start(":8080")
 ```
 
-## Chi
+## Chi {#chi}
 
 ```bash
 go get github.com/samber/do/http/chi/v2

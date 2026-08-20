@@ -1,12 +1,12 @@
 ---
-title: "Scopes"
-description: Group services into independent modules
+title: 'Scopes'
+description: A scope groups related services into an independent module with restricted visibility across a samber/do dependency graph.
 sidebar_position: 1
 ---
 
 # Scopes
 
-A `Scope` can be viewed as a module of an application with restricted visibility. We advocate having a `RootScope` for common code and moving business logic to dedicated `Scopes`.
+A scope in `samber/do` is a module of an application with restricted visibility: it groups related services and can see services from its ancestor scopes, but not from its siblings. We advocate having a `RootScope` for common code and moving business logic to dedicated `Scopes`.
 
 Scopes are structured with a parent (the root scope or another scope), numerous services, and potentially a few child scopes as well.
 
@@ -25,23 +25,23 @@ graph TD
     A[Root Scope] --> B[Engine Service]
     A --> C[Config Service]
     A --> D[Logger Service]
-    
+
     A --> E[Driver Scope]
     A --> F[Passengers Scope]
-    
+
     E --> G[SteeringWheel Service]
     E --> H[Driver Service]
-    
+
     F --> I[Passenger-1 Service]
     F --> J[Passenger-2 Service]
     F --> K[Passenger-3 Service]
-    
+
     G --> B
     H --> B
     I --> C
     J --> C
     K --> C
-    
+
     style A fill:#e1f5fe
     style E fill:#e8f5e8
     style F fill:#e8f5e8
@@ -56,7 +56,7 @@ graph TD
     style H fill:#fff3e0
 ```
 
-## New scope
+## New scope {#new-scope}
 
 A root scope is created when calling `do.New()`. Multiple layers of child scopes can be added. Each nested scope shares the same root scope.
 
@@ -109,10 +109,10 @@ svc := do.MustInvokeNamed[*Passenger](passengersModule, "passenger-3")
 
 **Play: https://go.dev/play/p/vwLEbyo0APp**
 
-## Debug
+## Debug {#debug}
 
 A debugging toolchain has been added to illustrate the service [dependency](../troubleshooting/service-dependencies.md) chain and [scope tree](../troubleshooting/scope-tree.md).
 
-## Examples
+## Examples {#examples}
 
 See examples in the [project repository](https://github.com/samber/do).
