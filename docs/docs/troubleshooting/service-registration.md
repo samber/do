@@ -67,14 +67,10 @@ println(services)
 
 Output:
 
-```json
+```txt
 [
-  {
-    "ScopeID": "xxxxx",
-    "ScopeName": "[root]",
-    "Service": "*github.com/samber/example.MyService"
-  },
-  {"ScopeID": "xxxxx", "ScopeName": "[root]", "Service": "a-number"}
+   {ScopeID: "xxxxx", ScopeName: "[root]", Service: "*github.com/samber/example.MyService"},
+   {ScopeID: "xxxxx", ScopeName: "[root]", Service: "a-number"}
 ]
 ```
 
@@ -98,8 +94,10 @@ println(services)
 
 Output:
 
-```json
-[{"ScopeID": "xxxxx", "ScopeName": "[root]", "Service": "a-number"}]
+```txt
+[
+   {ScopeID: "xxxxx", ScopeName: "[root]", Service: "a-number"}
+]
 ```
 
 In the example above, the lazy-loaded service `*MyService` has not been invoked.
