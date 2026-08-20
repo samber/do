@@ -33,3 +33,17 @@
   height: 150px;
   width: 150px;
 }
+
+/* Gives the feature cards a proper h2 landmark for assistive tech, without
+   introducing a visible section title the design doesn't call for. */
+.visuallyHidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}

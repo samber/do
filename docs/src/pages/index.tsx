@@ -61,7 +61,7 @@ function Feature({title, Svg, description}: FeatureItem) {
       <div className="text--center">
         {/* <img src={src} className={styles.featureSvg} /> */}
         {/* <Svg src="" className={styles.featureSvg} role="img" /> */}
-        <Svg className={styles.featureSvg} role="img" />
+        <Svg className={styles.featureSvg} role="img" aria-label={title} />
       </div>
       <div className="text--center padding-horiz--md">
         <Heading as="h3">{title}</Heading>
@@ -75,6 +75,9 @@ function HomepageFeatures(): JSX.Element {
   return (
     <section className={styles.features}>
       <div className="container">
+        <Heading as="h2" className={styles.visuallyHidden}>
+          Features
+        </Heading>
         <div className="row">
           {FeatureList.map((props, idx) => (
             <Feature key={idx} {...props} />
@@ -91,7 +94,7 @@ function HomepageHeader() {
     <header className={clsx('hero hero--primary', styles.heroBanner)}>
       <div className="container">
         <Heading as="h1" className="hero__title">
-          {siteConfig.title}
+          ⚙️ {siteConfig.title}
         </Heading>
         <p className="hero__subtitle">{siteConfig.tagline}</p>
         <div className={styles.buttons} style={{marginBottom: '10px'}}>
@@ -118,7 +121,7 @@ function HomepageHeader() {
 export default function Home(): JSX.Element {
   return (
     <Layout
-      title="Type-Safe DI for Go"
+      title="⚙️ Type-Safe DI for Go"
       description="samber/do is a type-safe dependency injection toolkit for Go, built on 1.18+ generics instead of reflection. A drop-in replacement for uber/dig."
     >
       <HomepageHeader />
