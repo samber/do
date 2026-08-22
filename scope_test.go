@@ -95,6 +95,37 @@ func TestScope_Scope(t *testing.T) {
 	is.Equal(0, child2.orderedInvocationIndex)
 }
 
+func TestScope_Delete(t *testing.T) {
+	t.Parallel()
+	testWithTimeout(t, 300*time.Millisecond)
+	is := assert.New(t)
+
+	root := New()
+	child := root.Scope("child")
+	grandChild := child.Scope("grandchild")
+
+	ProvideNamedValue(child, "child-value", 42)
+	ProvideNamedValue(grandChild, "grandchild-value", "hello")
+
+	val, err := InvokeNamed[int](child, "child-value")
+	is.NoError(err)
+	is.Equal(42, val)
+
+	report := child.Delete()
+	is.True(report.Succeed)
+
+	_, ok := root.ChildByName("child")
+	is.False(ok)
+
+	_, err = InvokeNamed[int](child, "child-value")
+	is.Error(err)
+	_, err = InvokeNamed[string](grandChild, "grandchild-value")
+	is.Error(err)
+
+	child2 := root.Scope("child")
+	is.NotNil(child2)
+}
+
 func TestScope_Scope_race(t *testing.T) {
 	testWithTimeout(t, 300*time.Millisecond)
 	injector := New()
