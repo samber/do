@@ -109,17 +109,17 @@ type serviceWrapperBuildTime interface {
 // Interface compliance checks to ensure serviceWrapper[T] implements all required interfaces.
 // These compile-time checks help catch interface implementation errors early.
 var (
-	_ serviceWrapperGetName         = (serviceWrapper[int])(nil)
-	_ serviceWrapperGetTypeName     = (serviceWrapper[int])(nil)
-	_ serviceWrapperGetServiceType  = (serviceWrapper[int])(nil)
-	_ serviceWrapperGetReflectType  = (serviceWrapper[int])(nil)
-	_ serviceWrapperGetInstanceAny  = (serviceWrapper[int])(nil)
-	_ serviceWrapperIsHealthchecker = (serviceWrapper[int])(nil)
-	_ serviceWrapperHealthcheck     = (serviceWrapper[int])(nil)
-	_ serviceWrapperIsShutdowner    = (serviceWrapper[int])(nil)
-	_ serviceWrapperShutdown        = (serviceWrapper[int])(nil)
-	_ serviceWrapperClone           = (serviceWrapper[int])(nil)
-	_ serviceWrapperSource          = (serviceWrapper[int])(nil)
+	_ serviceWrapperGetName         = serviceWrapper[int](nil)
+	_ serviceWrapperGetTypeName     = serviceWrapper[int](nil)
+	_ serviceWrapperGetServiceType  = serviceWrapper[int](nil)
+	_ serviceWrapperGetReflectType  = serviceWrapper[int](nil)
+	_ serviceWrapperGetInstanceAny  = serviceWrapper[int](nil)
+	_ serviceWrapperIsHealthchecker = serviceWrapper[int](nil)
+	_ serviceWrapperHealthcheck     = serviceWrapper[int](nil)
+	_ serviceWrapperIsShutdowner    = serviceWrapper[int](nil)
+	_ serviceWrapperShutdown        = serviceWrapper[int](nil)
+	_ serviceWrapperClone           = serviceWrapper[int](nil)
+	_ serviceWrapperSource          = serviceWrapper[int](nil)
 )
 
 // inferServiceName uses type inference to determine the service name

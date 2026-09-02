@@ -48,6 +48,7 @@ func (s *virtualScope) Ancestors() []*Scope                        { return s.se
 func (s *virtualScope) Children() []*Scope                         { return s.self.Children() }
 func (s *virtualScope) ChildByID(id string) (*Scope, bool)         { return s.self.ChildByID(id) }
 func (s *virtualScope) ChildByName(name string) (*Scope, bool)     { return s.self.ChildByName(name) }
+
 func (s *virtualScope) ListProvidedServices() []ServiceDescription {
 	return s.self.ListProvidedServices()
 }
@@ -63,12 +64,19 @@ func (s *virtualScope) Shutdown() *ShutdownReport { return s.self.Shutdown() }
 func (s *virtualScope) ShutdownWithContext(ctx context.Context) *ShutdownReport {
 	return s.self.ShutdownWithContext(ctx)
 }
-func (s *virtualScope) clone(r *RootScope, p *Scope) *Scope              { return s.self.clone(r, p) }
-func (s *virtualScope) serviceExist(name string) bool                    { return s.self.serviceExist(name) }
-func (s *virtualScope) serviceExistRec(name string) bool                 { return s.self.serviceExistRec(name) }
-func (s *virtualScope) serviceGet(name string) (any, bool)               { return s.self.serviceGet(name) }
-func (s *virtualScope) serviceGetRec(n string) (any, *Scope, bool)       { return s.self.serviceGetRec(n) }
-func (s *virtualScope) serviceSet(name string, service any)              { s.self.serviceSet(name, service) } // serviceSet is not protected against double registration.
+
+func (s *virtualScope) clone(r *RootScope, p *Scope) *Scope { return s.self.clone(r, p) }
+
+func (s *virtualScope) serviceExist(name string) bool { return s.self.serviceExist(name) }
+
+func (s *virtualScope) serviceExistRec(name string) bool { return s.self.serviceExistRec(name) }
+
+func (s *virtualScope) serviceGet(name string) (any, bool) { return s.self.serviceGet(name) }
+
+func (s *virtualScope) serviceGetRec(n string) (any, *Scope, bool) { return s.self.serviceGetRec(n) }
+
+func (s *virtualScope) serviceSet(name string, service any) { s.self.serviceSet(name, service) } // serviceSet is not protected against double registration.
+
 func (s *virtualScope) serviceForEach(cb func(string, *Scope, any) bool) { s.self.serviceForEach(cb) }
 
 func (s *virtualScope) serviceForEachRec(cb func(string, *Scope, any) bool) {

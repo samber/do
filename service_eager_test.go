@@ -233,7 +233,7 @@ func TestServiceEager_getReflectType(t *testing.T) {
 	service2 := newServiceEager("foobar2", test)
 	is.Equal(pkgName+".eagerTest", service2.getReflectType().String())
 
-	service3 := newServiceEager("foobar3", (Healthchecker)(nil))
+	service3 := newServiceEager("foobar3", Healthchecker(nil))
 	is.Equal(pkgName+".Healthchecker", service3.getReflectType().String())
 
 	service4 := newServiceEager[Healthchecker]("foobar4", nil)
