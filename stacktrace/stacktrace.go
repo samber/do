@@ -19,6 +19,11 @@ var (
 	packageName           = "do"
 	packageNameStacktrace = packageName + "/stacktrace/"
 	packageNameExamples   = packageName + "/examples/"
+
+	// goroot is read once at package init: runtime.GOROOT() re-reads an
+	// env var on every call, and it cannot change during the process lifetime.
+	//nolint:staticcheck
+	goroot = runtime.GOROOT()
 )
 
 // NewFrameFromCaller creates a new Frame from the current call stack.
@@ -51,8 +56,7 @@ func NewFrameFromCaller() (Frame, bool) {
 		}
 		function := shortFuncName(f.Name())
 
-		//nolint:staticcheck
-		isGoPkg := strings.Contains(file, runtime.GOROOT())                // skip frames in GOROOT
+		isGoPkg := strings.Contains(file, goroot)                          // skip frames in GOROOT
 		isDoPkg := strings.Contains(file, packageName)                     // skip frames in this package
 		isDoStacktracePkg := strings.Contains(file, packageNameStacktrace) // skip frames in this package
 		isExamplePkg := strings.Contains(
@@ -125,6 +129,15 @@ func (f Frame) String() string {
 	return fmt.Sprintf("%s:%s:%d", f.File, f.Function, f.Line)
 }
 
+// ptrReceiverReplacer strips the pointer-receiver syntax left over after
+// splitting off the package path, e.g. "(*PtrReceiver).MethodName" ->
+// "PtrReceiver.MethodName". The pattern is "(*" (not bare "(" and "*"
+// separately) so a generic receiver's type arguments, which can themselves
+// contain '*' (e.g. "(*ServiceLazy[*int]).getInstance"), are left untouched;
+// NewReplacer tries the longest match at each position, so "(*" wins over
+// the bare "(" fallback whenever both would apply.
+var ptrReceiverReplacer = strings.NewReplacer("(*", "", "(", "", ")", "")
+
 func shortFuncName(longName string) string {
 	// f.Name() is like one of these:
 	// - "github.com/palantir/shield/package.FuncName"
@@ -133,10 +146,5 @@ func shortFuncName(longName string) string {
 	withoutPath := longName[strings.LastIndex(longName, "/")+1:]
 	withoutPackage := withoutPath[strings.Index(withoutPath, ".")+1:]
 
-	shortName := withoutPackage
-	shortName = strings.Replace(shortName, "(", "", 1)
-	shortName = strings.Replace(shortName, "*", "", 1)
-	shortName = strings.Replace(shortName, ")", "", 1)
-
-	return shortName
+	return ptrReceiverReplacer.Replace(withoutPackage)
 }

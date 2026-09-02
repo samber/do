@@ -6,9 +6,11 @@ sidebar_position: 2
 
 # Eager loading
 
-Eager loading initializes a resource as soon as the code is executed.
+Eager loading is a service registration mode where the value is created immediately, before it's provided to the injector — unlike [lazy loading](./lazy-loading.md), there's no provider function and no deferred instantiation. It initializes a resource as soon as the code is executed.
 
-## Inject service into DI container
+Use eager loading for values that are already available at startup — configuration structs, parsed flags, or anything you construct yourself outside the DI container — and lazy loading for anything that needs a constructor with its own dependencies.
+
+## Inject service into DI container {#inject-service-into-di-container}
 
 An eager service is simply initialized by you and then injected into the DI container.
 
@@ -44,7 +46,7 @@ do.ProvideNamedValue(i, "my.really.cool.config", config)
 
 **Play: https://go.dev/play/p/5TOSiI-c17Y**
 
-## Hot service replacement
+## Hot service replacement {#hot-service-replacement}
 
 By default, providing a service twice will panic. Service can be replaced at runtime using `do.Override` helper.
 
@@ -83,3 +85,5 @@ func (suite *CalculatorTestSuite) Test2() {
   // ...
 }
 ```
+
+See also [lazy loading](./lazy-loading.md) for constructor-based registration, and [transient loading](./transient-loading.md) for a new instance on every invocation.

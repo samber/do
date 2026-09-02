@@ -30,7 +30,7 @@ Circular dependencies are not allowed. Services must be invoked in a Directed Ac
 
 :::
 
-## Example
+## Example {#example}
 
 ```go
 type MyService struct {
@@ -53,7 +53,7 @@ func main() {
 
 **Play: https://go.dev/play/p/9JuTQhLGIlh**
 
-## Auto-magically load a service
+## Auto-magically load a service {#auto-magically-load-a-service}
 
 You can also use the `do.InvokeStruct` function to auto-magically provide a service with its dependencies. The fields can be either exported or not.
 
@@ -84,7 +84,7 @@ do.Provide[*MyService](i, do.InvokeStruct[MyService])
 
 **Play: https://go.dev/play/p/Rqa4RCjThoI**
 
-### Implicit aliasing behavior with InvokeStruct
+### Implicit aliasing behavior with InvokeStruct {#implicit-aliasing-behavior-with-invokestruct}
 
 When a field uses an empty tag value (eg: `do:""`) and no service is registered under the field type, the injector falls back to finding the first service whose type is assignable to the field type (same resolution strategy as `do.InvokeAs[T]`).
 
@@ -106,13 +106,13 @@ This feature relies on reflection and is therefore not recommended for performan
 
 :::
 
-## Error handling
+## Error handling {#error-handling}
 
 Any panic during lazy loading is converted into a Go `error`.
 
 An error is returned on missing service.
 
-## Invoke from Provider
+## Invoke from Provider {#invoke-from-provider}
 
 A service might rely on other services. In that case, you should invoke dependencies in the service provider instead of storing the injector for later.
 

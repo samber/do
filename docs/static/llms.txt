@@ -140,6 +140,12 @@ The API reference provides comprehensive documentation of all public functions a
 - **`do.HealthCheckAll()`** - Perform health checks on all services that implement the HealthChecker interface in the container and all its scopes.
 - **`do.ShutdownAll()`** - Gracefully shutdown all services that implement the Shutdowner interface in the container and all its scopes.
 
+## AI Agent Skill:
+
+```bash
+npx skills add https://github.com/samber/cc-skills-golang --skill golang-samber-do
+```
+
 ## Quick Start Example
 
 This comprehensive example demonstrates the fundamental concepts of the `do` library, showing how to create services, manage dependencies, and use the dependency injection container effectively. The example builds a simple user management system with email notification capabilities.
@@ -181,7 +187,7 @@ func (s *userService) GetUser(id string) string {
 func (s *userService) CreateUser(id, name string) error {
     // Simulate user creation
     fmt.Printf("Creating user %s with ID %s\n", name, id)
-    
+
     // Use the injected email service to send a welcome email
     return s.emailService.SendWelcomeEmail(id, name)
 }
@@ -210,7 +216,7 @@ func main() {
 
     // Register services in the container. The order of registration doesn't matter
     // as long as all dependencies are registered before they're needed.
-    
+
     // Register the email service first (it has no dependencies)
     do.Provide(injector, func(i do.Injector) (EmailService, error) {
         // This provider function creates a new emailService instance
@@ -223,7 +229,7 @@ func main() {
         // Retrieve the email service from the container using MustInvoke
         // This demonstrates how services can depend on other services
         emailService := do.MustInvoke[EmailService](i)
-        
+
         // Create and return the user service with its dependency injected
         return &userService{emailService: emailService}, nil
     })
@@ -232,10 +238,10 @@ func main() {
     // MustInvoke will panic if the service cannot be created, so use it
     // when you're confident the service exists and can be instantiated
     userService := do.MustInvoke[UserService](injector)
-    
+
     // Demonstrate basic service usage
     fmt.Println(userService.GetUser("123"))
-    
+
     // Demonstrate service collaboration through dependency injection
     if err := userService.CreateUser("456", "John Doe"); err != nil {
         fmt.Printf("Error creating user: %v\n", err)
@@ -353,7 +359,7 @@ func main() {
     // Create user scope - this represents a user session
     // Services in this scope are isolated to the user but can access root services
     userScope := do.Scope(root, "user")
-    
+
     // Register user-specific services in the user scope
     do.Provide(userScope, func(i do.Injector) (UserRepository, error) {
         // This service can access the Database from the root scope
@@ -364,7 +370,7 @@ func main() {
     // Create session scope - this represents an individual session
     // Services in this scope are isolated to the session but can access user and root services
     sessionScope := do.Scope(userScope, "session")
-    
+
     // Register session-specific services in the session scope
     do.Provide(sessionScope, func(i do.Injector) (SessionManager, error) {
         // This service can access UserRepository from the user scope
@@ -374,31 +380,31 @@ func main() {
 
     // Demonstrate scope hierarchy usage
     fmt.Println("=== Using services from different scopes ===")
-    
+
     // Access services from the session scope
     sessionManager := do.MustInvoke[SessionManager](sessionScope)
     sessionID, _ := sessionManager.CreateSession("user123")
     fmt.Printf("Created session: %s\n", sessionID)
-    
+
     // The session manager can access user repository from user scope
     userRepo := do.MustInvoke[UserRepository](sessionScope)
     user, _ := userRepo.FindByID("user123")
     fmt.Printf("Found user: %s\n", user.Name)
-    
+
     // All scopes can access the database from root scope
     db := do.MustInvoke[Database](sessionScope)
     fmt.Println("Database is accessible from session scope")
-    
+
     // Demonstrate scope isolation
     fmt.Println("\n=== Scope Isolation ===")
-    
+
     // Create another user scope - this is completely isolated from the first one
     userScope2 := do.Scope(root, "user2")
     do.Provide(userScope2, func(i do.Injector) (UserRepository, error) {
         db := do.MustInvoke[Database](i)
         return &userRepository{db: db}, nil
     })
-    
+
     // Services in userScope2 are isolated from userScope
     userRepo2 := do.MustInvoke[UserRepository](userScope2)
     user2, _ := userRepo2.FindByID("user456")
@@ -483,12 +489,12 @@ func (d *database) HealthCheck() error {
     if !d.connected {
         return errors.New("database is not connected")
     }
-    
+
     // Perform a more thorough health check
     if err := d.Ping(); err != nil {
         return fmt.Errorf("database ping failed: %w", err)
     }
-    
+
     return nil
 }
 
@@ -526,12 +532,12 @@ func (c *cache) HealthCheck() error {
     if !c.connected {
         return errors.New("cache is not connected")
     }
-    
+
     // Perform a more thorough health check
     if err := c.Ping(); err != nil {
         return fmt.Errorf("cache ping failed: %w", err)
     }
-    
+
     return nil
 }
 
@@ -550,11 +556,11 @@ func (a *applicationService) ProcessRequest(data string) (string, error) {
     if cached, err := a.cache.Get(data); err == nil {
         return fmt.Sprintf("Cached result: %v", cached), nil
     }
-    
+
     // If not in cache, process and store
     result := fmt.Sprintf("Processed: %s", data)
     a.cache.Set(data, result)
-    
+
     return result, nil
 }
 
@@ -564,12 +570,12 @@ func (a *applicationService) HealthCheck() error {
     if err := a.db.HealthCheck(); err != nil {
         return fmt.Errorf("database health check failed: %w", err)
     }
-    
+
     // Check cache health
     if err := a.cache.HealthCheck(); err != nil {
         return fmt.Errorf("cache health check failed: %w", err)
     }
-    
+
     return nil
 }
 
@@ -605,19 +611,19 @@ func main() {
 
     // Demonstrate individual health checks
     fmt.Println("=== Individual Health Checks ===")
-    
+
     if err := do.HealthCheck[Database](injector); err != nil {
         log.Printf("Database health check failed: %v", err)
     } else {
         fmt.Println("Database is healthy")
     }
-    
+
     if err := do.HealthCheck[Cache](injector); err != nil {
         log.Printf("Cache health check failed: %v", err)
     } else {
         fmt.Println("Cache is healthy")
     }
-    
+
     if err := do.HealthCheck[ApplicationService](injector); err != nil {
         log.Printf("Application service health check failed: %v", err)
     } else {
@@ -626,7 +632,7 @@ func main() {
 
     // Demonstrate comprehensive health checking
     fmt.Println("\n=== Comprehensive Health Check ===")
-    
+
     // Check health of all services that implement HealthChecker
     if err := do.HealthCheckAll(injector); err != nil {
         log.Printf("Comprehensive health check failed: %v", err)
@@ -636,7 +642,7 @@ func main() {
 
     // Demonstrate health check in a web server context
     fmt.Println("\n=== Health Check Endpoint Simulation ===")
-    
+
     // Simulate a health check endpoint
     http.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
         if err := do.HealthCheckAll(injector); err != nil {
@@ -647,21 +653,21 @@ func main() {
             fmt.Fprintf(w, "All services are healthy")
         }
     })
-    
+
     fmt.Println("Health check endpoint would be available at /health")
-    
+
     // Demonstrate health check with timeout
     fmt.Println("\n=== Health Check with Timeout ===")
-    
+
     ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
     defer cancel()
-    
+
     // In a real application, you might want to check health with a timeout
     healthChan := make(chan error, 1)
     go func() {
         healthChan <- do.HealthCheckAll(injector)
     }()
-    
+
     select {
     case err := <-healthChan:
         if err != nil {
@@ -744,18 +750,18 @@ type server struct {
 func (s *server) Start() error {
     s.mu.Lock()
     defer s.mu.Unlock()
-    
+
     if s.running {
         return errors.New("server is already running")
     }
-    
+
     // Create listener
     listener, err := net.Listen("tcp", ":8080")
     if err != nil {
         return fmt.Errorf("failed to create listener: %w", err)
     }
     s.listener = listener
-    
+
     // Create HTTP server
     s.server = &http.Server{
         Addr: ":8080",
@@ -763,28 +769,28 @@ func (s *server) Start() error {
             fmt.Fprintf(w, "Hello from server!")
         }),
     }
-    
+
     s.running = true
     fmt.Println("Server started on :8080")
-    
+
     // Start server in goroutine
     go func() {
         if err := s.server.Serve(s.listener); err != nil && err != http.ErrServerClosed {
             log.Printf("Server error: %v", err)
         }
     }()
-    
+
     return nil
 }
 
 func (s *server) Stop() error {
     s.mu.Lock()
     defer s.mu.Unlock()
-    
+
     if !s.running {
         return nil
     }
-    
+
     s.running = false
     return s.server.Close()
 }
@@ -792,17 +798,17 @@ func (s *server) Stop() error {
 // Shutdown implements the Shutdowner interface
 func (s *server) Shutdown(ctx context.Context) error {
     fmt.Println("Shutting down HTTP server...")
-    
+
     // Stop accepting new connections
     if err := s.Stop(); err != nil {
         return fmt.Errorf("failed to stop server: %w", err)
     }
-    
+
     // Wait for existing connections to finish
     if err := s.server.Shutdown(ctx); err != nil {
         return fmt.Errorf("failed to shutdown server gracefully: %w", err)
     }
-    
+
     fmt.Println("HTTP server shutdown completed")
     return nil
 }
@@ -815,11 +821,11 @@ type database struct {
 func (d *database) Connect() error {
     d.mu.Lock()
     defer d.mu.Unlock()
-    
+
     if d.connected {
         return errors.New("database already connected")
     }
-    
+
     // Simulate database connection
     time.Sleep(100 * time.Millisecond)
     d.connected = true
@@ -830,11 +836,11 @@ func (d *database) Connect() error {
 func (d *database) Close() error {
     d.mu.Lock()
     defer d.mu.Unlock()
-    
+
     if !d.connected {
         return nil
     }
-    
+
     // Simulate database disconnection
     time.Sleep(100 * time.Millisecond)
     d.connected = false
@@ -851,12 +857,12 @@ func (d *database) IsConnected() bool {
 // Shutdown implements the Shutdowner interface
 func (d *database) Shutdown(ctx context.Context) error {
     fmt.Println("Shutting down database...")
-    
+
     // Perform any cleanup operations
     if err := d.Close(); err != nil {
         return fmt.Errorf("failed to close database: %w", err)
     }
-    
+
     fmt.Println("Database shutdown completed")
     return nil
 }
@@ -869,11 +875,11 @@ type cache struct {
 func (c *cache) Connect() error {
     c.mu.Lock()
     defer c.mu.Unlock()
-    
+
     if c.connected {
         return errors.New("cache already connected")
     }
-    
+
     // Simulate cache connection
     time.Sleep(50 * time.Millisecond)
     c.connected = true
@@ -884,11 +890,11 @@ func (c *cache) Connect() error {
 func (c *cache) Close() error {
     c.mu.Lock()
     defer c.mu.Unlock()
-    
+
     if !c.connected {
         return nil
     }
-    
+
     // Simulate cache disconnection
     time.Sleep(50 * time.Millisecond)
     c.connected = false
@@ -899,11 +905,11 @@ func (c *cache) Close() error {
 func (c *cache) Flush() error {
     c.mu.Lock()
     defer c.mu.Unlock()
-    
+
     if !c.connected {
         return errors.New("cache not connected")
     }
-    
+
     fmt.Println("Cache flushed")
     return nil
 }
@@ -911,17 +917,17 @@ func (c *cache) Flush() error {
 // Shutdown implements the Shutdowner interface
 func (c *cache) Shutdown(ctx context.Context) error {
     fmt.Println("Shutting down cache...")
-    
+
     // Flush cache before closing
     if err := c.Flush(); err != nil {
         return fmt.Errorf("failed to flush cache: %w", err)
     }
-    
+
     // Close cache connection
     if err := c.Close(); err != nil {
         return fmt.Errorf("failed to close cache: %w", err)
     }
-    
+
     fmt.Println("Cache shutdown completed")
     return nil
 }
@@ -940,40 +946,40 @@ type applicationService struct {
 
 func (a *applicationService) Start() error {
     fmt.Println("Starting application services...")
-    
+
     // Start services in order
     if err := a.db.Connect(); err != nil {
         return fmt.Errorf("failed to connect database: %w", err)
     }
-    
+
     if err := a.cache.Connect(); err != nil {
         return fmt.Errorf("failed to connect cache: %w", err)
     }
-    
+
     if err := a.server.Start(); err != nil {
         return fmt.Errorf("failed to start server: %w", err)
     }
-    
+
     fmt.Println("All application services started")
     return nil
 }
 
 func (a *applicationService) Stop() error {
     fmt.Println("Stopping application services...")
-    
+
     // Stop services in reverse order
     if err := a.server.Stop(); err != nil {
         return fmt.Errorf("failed to stop server: %w", err)
     }
-    
+
     if err := a.cache.Close(); err != nil {
         return fmt.Errorf("failed to close cache: %w", err)
     }
-    
+
     if err := a.db.Close(); err != nil {
         return fmt.Errorf("failed to close database: %w", err)
     }
-    
+
     fmt.Println("All application services stopped")
     return nil
 }
@@ -981,20 +987,20 @@ func (a *applicationService) Stop() error {
 // Shutdown implements the Shutdowner interface
 func (a *applicationService) Shutdown(ctx context.Context) error {
     fmt.Println("Shutting down application...")
-    
+
     // Shutdown services in reverse dependency order
     if err := a.server.Shutdown(ctx); err != nil {
         return fmt.Errorf("server shutdown failed: %w", err)
     }
-    
+
     if err := a.cache.Shutdown(ctx); err != nil {
         return fmt.Errorf("cache shutdown failed: %w", err)
     }
-    
+
     if err := a.db.Shutdown(ctx); err != nil {
         return fmt.Errorf("database shutdown failed: %w", err)
     }
-    
+
     fmt.Println("Application shutdown completed")
     return nil
 }
@@ -1179,15 +1185,15 @@ func (s *userService) CreateUser(name, email string) (*User, error) {
         Name:  name,
         Email: email,
     }
-    
+
     if err := s.db.SaveUser(user); err != nil {
         return nil, err
     }
-    
+
     if err := s.email.SendWelcomeEmail(user); err != nil {
         return nil, err
     }
-    
+
     return user, nil
 }
 
@@ -1198,22 +1204,22 @@ func generateID() string {
 // Test setup function
 func setupTestContainer() do.Injector {
     injector := do.New()
-    
+
     // Register real services
     do.Provide(injector, func(i do.Injector) (Database, error) {
         return &realDatabase{}, nil
     })
-    
+
     do.Provide(injector, func(i do.Injector) (EmailService, error) {
         return &realEmailService{}, nil
     })
-    
+
     do.Provide(injector, func(i do.Injector) (UserService, error) {
         db := do.MustInvoke[Database](i)
         email := do.MustInvoke[EmailService](i)
         return &userService{db: db, email: email}, nil
     })
-    
+
     return injector
 }
 
@@ -1258,7 +1264,7 @@ func (m *mockEmailService) SendWelcomeEmail(user *User) error {
 func TestUserService_GetUser(t *testing.T) {
     // Create test container by cloning the main container
     testInjector := do.Clone(setupTestContainer())
-    
+
     // Override database with mock
     mockDB := &mockDatabase{
         users: map[string]*User{
@@ -1266,16 +1272,16 @@ func TestUserService_GetUser(t *testing.T) {
         },
     }
     do.ProvideValue(testInjector, mockDB)
-    
+
     // Test with mocked dependencies
     userService := do.MustInvoke[UserService](testInjector)
-    
+
     // Test successful user retrieval
     user, err := userService.GetUser("user1")
     assert.NoError(t, err)
     assert.Equal(t, "John Doe", user.Name)
     assert.Equal(t, "john@example.com", user.Email)
-    
+
     // Test user not found
     _, err = userService.GetUser("nonexistent")
     assert.Error(t, err)
@@ -1285,28 +1291,28 @@ func TestUserService_GetUser(t *testing.T) {
 func TestUserService_CreateUser(t *testing.T) {
     // Create test container
     testInjector := do.Clone(setupTestContainer())
-    
+
     // Override both database and email service with mocks
     mockDB := &mockDatabase{users: make(map[string]*User)}
     mockEmail := &mockEmailService{}
-    
+
     do.ProvideValue(testInjector, mockDB)
     do.ProvideValue(testInjector, mockEmail)
-    
+
     // Test with mocked dependencies
     userService := do.MustInvoke[UserService](testInjector)
-    
+
     // Test successful user creation
     user, err := userService.CreateUser("Jane Doe", "jane@example.com")
     assert.NoError(t, err)
     assert.NotEmpty(t, user.ID)
     assert.Equal(t, "Jane Doe", user.Name)
     assert.Equal(t, "jane@example.com", user.Email)
-    
+
     // Verify database was called
     assert.Len(t, mockDB.saved, 1)
     assert.Equal(t, user.ID, mockDB.saved[0].ID)
-    
+
     // Verify welcome email was sent
     assert.Len(t, mockEmail.welcomeEmails, 1)
     assert.Equal(t, user.ID, mockEmail.welcomeEmails[0].ID)
@@ -1317,9 +1323,9 @@ func TestUserService_CreateUser(t *testing.T) {
 func TestUserService_Integration(t *testing.T) {
     // Test with real services (integration test)
     injector := setupTestContainer()
-    
+
     userService := do.MustInvoke[UserService](injector)
-    
+
     // This would test the actual integration between services
     // In a real test, you might use a test database
     user, err := userService.CreateUser("Integration Test", "integration@example.com")
@@ -1376,12 +1382,14 @@ func NewTestContainer() *TestContainer {
     }
 }
 
-func (tc *TestContainer) MockService[T any](mock T) *TestContainer {
+// Go does not allow type parameters on methods, so MockService and
+// GetService take the container explicitly instead of being methods on it.
+func MockService[T any](tc *TestContainer, mock T) *TestContainer {
     do.ProvideValue(tc.injector, mock)
     return tc
 }
 
-func (tc *TestContainer) GetService[T any]() T {
+func GetService[T any](tc *TestContainer) T {
     return do.MustInvoke[T](tc.injector)
 }
 
@@ -1394,11 +1402,11 @@ func (tc *TestContainer) Clone() *TestContainer {
 
 // Usage example
 func TestWithTestContainer(t *testing.T) {
-    tc := NewTestContainer().
-        MockService(&mockDatabase{}).
-        MockService(&mockEmailService{})
-    
-    userService := tc.GetService[UserService]()
+    tc := NewTestContainer()
+    MockService(tc, &mockDatabase{})
+    MockService(tc, &mockEmailService{})
+
+    userService := do.MustInvoke[UserService](tc.injector)
     // Test with mocked services
 }
 ```
@@ -1473,7 +1481,7 @@ import (
     "fmt"
     "net/http"
     "strconv"
-    
+
     "github.com/go-chi/chi/v5"
     "github.com/go-chi/chi/v5/middleware"
     "github.com/samber/do/v2"
@@ -1517,7 +1525,7 @@ func (s *userService) CreateUser(user *User) error {
     user.ID = s.nextID
     s.nextID++
     s.users[user.ID] = user
-    
+
     // Send welcome email
     return s.emailService.SendEmail(user.Email, "Welcome!", "Welcome to our platform!")
 }
@@ -1550,10 +1558,10 @@ func (s *emailService) SendEmail(to, subject, body string) error {
 func getUserHandler(w http.ResponseWriter, r *http.Request) {
     // Get the injector from the request context (for debugging)
     injector := chi.GetInjector(r)
-    
+
     // Get the user service (for debugging/inspection)
     userService := do.MustInvoke[UserService](injector)
-    
+
     // Parse user ID from URL
     userIDStr := chi.URLParam(r, "id")
     userID, err := strconv.Atoi(userIDStr)
@@ -1561,14 +1569,14 @@ func getUserHandler(w http.ResponseWriter, r *http.Request) {
         http.Error(w, "Invalid user ID", http.StatusBadRequest)
         return
     }
-    
+
     // Get user
     user, err := userService.GetUser(userID)
     if err != nil {
         http.Error(w, err.Error(), http.StatusNotFound)
         return
     }
-    
+
     // Return JSON response
     w.Header().Set("Content-Type", "application/json")
     json.NewEncoder(w).Encode(user)
@@ -1577,20 +1585,20 @@ func getUserHandler(w http.ResponseWriter, r *http.Request) {
 func createUserHandler(w http.ResponseWriter, r *http.Request) {
     injector := chi.GetInjector(r)
     userService := do.MustInvoke[UserService](injector)
-    
+
     // Parse request body
     var user User
     if err := json.NewDecoder(r.Body).Decode(&user); err != nil {
         http.Error(w, "Invalid request body", http.StatusBadRequest)
         return
     }
-    
+
     // Create user
     if err := userService.CreateUser(&user); err != nil {
         http.Error(w, err.Error(), http.StatusInternalServerError)
         return
     }
-    
+
     // Return created user
     w.Header().Set("Content-Type", "application/json")
     w.WriteHeader(http.StatusCreated)
@@ -1600,7 +1608,7 @@ func createUserHandler(w http.ResponseWriter, r *http.Request) {
 func updateUserHandler(w http.ResponseWriter, r *http.Request) {
     injector := chi.GetInjector(r)
     userService := do.MustInvoke[UserService](injector)
-    
+
     // Parse user ID
     userIDStr := chi.URLParam(r, "id")
     userID, err := strconv.Atoi(userIDStr)
@@ -1608,20 +1616,20 @@ func updateUserHandler(w http.ResponseWriter, r *http.Request) {
         http.Error(w, "Invalid user ID", http.StatusBadRequest)
         return
     }
-    
+
     // Parse request body
     var user User
     if err := json.NewDecoder(r.Body).Decode(&user); err != nil {
         http.Error(w, "Invalid request body", http.StatusBadRequest)
         return
     }
-    
+
     // Update user
     if err := userService.UpdateUser(userID, &user); err != nil {
         http.Error(w, err.Error(), http.StatusNotFound)
         return
     }
-    
+
     // Return updated user
     w.Header().Set("Content-Type", "application/json")
     json.NewEncoder(w).Encode(user)
@@ -1630,7 +1638,7 @@ func updateUserHandler(w http.ResponseWriter, r *http.Request) {
 func deleteUserHandler(w http.ResponseWriter, r *http.Request) {
     injector := chi.GetInjector(r)
     userService := do.MustInvoke[UserService](injector)
-    
+
     // Parse user ID
     userIDStr := chi.URLParam(r, "id")
     userID, err := strconv.Atoi(userIDStr)
@@ -1638,25 +1646,25 @@ func deleteUserHandler(w http.ResponseWriter, r *http.Request) {
         http.Error(w, "Invalid user ID", http.StatusBadRequest)
         return
     }
-    
+
     // Delete user
     if err := userService.DeleteUser(userID); err != nil {
         http.Error(w, err.Error(), http.StatusNotFound)
         return
     }
-    
+
     w.WriteHeader(http.StatusNoContent)
 }
 
 func main() {
     // Create dependency injection container
     injector := do.New()
-    
+
     // Register services
     do.Provide(injector, func(i do.Injector) (EmailService, error) {
         return &emailService{}, nil
     })
-    
+
     do.Provide(injector, func(i do.Injector) (UserService, error) {
         emailService := do.MustInvoke[EmailService](i)
         return &userService{
@@ -1665,17 +1673,17 @@ func main() {
             nextID:       1,
         }, nil
     })
-    
+
     // Create Chi router
     r := chi.NewRouter()
-    
+
     // Add middleware
     r.Use(middleware.Logger)
     r.Use(middleware.Recoverer)
-    
+
     // Add do injector middleware (for debugging)
     chi.UseInjector(r, injector)
-    
+
     // Define routes
     r.Route("/api/users", func(r chi.Router) {
         r.Get("/{id}", getUserHandler)
@@ -1683,7 +1691,7 @@ func main() {
         r.Put("/{id}", updateUserHandler)
         r.Delete("/{id}", deleteUserHandler)
     })
-    
+
     // Start server
     fmt.Println("Server starting on :8080")
     fmt.Println("Debug UI available at http://localhost:8080/debug")
@@ -1701,7 +1709,7 @@ package main
 import (
     "net/http"
     "strconv"
-    
+
     "github.com/labstack/echo/v4"
     "github.com/labstack/echo/v4/middleware"
     "github.com/samber/do/v2"
@@ -1745,7 +1753,7 @@ func (s *userService) CreateUser(user *User) error {
     user.ID = s.nextID
     s.nextID++
     s.users[user.ID] = user
-    
+
     // Send welcome email
     return s.emailService.SendEmail(user.Email, "Welcome!", "Welcome to our platform!")
 }
@@ -1778,23 +1786,23 @@ func (s *emailService) SendEmail(to, subject, body string) error {
 func getUserHandler(c echo.Context) error {
     // Get the injector from the context (for debugging)
     injector := echo.GetInjector(c)
-    
+
     // Get the user service (for debugging/inspection)
     userService := do.MustInvoke[UserService](injector)
-    
+
     // Parse user ID from URL
     userIDStr := c.Param("id")
     userID, err := strconv.Atoi(userIDStr)
     if err != nil {
         return echo.NewHTTPError(http.StatusBadRequest, "Invalid user ID")
     }
-    
+
     // Get user
     user, err := userService.GetUser(userID)
     if err != nil {
         return echo.NewHTTPError(http.StatusNotFound, err.Error())
     }
-    
+
     // Return JSON response
     return c.JSON(http.StatusOK, user)
 }
@@ -1802,18 +1810,18 @@ func getUserHandler(c echo.Context) error {
 func createUserHandler(c echo.Context) error {
     injector := echo.GetInjector(c)
     userService := do.MustInvoke[UserService](injector)
-    
+
     // Parse request body
     var user User
     if err := c.Bind(&user); err != nil {
         return echo.NewHTTPError(http.StatusBadRequest, "Invalid request body")
     }
-    
+
     // Create user
     if err := userService.CreateUser(&user); err != nil {
         return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
     }
-    
+
     // Return created user
     return c.JSON(http.StatusCreated, user)
 }
@@ -1821,25 +1829,25 @@ func createUserHandler(c echo.Context) error {
 func updateUserHandler(c echo.Context) error {
     injector := echo.GetInjector(c)
     userService := do.MustInvoke[UserService](injector)
-    
+
     // Parse user ID
     userIDStr := c.Param("id")
     userID, err := strconv.Atoi(userIDStr)
     if err != nil {
         return echo.NewHTTPError(http.StatusBadRequest, "Invalid user ID")
     }
-    
+
     // Parse request body
     var user User
     if err := c.Bind(&user); err != nil {
         return echo.NewHTTPError(http.StatusBadRequest, "Invalid request body")
     }
-    
+
     // Update user
     if err := userService.UpdateUser(userID, &user); err != nil {
         return echo.NewHTTPError(http.StatusNotFound, err.Error())
     }
-    
+
     // Return updated user
     return c.JSON(http.StatusOK, user)
 }
@@ -1847,31 +1855,31 @@ func updateUserHandler(c echo.Context) error {
 func deleteUserHandler(c echo.Context) error {
     injector := echo.GetInjector(c)
     userService := do.MustInvoke[UserService](injector)
-    
+
     // Parse user ID
     userIDStr := c.Param("id")
     userID, err := strconv.Atoi(userIDStr)
     if err != nil {
         return echo.NewHTTPError(http.StatusBadRequest, "Invalid user ID")
     }
-    
+
     // Delete user
     if err := userService.DeleteUser(userID); err != nil {
         return echo.NewHTTPError(http.StatusNotFound, err.Error())
     }
-    
+
     return c.NoContent(http.StatusNoContent)
 }
 
 func main() {
     // Create dependency injection container
     injector := do.New()
-    
+
     // Register services
     do.Provide(injector, func(i do.Injector) (EmailService, error) {
         return &emailService{}, nil
     })
-    
+
     do.Provide(injector, func(i do.Injector) (UserService, error) {
         emailService := do.MustInvoke[EmailService](i)
         return &userService{
@@ -1880,26 +1888,26 @@ func main() {
             nextID:       1,
         }, nil
     })
-    
+
     // Create Echo instance
     e := echo.New()
-    
+
     // Add middleware
     e.Use(middleware.Logger())
     e.Use(middleware.Recover())
-    
+
     // Add do injector middleware (for debugging)
     echo.UseInjector(e, injector)
-    
+
     // Define routes
     api := e.Group("/api")
     users := api.Group("/users")
-    
+
     users.GET("/:id", getUserHandler)
     users.POST("/", createUserHandler)
     users.PUT("/:id", updateUserHandler)
     users.DELETE("/:id", deleteUserHandler)
-    
+
     // Start server
     fmt.Println("Server starting on :8080")
     fmt.Println("Debug UI available at http://localhost:8080/debug")
@@ -1918,10 +1926,10 @@ import "github.com/samber/do/v2/http/fiber"
 func main() {
     injector := do.New()
     // ... register services
-    
+
     app := fiber.New()
     fiber.UseInjector(app, injector) // For debugging
-    
+
     app.Get("/users/:id", func(c *fiber.Ctx) error {
         userService := do.MustInvoke[UserService](injector) // For debugging
         // ... handle request
@@ -1937,10 +1945,10 @@ import "github.com/samber/do/v2/http/gin"
 func main() {
     injector := do.New()
     // ... register services
-    
+
     r := gin.Default()
     gin.UseInjector(r, injector) // For debugging
-    
+
     r.GET("/users/:id", func(c *gin.Context) {
         userService := do.MustInvoke[UserService](injector) // For debugging
         // ... handle request
@@ -1955,7 +1963,7 @@ import "github.com/samber/do/v2/http/std"
 func main() {
     injector := do.New()
     // ... register services
-    
+
     http.HandleFunc("/users", func(w http.ResponseWriter, r *http.Request) {
         userService := do.MustInvoke[UserService](injector) // For debugging
         // ... handle request
@@ -2117,16 +2125,16 @@ func (s *userService) GetUser(id string) (*User, error) {
     if user, err := s.cache.GetUser(id); err == nil {
         return user, nil
     }
-    
+
     // Fall back to database
     user, err := s.db.GetUser(id)
     if err != nil {
         return nil, err
     }
-    
+
     // Try to cache the result (don't fail if cache is down)
     s.cache.SetUser(id, user)
-    
+
     return user, nil
 }
 ```
@@ -2143,12 +2151,12 @@ func (d *database) HealthCheck() error {
     if !d.connected {
         return errors.New("database not connected")
     }
-    
+
     // Perform actual health check
     if err := d.ping(); err != nil {
         return fmt.Errorf("database ping failed: %w", err)
     }
-    
+
     return nil
 }
 ```
@@ -2159,14 +2167,14 @@ func (d *database) HealthCheck() error {
 // Good: Structured logging
 func (s *userService) CreateUser(user *User) error {
     logger := s.logger.With("user_id", user.ID, "email", user.Email)
-    
+
     logger.Info("creating user")
-    
+
     if err := s.db.SaveUser(user); err != nil {
         logger.Error("failed to save user", "error", err)
         return fmt.Errorf("failed to save user: %w", err)
     }
-    
+
     logger.Info("user created successfully")
     return nil
 }
@@ -2261,20 +2269,20 @@ A comprehensive testing strategy is essential for maintaining code quality and e
 func TestUserService_CreateUser(t *testing.T) {
     mockDB := &MockDatabase{}
     mockEmail := &MockEmailService{}
-    
+
     userService := &userService{
         db:    mockDB,
         email: mockEmail,
     }
-    
+
     user := &User{Name: "John", Email: "john@example.com"}
-    
+
     mockDB.On("SaveUser", user).Return(nil)
     mockEmail.On("SendWelcomeEmail", user).Return(nil)
-    
+
     err := userService.CreateUser(user)
     assert.NoError(t, err)
-    
+
     mockDB.AssertExpectations(t)
     mockEmail.AssertExpectations(t)
 }
@@ -2286,23 +2294,23 @@ func TestUserService_CreateUser(t *testing.T) {
 // Good: Integration testing
 func TestUserService_Integration(t *testing.T) {
     injector := do.New()
-    
+
     // Use real database for integration test
     do.Provide(injector, func(i do.Injector) (Database, error) {
         return NewTestDatabase(), nil
     })
-    
+
     do.Provide(injector, func(i do.Injector) (UserService, error) {
         db := do.MustInvoke[Database](i)
         return NewUserService(db), nil
     })
-    
+
     userService := do.MustInvoke[UserService](injector)
-    
+
     user := &User{Name: "John", Email: "john@example.com"}
     err := userService.CreateUser(user)
     assert.NoError(t, err)
-    
+
     // Verify user was actually saved
     savedUser, err := userService.GetUser(user.ID)
     assert.NoError(t, err)
@@ -2317,10 +2325,10 @@ func TestUserService_Integration(t *testing.T) {
 func TestUserService_Isolated(t *testing.T) {
     // Create test container by cloning the main container
     testInjector := do.Clone(mainInjector)
-    
+
     // Override with test-specific mocks
     do.ProvideValue(testInjector, &MockDatabase{})
-    
+
     userService := do.MustInvoke[UserService](testInjector)
     // Test with isolated environment
 }
@@ -2395,7 +2403,7 @@ func (f *serviceFactory) CreateUserService() (UserService, error) {
     if err != nil {
         return nil, err
     }
-    
+
     return NewUserService(db), nil
 }
 ```
@@ -2437,7 +2445,7 @@ import (
     "os"
     "strconv"
     "time"
-    
+
     "github.com/samber/do/v2"
 )
 
@@ -2490,12 +2498,12 @@ func (l *envConfigLoader) Load() (*AppConfig, error) {
     if err != nil {
         return nil, fmt.Errorf("invalid port: %w", err)
     }
-    
+
     timeout, err := time.ParseDuration(getEnvOrDefault("TIMEOUT", "30s"))
     if err != nil {
         return nil, fmt.Errorf("invalid timeout: %w", err)
     }
-    
+
     return &AppConfig{
         DatabaseURL: getEnvOrDefault("DATABASE_URL", "postgres://localhost:5432/mydb"),
         Port:        port,
@@ -2535,29 +2543,29 @@ func (d *databaseService) IsConnected() bool {
 
 func main() {
     injector := do.New()
-    
+
     // Register configuration
     do.Provide(injector, func(i do.Injector) (ConfigLoader, error) {
         return &envConfigLoader{}, nil
     })
-    
+
     do.Provide(injector, func(i do.Injector) (Config, error) {
         loader := do.MustInvoke[ConfigLoader](i)
         return loader.Load()
     })
-    
+
     // Register services that depend on configuration
     do.Provide(injector, func(i do.Injector) (DatabaseService, error) {
         config := do.MustInvoke[Config](i)
         return &databaseService{config: config}, nil
     })
-    
+
     // Use the services
     dbService := do.MustInvoke[DatabaseService](injector)
     if err := dbService.Connect(); err != nil {
         panic(err)
     }
-    
+
     fmt.Printf("Database connected: %v\n", dbService.IsConnected())
 }
 ```
@@ -2700,18 +2708,18 @@ type applicationService struct {
 
 func (a *applicationService) Start() error {
     a.logger.Log("info", "Starting application")
-    
+
     if err := a.database.Connect(); err != nil {
         return err
     }
-    
+
     a.logger.Log("info", "Application started successfully")
     return nil
 }
 
 func main() {
     injector := do.New()
-    
+
     // Register configuration
     do.Provide(injector, func(i do.Injector) (Config, error) {
         return &AppConfig{
@@ -2720,51 +2728,51 @@ func main() {
             CacheEndpoint:  "localhost:6379",
         }, nil
     })
-    
+
     // Register factories
     do.Provide(injector, func(i do.Injector) (LoggerFactory, error) {
         config := do.MustInvoke[Config](i)
         return &loggerFactory{config: config}, nil
     })
-    
+
     do.Provide(injector, func(i do.Injector) (DatabaseFactory, error) {
         config := do.MustInvoke[Config](i)
         return &databaseFactory{config: config}, nil
     })
-    
+
     do.Provide(injector, func(i do.Injector) (CacheFactory, error) {
         config := do.MustInvoke[Config](i)
         return &cacheFactory{config: config}, nil
     })
-    
+
     // Register services using factories
     do.Provide(injector, func(i do.Injector) (Logger, error) {
         factory := do.MustInvoke[LoggerFactory](i)
         return factory.CreateLogger("file")
     })
-    
+
     do.Provide(injector, func(i do.Injector) (Database, error) {
         factory := do.MustInvoke[DatabaseFactory](i)
         return factory.CreateDatabase("postgres")
     })
-    
+
     do.Provide(injector, func(i do.Injector) (Cache, error) {
         factory := do.MustInvoke[CacheFactory](i)
         return factory.CreateCache("redis")
     })
-    
+
     do.Provide(injector, func(i do.Injector) (ApplicationService, error) {
         logger := do.MustInvoke[Logger](i)
         database := do.MustInvoke[Database](i)
         cache := do.MustInvoke[Cache](i)
-        
+
         return &applicationService{
             logger:   logger,
             database: database,
             cache:    cache,
         }, nil
     })
-    
+
     // Use the application service
     app := do.MustInvoke[ApplicationService](injector)
     if err := app.Start(); err != nil {
@@ -2846,11 +2854,11 @@ func (r *userRepository) FindByID(id string) (*User, error) {
     if err != nil {
         return nil, fmt.Errorf("failed to find user by ID: %w", err)
     }
-    
+
     if len(results) == 0 {
         return nil, fmt.Errorf("user not found: %s", id)
     }
-    
+
     return r.mapToUser(results[0]), nil
 }
 
@@ -2859,18 +2867,18 @@ func (r *userRepository) FindByEmail(email string) (*User, error) {
     if err != nil {
         return nil, fmt.Errorf("failed to find user by email: %w", err)
     }
-    
+
     if len(results) == 0 {
         return nil, fmt.Errorf("user not found: %s", email)
     }
-    
+
     return r.mapToUser(results[0]), nil
 }
 
 func (r *userRepository) Save(user *User) error {
     user.CreatedAt = time.Now()
     user.UpdatedAt = time.Now()
-    
+
     err := r.db.Execute(
         "INSERT INTO users (id, name, email, created_at, updated_at) VALUES (?, ?, ?, ?, ?)",
         user.ID, user.Name, user.Email, user.CreatedAt, user.UpdatedAt,
@@ -2878,13 +2886,13 @@ func (r *userRepository) Save(user *User) error {
     if err != nil {
         return fmt.Errorf("failed to save user: %w", err)
     }
-    
+
     return nil
 }
 
 func (r *userRepository) Update(user *User) error {
     user.UpdatedAt = time.Now()
-    
+
     err := r.db.Execute(
         "UPDATE users SET name = ?, email = ?, updated_at = ? WHERE id = ?",
         user.Name, user.Email, user.UpdatedAt, user.ID,
@@ -2892,7 +2900,7 @@ func (r *userRepository) Update(user *User) error {
     if err != nil {
         return fmt.Errorf("failed to update user: %w", err)
     }
-    
+
     return nil
 }
 
@@ -2901,7 +2909,7 @@ func (r *userRepository) Delete(id string) error {
     if err != nil {
         return fmt.Errorf("failed to delete user: %w", err)
     }
-    
+
     return nil
 }
 
@@ -2913,12 +2921,12 @@ func (r *userRepository) List(limit, offset int) ([]*User, error) {
     if err != nil {
         return nil, fmt.Errorf("failed to list users: %w", err)
     }
-    
+
     users := make([]*User, len(results))
     for i, result := range results {
         users[i] = r.mapToUser(result)
     }
-    
+
     return users, nil
 }
 
@@ -2941,11 +2949,11 @@ func (r *productRepository) FindByID(id string) (*Product, error) {
     if err != nil {
         return nil, fmt.Errorf("failed to find product by ID: %w", err)
     }
-    
+
     if len(results) == 0 {
         return nil, fmt.Errorf("product not found: %s", id)
     }
-    
+
     return r.mapToProduct(results[0]), nil
 }
 
@@ -2957,7 +2965,7 @@ func (r *productRepository) Save(product *Product) error {
     if err != nil {
         return fmt.Errorf("failed to save product: %w", err)
     }
-    
+
     return nil
 }
 
@@ -2969,7 +2977,7 @@ func (r *productRepository) Update(product *Product) error {
     if err != nil {
         return fmt.Errorf("failed to update product: %w", err)
     }
-    
+
     return nil
 }
 
@@ -2978,7 +2986,7 @@ func (r *productRepository) Delete(id string) error {
     if err != nil {
         return fmt.Errorf("failed to delete product: %w", err)
     }
-    
+
     return nil
 }
 
@@ -2990,12 +2998,12 @@ func (r *productRepository) List(limit, offset int) ([]*Product, error) {
     if err != nil {
         return nil, fmt.Errorf("failed to list products: %w", err)
     }
-    
+
     products := make([]*Product, len(results))
     for i, result := range results {
         products[i] = r.mapToProduct(result)
     }
-    
+
     return products, nil
 }
 
@@ -3007,12 +3015,12 @@ func (r *productRepository) Search(query string) ([]*Product, error) {
     if err != nil {
         return nil, fmt.Errorf("failed to search products: %w", err)
     }
-    
+
     products := make([]*Product, len(results))
     for i, result := range results {
         products[i] = r.mapToProduct(result)
     }
-    
+
     return products, nil
 }
 
@@ -3048,17 +3056,17 @@ func (s *userService) CreateUser(name, email string) (*User, error) {
     if _, err := s.userRepo.FindByEmail(email); err == nil {
         return nil, fmt.Errorf("user with email %s already exists", email)
     }
-    
+
     user := &User{
         ID:    generateID(),
         Name:  name,
         Email: email,
     }
-    
+
     if err := s.userRepo.Save(user); err != nil {
         return nil, err
     }
-    
+
     return user, nil
 }
 
@@ -3067,14 +3075,14 @@ func (s *userService) UpdateUser(id, name, email string) (*User, error) {
     if err != nil {
         return nil, err
     }
-    
+
     user.Name = name
     user.Email = email
-    
+
     if err := s.userRepo.Update(user); err != nil {
         return nil, err
     }
-    
+
     return user, nil
 }
 
@@ -3092,37 +3100,37 @@ func generateID() string {
 
 func main() {
     injector := do.New()
-    
+
     // Register database
     do.Provide(injector, func(i do.Injector) (Database, error) {
         return &mockDatabase{}, nil
     })
-    
+
     // Register repositories
     do.Provide(injector, func(i do.Injector) (UserRepository, error) {
         db := do.MustInvoke[Database](i)
         return &userRepository{db: db}, nil
     })
-    
+
     do.Provide(injector, func(i do.Injector) (ProductRepository, error) {
         db := do.MustInvoke[Database](i)
         return &productRepository{db: db}, nil
     })
-    
+
     // Register services
     do.Provide(injector, func(i do.Injector) (UserService, error) {
         userRepo := do.MustInvoke[UserRepository](i)
         return &userService{userRepo: userRepo}, nil
     })
-    
+
     // Use the service
     userService := do.MustInvoke[UserService](injector)
-    
+
     user, err := userService.CreateUser("John Doe", "john@example.com")
     if err != nil {
         panic(err)
     }
-    
+
     fmt.Printf("Created user: %+v\n", user)
 }
 
@@ -3509,16 +3517,16 @@ if err != nil {
 // Solution: Validate configuration
 do.Provide(injector, func(i do.Injector) (Database, error) {
     config := do.MustInvoke[Config](i)
-    
+
     if config.GetDatabaseURL() == "" {
         return nil, errors.New("database URL not configured")
     }
-    
+
     db, err := NewDatabase(config)
     if err != nil {
         return nil, fmt.Errorf("failed to create database: %w", err)
     }
-    
+
     return db, nil
 })
 ```
@@ -3689,16 +3697,16 @@ import "github.com/samber/do/v2"
 
 func main() {
     injector := do.New()
-    
+
     do.Provide(injector, func(i do.Injector) (*Database, error) {
         return NewDatabase(), nil
     })
-    
+
     do.Provide(injector, func(i do.Injector) (*API, error) {
         db := do.MustInvoke[*Database](i)
         return &API{db: db}, nil
     })
-    
+
     api := do.MustInvoke[*API](injector)
     // Use API...
 }
@@ -3799,7 +3807,7 @@ func main() {
     container := dig.New()
     container.Provide(NewDatabase)
     container.Provide(NewAPI)
-    
+
     var api *API
     container.Invoke(func(a *API) {
         api = a
@@ -3813,16 +3821,16 @@ import "github.com/samber/do/v2"
 
 func main() {
     injector := do.New()
-    
+
     do.Provide(injector, func(i do.Injector) (*Database, error) {
         return NewDatabase(), nil
     })
-    
+
     do.Provide(injector, func(i do.Injector) (*API, error) {
         db := do.MustInvoke[*Database](i)
         return NewAPI(db), nil
     })
-    
+
     api := do.MustInvoke[*API](injector)
     // Use API...
 }
@@ -3943,16 +3951,16 @@ import "github.com/samber/do/v2"
 
 func main() {
     injector := do.New()
-    
+
     do.Provide(injector, func(i do.Injector) (*Database, error) {
         return NewDatabase(), nil
     })
-    
+
     do.Provide(injector, func(i do.Injector) (*API, error) {
         db := do.MustInvoke[*Database](i)
         return NewAPI(db), nil
     })
-    
+
     api := do.MustInvoke[*API](injector)
     // Use API...
 }
@@ -3968,7 +3976,7 @@ type Database struct {
 
 func NewDatabase(lifecycle fx.Lifecycle) *Database {
     db, _ := sql.Open("postgres", "connection_string")
-    
+
     lifecycle.Append(fx.Hook{
         OnStart: func(context.Context) error {
             return db.Ping()
@@ -3977,7 +3985,7 @@ func NewDatabase(lifecycle fx.Lifecycle) *Database {
             return db.Close()
         },
     })
-    
+
     return &Database{db: db}
 }
 
@@ -4020,14 +4028,14 @@ func main() {
 // After: do with startup/shutdown
 func main() {
     injector := do.New()
-    
+
     do.Provide(injector, func(i do.Injector) (*Database, error) {
         return NewDatabase()
     })
-    
+
     // Startup
     db := do.MustInvoke[*Database](injector)
-    
+
     // Shutdown
     defer func() {
         ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
@@ -4050,18 +4058,18 @@ func main() {
         DatabaseURL: os.Getenv("DATABASE_URL"),
         Port:        8080,
     }
-    
+
     db, err := NewDatabase(config)
     if err != nil {
         log.Fatal(err)
     }
-    
+
     userRepo := NewUserRepository(db)
     emailService := NewEmailService(config)
-    
+
     userService := NewUserService(userRepo, emailService)
     api := NewAPI(userService)
-    
+
     // Use API...
 }
 ```
@@ -4071,7 +4079,7 @@ func main() {
 ```go
 func main() {
     injector := do.New()
-    
+
     // Register all dependencies
     do.Provide(injector, func(i do.Injector) (*Config, error) {
         return &Config{
@@ -4079,33 +4087,33 @@ func main() {
             Port:        8080,
         }, nil
     })
-    
+
     do.Provide(injector, func(i do.Injector) (*Database, error) {
         config := do.MustInvoke[*Config](i)
         return NewDatabase(config)
     })
-    
+
     do.Provide(injector, func(i do.Injector) (UserRepository, error) {
         db := do.MustInvoke[*Database](i)
         return NewUserRepository(db), nil
     })
-    
+
     do.Provide(injector, func(i do.Injector) (EmailService, error) {
         config := do.MustInvoke[*Config](i)
         return NewEmailService(config), nil
     })
-    
+
     do.Provide(injector, func(i do.Injector) (UserService, error) {
         userRepo := do.MustInvoke[UserRepository](i)
         emailService := do.MustInvoke[EmailService](i)
         return NewUserService(userRepo, emailService), nil
     })
-    
+
     do.Provide(injector, func(i do.Injector) (*API, error) {
         userService := do.MustInvoke[UserService](i)
         return NewAPI(userService), nil
     })
-    
+
     api := do.MustInvoke[*API](injector)
     // Use API...
 }

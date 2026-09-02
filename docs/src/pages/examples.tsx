@@ -18,7 +18,13 @@ function Examples() {
           <div className="hero--subtitle">
             Here are a few demo projects implementing `samber/do`.
           </div>
-          <img className={styles.headerImg} src="/img/go-templates.png" />
+          <img
+            className={styles.headerImg}
+            src="/img/go-templates.webp"
+            width={800}
+            height={800}
+            alt="Gopher mascot holding project templates for samber/do"
+          />
         </div>
       </header>
       <main>
@@ -33,7 +39,12 @@ function Examples() {
                   <p>samber/do &gt; examples</p>
                 </div>
                 <div className="card__footer">
-                  <Link to="https://github.com/samber/do/tree/master/examples" className="button button--outline button--primary button--block">See examples</Link>
+                  <Link
+                    to="https://github.com/samber/do/tree/master/examples"
+                    className="button button--outline button--primary button--block"
+                  >
+                    See examples
+                  </Link>
                 </div>
               </div>
             </div>
@@ -47,7 +58,12 @@ function Examples() {
                   <p>samber/do-template-api</p>
                 </div>
                 <div className="card__footer">
-                  <Link to="https://github.com/samber/do-template-api" className="button button--outline button--primary button--block">Clone</Link>
+                  <Link
+                    to="https://github.com/samber/do-template-api"
+                    className="button button--outline button--primary button--block"
+                  >
+                    Clone
+                  </Link>
                 </div>
               </div>
             </div>
@@ -61,7 +77,12 @@ function Examples() {
                   <p>samber/do-template-worker</p>
                 </div>
                 <div className="card__footer">
-                  <Link to="https://github.com/samber/do-template-api" className="button button--outline button--primary button--block">Clone</Link>
+                  <Link
+                    to="https://github.com/samber/do-template-api"
+                    className="button button--outline button--primary button--block"
+                  >
+                    Clone
+                  </Link>
                 </div>
               </div>
             </div>
@@ -75,7 +96,12 @@ function Examples() {
                   <p>samber/do-template-cli</p>
                 </div>
                 <div className="card__footer">
-                  <Link to="https://github.com/samber/do-template-cli" className="button button--outline button--primary button--block">Clone</Link>
+                  <Link
+                    to="https://github.com/samber/do-template-cli"
+                    className="button button--outline button--primary button--block"
+                  >
+                    Clone
+                  </Link>
                 </div>
               </div>
             </div>

@@ -1174,7 +1174,7 @@ func TestPackage(t *testing.T) {
 	is := assert.New(t)
 
 	type test struct{}
-	type iTest interface{}
+	type iTest any
 
 	provider1 := func(i Injector) (*test, error) {
 		return &test{}, nil
@@ -1212,7 +1212,7 @@ func TestNewWithPackage(t *testing.T) {
 	is := assert.New(t)
 
 	type test struct{}
-	type iTest interface{}
+	type iTest any
 
 	provider1 := func(i Injector) (*test, error) {
 		return &test{}, nil
@@ -1439,7 +1439,7 @@ func TestBind(t *testing.T) {
 	is := assert.New(t)
 
 	type test struct{}
-	type iTest interface{}
+	type iTest any
 
 	provider1 := func(i Injector) (*test, error) {
 		return &test{}, nil
@@ -1477,7 +1477,7 @@ func TestBindNamed(t *testing.T) {
 	is := assert.New(t)
 
 	type test struct{}
-	type iTest interface{}
+	type iTest any
 
 	provider1 := func(i Injector) (*test, error) {
 		return &test{}, nil

@@ -90,15 +90,15 @@ func ServiceHTML(basePath string, injector do.Injector, scopeID string, serviceN
 </body>
 </html>`,
 		map[string]any{
-			"BasePath":         basePath,
-			"ScopeID":          service.ScopeID,
-			"ScopeName":        service.ScopeName,
-			"ServiceName":      service.ServiceName,
-			"ServiceType":      service.ServiceType,
-			"ServiceBuildTime": service.ServiceBuildTime,
-			"Invoked":          invoked,
-			"Dependencies":     serviceToHTML(basePath, service.Dependencies),
-			"Dependents":       serviceToHTML(basePath, service.Dependents),
+			keyBasePath:         basePath,
+			keyScopeID:          service.ScopeID,
+			keyScopeName:        service.ScopeName,
+			keyServiceName:      service.ServiceName,
+			keyServiceType:      service.ServiceType,
+			keyServiceBuildTime: service.ServiceBuildTime,
+			keyInvoked:          invoked,
+			keyDependencies:     serviceToHTML(basePath, service.Dependencies),
+			keyDependents:       serviceToHTML(basePath, service.Dependents),
 		},
 	)
 }
@@ -132,12 +132,12 @@ func serviceToHTML(basePath string, services []do.ExplainServiceDependencyOutput
 		</ul>
 	`,
 		map[string]any{
-			"BasePath": basePath,
-			"Services": mAp(services, func(service do.ExplainServiceDependencyOutput) map[string]any {
+			keyBasePath: basePath,
+			keyServices: mAp(services, func(service do.ExplainServiceDependencyOutput) map[string]any {
 				return map[string]any{
-					"ScopeID":     service.ScopeID,
-					"ServiceName": service.Service,
-					"Recursive":   serviceToHTML(basePath, service.Recursive),
+					keyScopeID:     service.ScopeID,
+					keyServiceName: service.Service,
+					keyRecursive:   serviceToHTML(basePath, service.Recursive),
 				}
 			}),
 		},
@@ -204,8 +204,8 @@ func ServiceListHTML(basePath string, injector do.Injector) (string, error) {
 	</body>
 </html>`,
 		map[string]any{
-			"BasePath": basePath,
-			"Scopes": mAp(scopes, func(item do.ExplainInjectorScopeOutput) string {
+			keyBasePath: basePath,
+			keyScopes: mAp(scopes, func(item do.ExplainInjectorScopeOutput) string {
 				return serviceListScopeToHTML(basePath, item)
 			}),
 		},
@@ -231,10 +231,10 @@ func serviceListScopeToHTML(basePath string, description do.ExplainInjectorScope
 			{{end}}
 		`,
 		map[string]any{
-			"BasePath":  basePath,
-			"ScopeID":   description.ScopeID,
-			"ScopeName": description.ScopeName,
-			"Services": mAp(description.Services, func(item do.ExplainInjectorServiceOutput) string {
+			keyBasePath:  basePath,
+			keyScopeID:   description.ScopeID,
+			keyScopeName: description.ScopeName,
+			keyServices: mAp(description.Services, func(item do.ExplainInjectorServiceOutput) string {
 				return serviceListServiceToHTML(basePath, description.ScopeID, item)
 			}),
 		},
@@ -262,11 +262,11 @@ func serviceListServiceToHTML(basePath string, scopeID string, description do.Ex
 			{{.FeaturesIcons}}
 		`,
 		map[string]any{
-			"BasePath":        basePath,
-			"ScopeID":         scopeID,
-			"ServiceName":     description.ServiceName,
-			"ServiceTypeIcon": description.ServiceTypeIcon,
-			"FeaturesIcons":   featuresIcons,
+			keyBasePath:        basePath,
+			keyScopeID:         scopeID,
+			keyServiceName:     description.ServiceName,
+			keyServiceTypeIcon: description.ServiceTypeIcon,
+			keyFeaturesIcons:   featuresIcons,
 		},
 	)
 	return html

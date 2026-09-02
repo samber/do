@@ -1,21 +1,23 @@
 ---
 title: Service dependencies
-description: Understand your dependency graph
+description: Print a single service's dependency tree with do.ExplainService to see what it depends on and what depends on it, across scopes.
 sidebar_position: 2
 ---
 
 # Service dependencies
 
-## Dependency tree
+`do.ExplainService` and `do.ExplainNamedService` print a single service's dependencies (what it needs to be built) and dependents (what would break if it were removed), recursively, across the scope tree. Use them to understand why a service was instantiated, or to assess the blast radius of removing one.
 
-### Spec
+## Dependency tree {#dependency-tree}
+
+### Spec {#spec}
 
 ```go
 do.ExplainService[T any](do.Injector) (do.ExplainServiceOutput, bool)
 do.ExplainNamedService(do.Injector, string) (do.ExplainServiceOutput, bool)
 ```
 
-### Print tree
+### Print tree {#print-tree}
 
 **Play: https://go.dev/play/p/GTcGyPFC8IB**
 
@@ -58,18 +60,18 @@ Dependents:
 graph TD
     A[SERVICE-E] --> B[SERVICE-D]
     A --> C[SERVICE-F]
-    
+
     B --> D[SERVICE-C1]
     B --> E[SERVICE-C2]
-    
+
     D --> F[SERVICE-B]
     E --> F
-    
+
     F --> G[SERVICE-A1]
     F --> H[SERVICE-A2]
-    
+
     C --> I[SERVICE-G]
-    
+
     style A fill:#e1f5fe
     style B fill:#e8f5e8
     style C fill:#e8f5e8
@@ -81,7 +83,7 @@ graph TD
 
 ```
 
-### Print dependencies or dependents
+### Print dependencies or dependents {#print-dependencies-or-dependents}
 
 **Play: https://go.dev/play/p/GTcGyPFC8IB**
 
@@ -102,3 +104,9 @@ Output:
     { ScopeID: "6cbfc332-0276-4c28-b0c3-d6256210e4d6", ScopeName: "scope-child", Service: "SERVICE-G", Recursive: [...] },
 ]
 ```
+
+## Before removing or renaming a service {#before-removing-or-renaming-a-service}
+
+Check its `Dependents` list first. An empty list means nothing else in the graph relies on it, so it's safe to remove. A non-empty list tells you exactly which services (and in which scope) would fail to resolve — walk that list recursively to estimate the full blast radius before making the change, rather than deleting the service and waiting for a runtime error to surface the dependency you missed.
+
+See also the [scope tree](./scope-tree.md) for a graph-wide view, and [service registration](./service-registration.md) to list every service currently provided or invoked.

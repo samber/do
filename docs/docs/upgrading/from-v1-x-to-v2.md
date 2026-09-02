@@ -16,7 +16,7 @@ Check the release notes [here](https://github.com/samber/do/releases).
 
 No breaking changes will be made until v3.
 
-## 1- Upgrading package
+## 1- Upgrading package {#1--upgrading-package}
 
 Update go.mod:
 
@@ -36,7 +36,7 @@ Cleanup previous dependencies:
 go mod tidy
 ```
 
-## 2- `do.Injector` interface
+## 2- `do.Injector` interface {#2--doinjector-interface}
 
 `do.Injector` has been transformed into an interface. Replace `*do.Injector` by `do.Injector`.
 
@@ -44,15 +44,15 @@ go mod tidy
 find . -name '*.go' -type f -exec sed -i '' "s/*do.Injector/do.Injector/g" {} \;
 ```
 
-## 3- Shutdown
+## 3- Shutdown {#3--shutdown}
 
 `do.ShutdownOnSignals` used to return only 1 argument.
 
 ```go
-# from
+// from
 err := injector.ShutdownOnSignals(syscall.SIGTERM, os.Interrupt)
 
-# to
+// to
 signal, err := injector.ShutdownOnSignals(syscall.SIGTERM, os.Interrupt)
 ```
 
@@ -60,7 +60,7 @@ signal, err := injector.ShutdownOnSignals(syscall.SIGTERM, os.Interrupt)
 
 `injector.Shutdown()` now returns a map of errors (`map[string]error`) and is non-blocking in case of failure of a single service.
 
-## 4- Internal service naming
+## 4- Internal service naming {#4--internal-service-naming}
 
 Internally, the DI container stores a service by its name (string) that represents its type. In `do@v1`, some developers reported collisions in service names, because the package name was not included.
 
@@ -74,17 +74,17 @@ To scan a project at the speed of light, run:
 grep -nrE 'InvokeNamed|OverrideNamed|HealthCheckNamed|ShutdownNamed' .
 ```
 
-## 5- Hooks
+## 5- Hooks {#5--hooks}
 
 Hooks have been converted into slices, and now receive a nullable error.
 
 ```go
-# from
+// from
 HookAfterShutdown: func(scope *do.Scope, serviceName string) {
     slog.Debug("[samber/do] SHUTDOWN "+serviceName)
 },
 
-# to
+// to
 HookAfterShutdown: []func(scope *do.Scope, serviceName string, err error){
     func(scope *do.Scope, serviceName string, err error) {
         slog.Debug("[samber/do] SHUTDOWN "+serviceName)

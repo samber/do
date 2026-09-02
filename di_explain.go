@@ -63,6 +63,8 @@ type ExplainServiceOutput struct {
 // its scope, type, build time, and dependency relationships.
 //
 // Returns a formatted string describing the service.
+//
+//nolint:goconst
 func (sd *ExplainServiceOutput) String() string {
 	invoked := ""
 	if sd.Invoked != nil {

@@ -3,8 +3,8 @@ import type {Config} from '@docusaurus/types';
 import type * as Preset from '@docusaurus/preset-classic';
 
 const config: Config = {
-  title: 'do',
-  tagline: 'Type-safe dependency injection for Go',
+  title: 'samber/do - Go Dependency Injection',
+  tagline: 'Type-safe DI for Go using generics',
   favicon: 'img/favicon.ico',
 
   // Future flags, see https://docusaurus.io/docs/api/docusaurus-config#future
@@ -13,7 +13,7 @@ const config: Config = {
       removeLegacyPostBuildHeadAttribute: true,
       useCssCascadeLayers: true,
     },
-    experimental_faster: {
+    faster: {
       swcJsLoader: true,
       swcJsMinimizer: true,
       swcHtmlMinimizer: true,
@@ -23,10 +23,10 @@ const config: Config = {
       ssgWorkerThreads: true,
       mdxCrossCompilerCache: true,
     },
-    experimental_storage: {
-      type: 'localStorage',
-      namespace: true,
-    },
+  },
+  storage: {
+    type: 'localStorage',
+    namespace: true,
   },
 
   // Set the production url of your site here
@@ -39,10 +39,10 @@ const config: Config = {
   // If you aren't using GitHub pages, you don't need these.
   organizationName: 'samber', // Usually your GitHub org/user name.
   projectName: 'do', // Usually your repo name.
-  
+
   // Optional: deployment branch
   // deploymentBranch: 'gh-pages',
-  
+
   onBrokenLinks: 'throw',
   onBrokenMarkdownLinks: 'throw',
   onBrokenAnchors: 'throw',
@@ -56,15 +56,13 @@ const config: Config = {
 
   // Storage configuration for better performance
   staticDirectories: ['static'],
-  
+
   // Optional: Enable hash router for offline support (experimental)
   // Uncomment if you need offline browsing capability
   // router: 'hash',
-  
+
   // Future-proofing configurations
-  clientModules: [
-    require.resolve('./src/theme/prism-include-languages.js'),
-  ],
+  clientModules: [require.resolve('./src/theme/prism-include-languages.js')],
 
   // Even if you don't use internationalization, you can use this field to set
   // useful metadata like html lang. For example, if your site is Chinese, you
@@ -75,27 +73,13 @@ const config: Config = {
   },
 
   headTags: [
-    // DNS prefetch for better performance
+    // SEO
     {
-      tagName: 'link',
+      tagName: 'script',
       attributes: {
-        rel: 'dns-prefetch',
-        href: '//fonts.googleapis.com',
-      },
-    },
-    {
-      tagName: 'link',
-      attributes: {
-        rel: 'preconnect',
-        href: 'https://fonts.gstatic.com',
-        crossorigin: 'anonymous',
-      },
-    },
-    {
-      tagName: 'meta',
-      attributes: {
-        name: 'keywords',
-        content: 'go, golang, dependency injection, DI, IoC, container, generics, type-safe, framework, library, samber',
+        async: 'true',
+        src: 'https://analytics.ahrefs.com/analytics.js',
+        'data-key': 'ZlVVDleFCGZPB8Nd2KkKrw',
       },
     },
     {
@@ -126,13 +110,38 @@ const config: Config = {
         content: '@samuelberthe',
       },
     },
+    // twitter:site complements twitter:creator for card attribution
     {
-      tagName: 'link',
+      tagName: 'meta',
       attributes: {
-        rel: 'canonical',
-        href: 'https://do.samber.dev',
+        name: 'twitter:site',
+        content: '@samuelberthe',
       },
     },
+    // NOTE: do NOT add a static <meta property="og:locale"> here.
+    // Docusaurus already emits one automatically from `i18n.defaultLocale`
+    // (rendered as `en`); a second static tag here previously conflicted
+    // with it (`en_US`), which is an invalid/duplicate signal for crawlers.
+    // og:site_name provides branding context in social share cards
+    {
+      tagName: 'meta',
+      attributes: {
+        property: 'og:site_name',
+        content: 'samber/do',
+      },
+    },
+    {
+      tagName: 'meta',
+      attributes: {
+        name: 'msvalidate.01',
+        content: '4576E3F85783A82149A0DB35A150F7EB',
+      },
+    },
+    // NOTE: do NOT add a global <link rel="canonical"> here.
+    // Docusaurus injects a correct per-page canonical automatically
+    // based on `url` + `baseUrl` + the page path. A static href here
+    // would override every page's canonical to the homepage, causing
+    // Google to treat all docs pages as non-canonical duplicates.
   ],
 
   customFields: {
@@ -141,8 +150,8 @@ const config: Config = {
         name: 'DBOS',
         url: 'https://www.dbos.dev/?utm_campaign=gh-smbr',
         title: 'DBOS - Durable workflow orchestration library for Go',
-        logo_light: '/img/sponsors/dbos-black.png',
-        logo_dark: '/img/sponsors/dbos-white.png',
+        logo_light: '/img/sponsors/dbos-black.webp',
+        logo_dark: '/img/sponsors/dbos-white.webp',
       },
     ],
   },
@@ -155,8 +164,7 @@ const config: Config = {
           sidebarPath: './sidebars.ts',
           // Please change this to your repo.
           // Remove this to remove the "edit this page" links.
-          editUrl:
-            'https://github.com/samber/do/tree/master/docs/',
+          editUrl: 'https://github.com/samber/do/tree/master/docs/',
           showLastUpdateAuthor: true,
           showLastUpdateTime: true,
           // Enhanced docs features from 3.8+
@@ -172,19 +180,25 @@ const config: Config = {
           remarkPlugins: [],
           rehypePlugins: [],
         },
+        // The blog feature is unused (no posts). Leaving it on the default
+        // `blog: {}` creates an empty, indexable /blog page with thin content.
+        blog: false,
         sitemap: {
           lastmod: 'date',
           changefreq: 'weekly',
           priority: 0.7,
-          ignorePatterns: ['/tags/**'],
+          ignorePatterns: ['/tags/**', '/search'],
           filename: 'sitemap.xml',
           // Enhanced sitemap features from 3.8+
           createSitemapItems: async (params) => {
-            const {defaultCreateSitemapItems, ...rest} = params ;
+            const {defaultCreateSitemapItems, ...rest} = params;
             const items = await defaultCreateSitemapItems(rest);
             // Add custom priority for specific pages
             return items.map((item) => {
-              if (item.url.includes('/docs/getting-started')) {
+              if (
+                item.url === 'https://do.samber.dev/' ||
+                item.url.includes('/docs/getting-started')
+              ) {
                 return {...item, priority: 1.0};
               }
               if (item.url.includes('/docs/')) {
@@ -213,7 +227,7 @@ const config: Config = {
       disableSwitch: false,
       respectPrefersColorScheme: true,
     },
-    
+
     // Mermaid configuration
     mermaid: {
       theme: {light: 'neutral', dark: 'dark'},
@@ -221,12 +235,20 @@ const config: Config = {
         maxTextSize: 50000,
       },
     },
-    
+
     // Enhanced metadata
+    // og:type defaults to "website"; individual doc pages that need
+    // "article" should override via their page's <Layout> or frontmatter.
     metadata: [
       {name: 'og:type', content: 'website'},
+      // Fallback description for pages that don't set their own
+      {
+        name: 'description',
+        content:
+          'Type-safe dependency injection for Go using generics. A drop-in replacement for uber/dig with a fluent API and zero reflection.',
+      },
     ],
-    
+
     navbar: {
       title: '⚙️ samber/do',
       logo: {
@@ -264,8 +286,8 @@ const config: Config = {
           label: 'v2',
           position: 'right',
           items: [
-            { label: 'v2', to: '/docs/about', disabled: true },
-            { label: 'v1', href: 'https://github.com/samber/do/tree/v1' },
+            {label: 'v2', to: '/docs/about', disabled: true},
+            {label: 'v1', href: 'https://github.com/samber/do/tree/v1'},
           ],
         },
         {
@@ -344,6 +366,23 @@ const config: Config = {
             },
           ],
         },
+        {
+          title: 'Comparisons',
+          items: [
+            {
+              label: 'vs uber/fx',
+              to: '/docs/comparison/samber-do-vs-uber-fx',
+            },
+            {
+              label: 'vs google/wire',
+              to: '/docs/comparison/samber-do-vs-google-wire',
+            },
+            {
+              label: 'vs uber/dig',
+              to: '/docs/comparison/samber-do-vs-uber-dig',
+            },
+          ],
+        },
       ],
       copyright: `Copyright © ${new Date().getFullYear()} do.`,
     },
@@ -382,8 +421,20 @@ const config: Config = {
   } satisfies Preset.ThemeConfig,
 
   themes: ['@docusaurus/theme-mermaid'],
-  
+
   plugins: [
+    [
+      'posthog-docusaurus',
+      {
+        apiKey: 'phc_oP3YQLnt3fvhiBEaAU3rrmQdRNXGJM3hoM8j4oCSayrx',
+        // posthog-docusaurus reads `appUrl`, not `appHost` — the previous
+        // key name was silently ignored and PostHog fell back to its
+        // us.i.posthog.com default instead of this self-hosted proxy.
+        appUrl: 'https://hogpost.samber.dev',
+        enableInDevelopment: false, // optional,
+        disableSessionRecording: true,
+      },
+    ],
     // Add ideal image plugin for better image optimization
     [
       '@docusaurus/plugin-ideal-image',
@@ -402,6 +453,8 @@ const config: Config = {
         mode: 'auto',
       },
     ],
+    require.resolve('./plugins/structured-data'),
+    require.resolve('./plugins/chunk-splitting'),
   ],
 };
 

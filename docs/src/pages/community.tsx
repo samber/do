@@ -11,16 +11,27 @@ function Community() {
   const context = useDocusaurusContext();
 
   return (
-    <Layout title="Community" description="Where to ask questions and find your soulmate">
+    <Layout
+      title="Community"
+      description="Where to ask questions and find your soulmate"
+    >
       <header className="hero">
         <div className="container text--center">
           <h1>Community</h1>
           <div className="hero--subtitle">
-            These are places where you can ask questions and find your soulmate (no promises).
-            <br/>
-            "If you want to go fast, go alone. If you want to go far, go together."
+            These are places where you can ask questions and find your soulmate
+            (no promises).
+            <br />
+            "If you want to go fast, go alone. If you want to go far, go
+            together."
           </div>
-          <img className={styles.headerImg} src="/img/go-community.png" />
+          <img
+            className={styles.headerImg}
+            src="/img/go-community.webp"
+            width={1200}
+            height={431}
+            alt="Gophers collaborating together, illustrating the samber/do community"
+          />
         </div>
       </header>
       <main>
@@ -35,7 +46,12 @@ function Community() {
                   <p>Report bugs or suggest improvements</p>
                 </div>
                 <div className="card__footer">
-                  <Link to="https://github.com/samber/do/issues" className="button button--outline button--primary button--block">Open new issue</Link>
+                  <Link
+                    to="https://github.com/samber/do/issues"
+                    className="button button--outline button--primary button--block"
+                  >
+                    Open new issue
+                  </Link>
                 </div>
               </div>
             </div>
@@ -49,7 +65,12 @@ function Community() {
                   <p>You like this project?</p>
                 </div>
                 <div className="card__footer">
-                  <Link to="https://github.com/samber/do?tab=readme-ov-file#-contributing" className="button button--outline button--primary button--block">Start contributing!</Link>
+                  <Link
+                    to="https://github.com/samber/do?tab=readme-ov-file#-contributing"
+                    className="button button--outline button--primary button--block"
+                  >
+                    Start contributing!
+                  </Link>
                 </div>
               </div>
             </div>
@@ -63,7 +84,12 @@ function Community() {
                   <p>Follow &#64;samuelberthe on Twitter</p>
                 </div>
                 <div className="card__footer">
-                  <Link to="https://twitter.com/samuelberthe" className="button button--outline button--primary button--block">Follow &#64;SamuelBerthe</Link>
+                  <Link
+                    to="https://twitter.com/samuelberthe"
+                    className="button button--outline button--primary button--block"
+                  >
+                    Follow &#64;SamuelBerthe
+                  </Link>
                 </div>
               </div>
             </div>
@@ -74,10 +100,17 @@ function Community() {
                   <i className={classnames(styles.icon, styles.email)}></i>
                 </div>
                 <div className="card__body">
-                  <p>For sensitive or security-related queries, send us an email</p>
+                  <p>
+                    For sensitive or security-related queries, send us an email
+                  </p>
                 </div>
                 <div className="card__footer">
-                  <Link to="mailto:contact@samuel-berthe.fr" className="button button--outline button--primary button--block">contact&#64;samuel-berthe.fr</Link>
+                  <Link
+                    to="mailto:contact@samuel-berthe.fr"
+                    className="button button--outline button--primary button--block"
+                  >
+                    contact&#64;samuel-berthe.fr
+                  </Link>
                 </div>
               </div>
             </div>

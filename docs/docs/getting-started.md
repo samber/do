@@ -11,7 +11,7 @@ import TabItem from '@theme/TabItem';
 
 Discover **samber/do in less than 5 minutes**.
 
-## What you'll need
+## What you'll need {#what-youll-need}
 
 Compatible with [Go](https://go.dev/doc/install/) 1.18 or later.
 
@@ -29,7 +29,7 @@ go get -u github.com/samber/do/v2
 npx skills add https://github.com/samber/cc-skills-golang --skill golang-samber-do
 ```
 
-## Create a DI container
+## Create a DI container {#create-a-di-container}
 
 The simplest way to start is to use the default options:
 
@@ -41,7 +41,7 @@ import "github.com/samber/do/v2"
 injector := do.New()
 ```
 
-## Service registration and invocation
+## Service registration and invocation {#service-registration-and-invocation}
 
 Services can be declared as a singleton or a factory. In this example, we create two services, `Car` and `Engine`, with a simple dependency relationship.
 
@@ -64,7 +64,7 @@ graph LR
     D -- Invoke --> E
 ```
 
-### Declare constructors and invoke singleton
+### Declare constructors and invoke singleton {#declare-constructors-and-invoke-singleton}
 
 <Tabs>
   <TabItem value="car" label="car.go" default>
@@ -139,7 +139,7 @@ graph LR
   </TabItem>
 </Tabs>
 
-### Register services using individual declaration
+### Register services using individual declaration {#register-services-using-individual-declaration}
 
 <Tabs>
   <TabItem value="main" label="main.go" default>
@@ -176,7 +176,7 @@ graph LR
 
 **Play: https://go.dev/play/p/cp5wNpo-5wn**
 
-### Register services using package declaration
+### Register services using package declaration {#register-services-using-package-declaration}
 
 The services can be assembled into a package, and then, imported all at once into a new container.
 
