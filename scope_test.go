@@ -793,6 +793,56 @@ func TestScope_serviceHealthCheck(t *testing.T) {
 	is.ElementsMatch([]ServiceDescription{}, child3.ListInvokedServices())
 }
 
+func TestScope_serviceHealthCheckHooks(t *testing.T) {
+	t.Parallel()
+	is := assert.New(t)
+
+	mu := sync.Mutex{}
+	before := []string{}
+	after := map[string]error{}
+
+	rootScope := New()
+	rootScope.AddBeforeHealthCheckHook(func(scope *Scope, serviceName string) {
+		mu.Lock()
+		defer mu.Unlock()
+		before = append(before, serviceName)
+	})
+	rootScope.AddAfterHealthCheckHook(func(scope *Scope, serviceName string, err error) {
+		mu.Lock()
+		defer mu.Unlock()
+		after[serviceName] = err
+	})
+
+	// not a healthchecker
+	ProvideNamedValue(rootScope, "not-healthchecker", "foobar")
+
+	// healthchecker, invoked
+	ProvideNamed(rootScope, "healthchecker-ok", func(i Injector) (*lazyTestHeathcheckerOK, error) {
+		return &lazyTestHeathcheckerOK{}, nil
+	})
+	_, _ = InvokeNamed[*lazyTestHeathcheckerOK](rootScope, "healthchecker-ok")
+
+	// healthchecker, invoked, failing
+	ProvideNamed(rootScope, "healthchecker-ko", func(i Injector) (*lazyTestHeathcheckerKO, error) {
+		return &lazyTestHeathcheckerKO{}, nil
+	})
+	_, _ = InvokeNamed[*lazyTestHeathcheckerKO](rootScope, "healthchecker-ko")
+
+	// healthchecker, never invoked
+	ProvideNamed(rootScope, "healthchecker-lazy", func(i Injector) (*lazyTestHeathcheckerOK, error) {
+		return &lazyTestHeathcheckerOK{}, nil
+	})
+
+	is.Len(rootScope.HealthCheck(), 4)
+
+	mu.Lock()
+	defer mu.Unlock()
+
+	// hooks are triggered only for the services that are really checked
+	is.ElementsMatch([]string{"healthchecker-ok", "healthchecker-ko"}, before)
+	is.Equal(map[string]error{"healthchecker-ok": nil, "healthchecker-ko": assert.AnError}, after)
+}
+
 func TestScope_serviceGet(t *testing.T) {
 	t.Parallel()
 	is := assert.New(t)

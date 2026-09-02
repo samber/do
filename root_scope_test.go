@@ -23,6 +23,8 @@ func TestNew(t *testing.T) {
 	is.Empty(i.opts.HookAfterInvocation)
 	is.Empty(i.opts.HookBeforeShutdown)
 	is.Empty(i.opts.HookAfterShutdown)
+	is.Empty(i.opts.HookBeforeHealthCheck)
+	is.Empty(i.opts.HookAfterHealthCheck)
 	is.Empty(i.opts.HealthCheckParallelism)
 	is.Empty(i.opts.HealthCheckGlobalTimeout)
 	is.Empty(i.opts.HealthCheckTimeout)
@@ -46,6 +48,8 @@ func TestNewWithOpts(t *testing.T) {
 		HookAfterInvocation:    []func(*Scope, string, error){},
 		HookBeforeShutdown:     []func(*Scope, string){},
 		HookAfterShutdown:      []func(*Scope, string, error){},
+		HookBeforeHealthCheck:  []func(*Scope, string){},
+		HookAfterHealthCheck:   []func(*Scope, string, error){},
 
 		Logf: func(format string, args ...any) {},
 
@@ -64,6 +68,8 @@ func TestNewWithOpts(t *testing.T) {
 	is.Empty(i.opts.HookAfterInvocation)
 	is.Empty(i.opts.HookBeforeShutdown)
 	is.Empty(i.opts.HookAfterShutdown)
+	is.Empty(i.opts.HookBeforeHealthCheck)
+	is.Empty(i.opts.HookAfterHealthCheck)
 	is.EqualValues(42, i.opts.HealthCheckParallelism)
 	is.Equal(42*time.Second, i.opts.HealthCheckGlobalTimeout)
 	is.Equal(42*time.Second, i.opts.HealthCheckTimeout)
@@ -175,6 +181,8 @@ func TestRootScope_Clone(t *testing.T) {
 		HookAfterInvocation:    []func(*Scope, string, error){},
 		HookBeforeShutdown:     []func(*Scope, string){},
 		HookAfterShutdown:      []func(*Scope, string, error){},
+		HookBeforeHealthCheck:  []func(*Scope, string){},
+		HookAfterHealthCheck:   []func(*Scope, string, error){},
 
 		Logf: func(format string, args ...any) {},
 
@@ -197,6 +205,8 @@ func TestRootScope_Clone(t *testing.T) {
 	is.Empty(i.opts.HookAfterInvocation)
 	is.Empty(i.opts.HookBeforeShutdown)
 	is.Empty(i.opts.HookAfterShutdown)
+	is.Empty(i.opts.HookBeforeHealthCheck)
+	is.Empty(i.opts.HookAfterHealthCheck)
 	is.NotNil(i.opts.Logf)
 	is.NotNil(i.opts.HealthCheckParallelism)
 	is.NotNil(i.opts.HealthCheckGlobalTimeout)
@@ -208,6 +218,8 @@ func TestRootScope_Clone(t *testing.T) {
 	is.Empty(clone.opts.HookAfterInvocation)
 	is.Empty(clone.opts.HookBeforeShutdown)
 	is.Empty(clone.opts.HookAfterShutdown)
+	is.Empty(clone.opts.HookBeforeHealthCheck)
+	is.Empty(clone.opts.HookAfterHealthCheck)
 	is.NotNil(clone.opts.Logf)
 	is.NotNil(clone.opts.HealthCheckParallelism)
 	is.NotNil(clone.opts.HealthCheckGlobalTimeout)
@@ -234,6 +246,8 @@ func TestRootScope_CloneWithOpts(t *testing.T) {
 		HookAfterInvocation:    []func(*Scope, string, error){},
 		HookBeforeShutdown:     []func(*Scope, string){},
 		HookAfterShutdown:      []func(*Scope, string, error){},
+		HookBeforeHealthCheck:  []func(*Scope, string){},
+		HookAfterHealthCheck:   []func(*Scope, string, error){},
 
 		Logf: func(format string, args ...any) {},
 
@@ -251,6 +265,8 @@ func TestRootScope_CloneWithOpts(t *testing.T) {
 	is.Empty(i.opts.HookAfterInvocation)
 	is.Empty(i.opts.HookBeforeShutdown)
 	is.Empty(i.opts.HookAfterShutdown)
+	is.Empty(i.opts.HookBeforeHealthCheck)
+	is.Empty(i.opts.HookAfterHealthCheck)
 	is.NotNil(i.opts.Logf)
 	is.Empty(i.opts.HealthCheckParallelism)
 	is.Empty(i.opts.HealthCheckGlobalTimeout)
@@ -262,6 +278,8 @@ func TestRootScope_CloneWithOpts(t *testing.T) {
 	is.Empty(clone.opts.HookAfterInvocation)
 	is.Empty(clone.opts.HookBeforeShutdown)
 	is.Empty(clone.opts.HookAfterShutdown)
+	is.Empty(clone.opts.HookBeforeHealthCheck)
+	is.Empty(clone.opts.HookAfterHealthCheck)
 	is.NotNil(clone.opts.Logf)
 	is.Equal(uint(42), clone.opts.HealthCheckParallelism)
 	is.Equal(42*time.Second, clone.opts.HealthCheckGlobalTimeout)

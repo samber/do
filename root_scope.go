@@ -89,7 +89,7 @@ func NewWithOpts(opts *InjectorOpts, packages ...func(Injector)) *RootScope {
 		opts.HookBeforeHealthCheck = []func(*Scope, string){}
 	}
 	if opts.HookAfterHealthCheck == nil {
-		opts.HookAfterHealthCheck = []func(*Scope, string){}
+		opts.HookAfterHealthCheck = []func(*Scope, string, error){}
 	}
 
 	root := &RootScope{
@@ -305,7 +305,7 @@ func (s *RootScope) AddBeforeHealthCheckHook(hook func(*Scope, string)) {
 // AddAfterHealthCheckHook adds a hook that will be called after a service is health checked.
 //
 // Play: https://go.dev/play/p/wtKubQHkFLK
-func (s *RootScope) AddAfterHealthCheckHook(hook func(*Scope, string)) {
+func (s *RootScope) AddAfterHealthCheckHook(hook func(*Scope, string, error)) {
 	s.opts.HookAfterHealthCheck = append(s.opts.HookAfterHealthCheck, hook)
 }
 

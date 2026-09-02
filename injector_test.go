@@ -39,6 +39,8 @@ func TestInjectorOpts_addHook(t *testing.T) {
 	hookAfterInvocation := func(scope *Scope, serviceName string, err error) {}
 	hookBeforeShutdown := func(scope *Scope, serviceName string) {}
 	hookAfterShutdown := func(scope *Scope, serviceName string, err error) {}
+	hookBeforeHealthCheck := func(scope *Scope, serviceName string) {}
+	hookAfterHealthCheck := func(scope *Scope, serviceName string, err error) {}
 
 	i := New()
 
@@ -49,6 +51,8 @@ func TestInjectorOpts_addHook(t *testing.T) {
 	is.Empty(i.opts.HookAfterInvocation)
 	is.Empty(i.opts.HookBeforeShutdown)
 	is.Empty(i.opts.HookAfterShutdown)
+	is.Empty(i.opts.HookBeforeHealthCheck)
+	is.Empty(i.opts.HookAfterHealthCheck)
 
 	//
 	i.AddBeforeRegistrationHook(hookBeforeRegistration)
@@ -58,6 +62,8 @@ func TestInjectorOpts_addHook(t *testing.T) {
 	is.Empty(i.opts.HookAfterInvocation)
 	is.Empty(i.opts.HookBeforeShutdown)
 	is.Empty(i.opts.HookAfterShutdown)
+	is.Empty(i.opts.HookBeforeHealthCheck)
+	is.Empty(i.opts.HookAfterHealthCheck)
 
 	//
 	i.AddAfterRegistrationHook(hookAfterRegistration)
@@ -67,6 +73,8 @@ func TestInjectorOpts_addHook(t *testing.T) {
 	is.Empty(i.opts.HookAfterInvocation)
 	is.Empty(i.opts.HookBeforeShutdown)
 	is.Empty(i.opts.HookAfterShutdown)
+	is.Empty(i.opts.HookBeforeHealthCheck)
+	is.Empty(i.opts.HookAfterHealthCheck)
 
 	//
 	i.AddBeforeInvocationHook(hookBeforeInvocation)
@@ -76,6 +84,8 @@ func TestInjectorOpts_addHook(t *testing.T) {
 	is.Empty(i.opts.HookAfterInvocation)
 	is.Empty(i.opts.HookBeforeShutdown)
 	is.Empty(i.opts.HookAfterShutdown)
+	is.Empty(i.opts.HookBeforeHealthCheck)
+	is.Empty(i.opts.HookAfterHealthCheck)
 
 	//
 	i.AddAfterInvocationHook(hookAfterInvocation)
@@ -85,6 +95,8 @@ func TestInjectorOpts_addHook(t *testing.T) {
 	is.Len(i.opts.HookAfterInvocation, 1)
 	is.Empty(i.opts.HookBeforeShutdown)
 	is.Empty(i.opts.HookAfterShutdown)
+	is.Empty(i.opts.HookBeforeHealthCheck)
+	is.Empty(i.opts.HookAfterHealthCheck)
 
 	//
 	i.AddBeforeShutdownHook(hookBeforeShutdown)
@@ -94,6 +106,8 @@ func TestInjectorOpts_addHook(t *testing.T) {
 	is.Len(i.opts.HookAfterInvocation, 1)
 	is.Len(i.opts.HookBeforeShutdown, 1)
 	is.Empty(i.opts.HookAfterShutdown)
+	is.Empty(i.opts.HookBeforeHealthCheck)
+	is.Empty(i.opts.HookAfterHealthCheck)
 
 	//
 	i.AddAfterShutdownHook(hookAfterShutdown)
@@ -103,6 +117,30 @@ func TestInjectorOpts_addHook(t *testing.T) {
 	is.Len(i.opts.HookAfterInvocation, 1)
 	is.Len(i.opts.HookBeforeShutdown, 1)
 	is.Len(i.opts.HookAfterShutdown, 1)
+	is.Empty(i.opts.HookBeforeHealthCheck)
+	is.Empty(i.opts.HookAfterHealthCheck)
+
+	//
+	i.AddBeforeHealthCheckHook(hookBeforeHealthCheck)
+	is.Len(i.opts.HookBeforeRegistration, 1)
+	is.Len(i.opts.HookAfterRegistration, 1)
+	is.Len(i.opts.HookBeforeInvocation, 1)
+	is.Len(i.opts.HookAfterInvocation, 1)
+	is.Len(i.opts.HookBeforeShutdown, 1)
+	is.Len(i.opts.HookAfterShutdown, 1)
+	is.Len(i.opts.HookBeforeHealthCheck, 1)
+	is.Empty(i.opts.HookAfterHealthCheck)
+
+	//
+	i.AddAfterHealthCheckHook(hookAfterHealthCheck)
+	is.Len(i.opts.HookBeforeRegistration, 1)
+	is.Len(i.opts.HookAfterRegistration, 1)
+	is.Len(i.opts.HookBeforeInvocation, 1)
+	is.Len(i.opts.HookAfterInvocation, 1)
+	is.Len(i.opts.HookBeforeShutdown, 1)
+	is.Len(i.opts.HookAfterShutdown, 1)
+	is.Len(i.opts.HookBeforeHealthCheck, 1)
+	is.Len(i.opts.HookAfterHealthCheck, 1)
 }
 
 func TestInjectorOpts_onEvent(t *testing.T) {
@@ -118,6 +156,8 @@ func TestInjectorOpts_onEvent(t *testing.T) {
 	hookAfterInvocation := func(scope *Scope, serviceName string, err error) { result += "d" }
 	hookBeforeShutdown := func(scope *Scope, serviceName string) { result += "e" }
 	hookAfterShutdown := func(scope *Scope, serviceName string, err error) { result += "f" }
+	hookBeforeHealthCheck := func(scope *Scope, serviceName string) { result += "g" }
+	hookAfterHealthCheck := func(scope *Scope, serviceName string, err error) { result += "h" }
 
 	i := NewWithOpts(&InjectorOpts{
 		HookBeforeRegistration: []func(scope *Scope, serviceName string){hookBeforeRegistration},
@@ -126,6 +166,8 @@ func TestInjectorOpts_onEvent(t *testing.T) {
 		HookAfterInvocation:    []func(scope *Scope, serviceName string, err error){hookAfterInvocation},
 		HookBeforeShutdown:     []func(scope *Scope, serviceName string){hookBeforeShutdown},
 		HookAfterShutdown:      []func(scope *Scope, serviceName string, err error){hookAfterShutdown},
+		HookBeforeHealthCheck:  []func(scope *Scope, serviceName string){hookBeforeHealthCheck},
+		HookAfterHealthCheck:   []func(scope *Scope, serviceName string, err error){hookAfterHealthCheck},
 	})
 
 	i.opts.onBeforeRegistration(&Scope{id: "id", name: "name"}, "name")
@@ -134,8 +176,10 @@ func TestInjectorOpts_onEvent(t *testing.T) {
 	i.opts.onAfterInvocation(&Scope{id: "id", name: "name"}, "name", nil)
 	i.opts.onBeforeShutdown(&Scope{id: "id", name: "name"}, "name")
 	i.opts.onAfterShutdown(&Scope{id: "id", name: "name"}, "name", nil)
+	i.opts.onBeforeHealthCheck(&Scope{id: "id", name: "name"}, "name")
+	i.opts.onAfterHealthCheck(&Scope{id: "id", name: "name"}, "name", nil)
 
-	is.Equal("abcdef", result)
+	is.Equal("abcdefgh", result)
 
 	i.AddBeforeRegistrationHook(func(scope *Scope, serviceName string) { result += "1" })
 	i.AddAfterRegistrationHook(func(scope *Scope, serviceName string) { result += "2" })
@@ -143,6 +187,8 @@ func TestInjectorOpts_onEvent(t *testing.T) {
 	i.AddAfterInvocationHook(func(scope *Scope, serviceName string, err error) { result += "4" })
 	i.AddBeforeShutdownHook(func(scope *Scope, serviceName string) { result += "5" })
 	i.AddAfterShutdownHook(func(scope *Scope, serviceName string, err error) { result += "6" })
+	i.AddBeforeHealthCheckHook(func(scope *Scope, serviceName string) { result += "7" })
+	i.AddAfterHealthCheckHook(func(scope *Scope, serviceName string, err error) { result += "8" })
 
 	result = ""
 
@@ -152,6 +198,8 @@ func TestInjectorOpts_onEvent(t *testing.T) {
 	i.opts.onAfterInvocation(&Scope{id: "id", name: "name"}, "name", nil)
 	i.opts.onBeforeShutdown(&Scope{id: "id", name: "name"}, "name")
 	i.opts.onAfterShutdown(&Scope{id: "id", name: "name"}, "name", nil)
+	i.opts.onBeforeHealthCheck(&Scope{id: "id", name: "name"}, "name")
+	i.opts.onAfterHealthCheck(&Scope{id: "id", name: "name"}, "name", nil)
 
-	is.Equal("a1b2c3d4e5f6", result)
+	is.Equal("a1b2c3d4e5f6g7h8", result)
 }
