@@ -1,6 +1,6 @@
 module github.com/samber/do/v2/examples/struct
 
-go 1.18
+go 1.25.0
 
 replace github.com/samber/do/v2 => ../../
 
