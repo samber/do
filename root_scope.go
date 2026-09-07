@@ -184,11 +184,16 @@ func (s *RootScope) ShutdownWithContext(ctx context.Context) *ShutdownReport {
 	return s.self.ShutdownWithContext(ctx)
 }
 
-func (s *RootScope) clone(root *RootScope, parent *Scope) *Scope      { return s.self.clone(root, parent) }
-func (s *RootScope) serviceExist(name string) bool                    { return s.self.serviceExist(name) }
-func (s *RootScope) serviceExistRec(name string) bool                 { return s.self.serviceExistRec(name) }
-func (s *RootScope) serviceGet(name string) (any, bool)               { return s.self.serviceGet(name) }
-func (s *RootScope) serviceGetRec(name string) (any, *Scope, bool)    { return s.self.serviceGetRec(name) }
+func (s *RootScope) clone(root *RootScope, parent *Scope) *Scope { return s.self.clone(root, parent) }
+
+func (s *RootScope) serviceExist(name string) bool { return s.self.serviceExist(name) }
+
+func (s *RootScope) serviceExistRec(name string) bool { return s.self.serviceExistRec(name) }
+
+func (s *RootScope) serviceGet(name string) (any, bool) { return s.self.serviceGet(name) }
+
+func (s *RootScope) serviceGetRec(name string) (any, *Scope, bool) { return s.self.serviceGetRec(name) }
+
 func (s *RootScope) serviceSet(name string, service any)              { s.self.serviceSet(name, service) } // serviceSet is not protected against double registration
 func (s *RootScope) serviceForEach(cb func(string, *Scope, any) bool) { s.self.serviceForEach(cb) }
 

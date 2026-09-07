@@ -372,7 +372,7 @@ func InvokeStruct[T any](i Injector) (T, error) {
 	output := deepEmpty[T]() // if the struct is hidden behind a pointer, we need to init the struct value deep enough
 	value := reflect.ValueOf(&output)
 
-	for value.Elem().Kind() == reflect.Ptr {
+	for value.Elem().Kind() == reflect.Pointer {
 		value = value.Elem()
 	}
 

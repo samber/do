@@ -28,7 +28,7 @@ func deepEmpty[T any]() T {
 
 func deepEmptyMakeValue(t reflect.Type) reflect.Value {
 	// Base case: not a pointer -> just zero of this type.
-	if t.Kind() != reflect.Ptr {
+	if t.Kind() != reflect.Pointer {
 		return reflect.Zero(t)
 	}
 
