@@ -121,6 +121,32 @@ func ExampleRootScope_AddAfterShutdownHook() {
 	// Output: shut down service: test, error: <nil>
 }
 
+func ExampleRootScope_AddBeforeHealthCheckHook() {
+	injector := New()
+
+	injector.AddBeforeHealthCheckHook(func(scope *Scope, serviceName string) {
+		fmt.Printf("health checking service: %s\n", serviceName)
+	})
+
+	ProvideNamed(injector, "test", lifecycleTestServiceProvider)
+	_, _ = InvokeNamed[*lifecycleTestService](injector, "test")
+	_ = injector.HealthCheck()
+	// Output: health checking service: test
+}
+
+func ExampleRootScope_AddAfterHealthCheckHook() {
+	injector := New()
+
+	injector.AddAfterHealthCheckHook(func(scope *Scope, serviceName string, err error) {
+		fmt.Printf("health checked service: %s, error: %v\n", serviceName, err)
+	})
+
+	ProvideNamed(injector, "test", lifecycleTestServiceProvider)
+	_, _ = InvokeNamed[*lifecycleTestService](injector, "test")
+	_ = injector.HealthCheck()
+	// Output: health checked service: test, error: <nil>
+}
+
 func ExampleRootScope_Clone() {
 	injector := New()
 	ProvideNamedValue(injector, "test", "value")

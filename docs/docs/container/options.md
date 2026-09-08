@@ -69,6 +69,8 @@ injector := do.NewWithOpts(&do.InjectorOpts{
     HookAfterInvocation:    []func(scope *do.Scope, serviceName string, err error){},
     HookBeforeShutdown:     []func(scope *do.Scope, serviceName string){},
     HookAfterShutdown:      []func(scope *do.Scope, serviceName string, err error){},
+    HookBeforeHealthCheck:  []func(scope *do.Scope, serviceName string){},
+    HookAfterHealthCheck:   []func(scope *do.Scope, serviceName string, err error){},
 
     Logf: func(format string, args ...any) {
         // ...
@@ -82,7 +84,7 @@ injector := do.NewWithOpts(&do.InjectorOpts{
 
 ### Add hooks at runtime {#add-hooks-at-runtime}
 
-Hooks can also be registered after the injector is created using helper methods on the root scope. These append to the corresponding hook lists in `do.InjectorOpts` and apply to subsequent registrations/invocations/shutdowns.
+Hooks can also be registered after the injector is created using helper methods on the root scope. These append to the corresponding hook lists in `do.InjectorOpts` and apply to subsequent registrations/invocations/shutdowns/health checks.
 
 ```go
 import "github.com/samber/do/v2"
@@ -110,6 +112,14 @@ injector.AddBeforeShutdownHook(func(scope *do.Scope, serviceName string) {
     // ...
 })
 injector.AddAfterShutdownHook(func(scope *do.Scope, serviceName string, err error) {
+    // ...
+})
+
+// Health check hooks
+injector.AddBeforeHealthCheckHook(func(scope *do.Scope, serviceName string) {
+    // ...
+})
+injector.AddAfterHealthCheckHook(func(scope *do.Scope, serviceName string, err error) {
     // ...
 })
 ```

@@ -747,12 +747,28 @@ func (s *Scope) serviceHealthCheck(ctx context.Context, name string) error {
 	if ok {
 		s.logf("requested health check for service %s", name)
 
+		// Hooks are triggered only for the services that are really checked: a service
+		// that does not implement the Healthchecker interface, a lazy service that has
+		// not been invoked yet, or a transient service, is a no-op for service.healthcheck().
+		healthchecker, ok := serviceAny.(serviceWrapperIsHealthchecker)
+		isHealthchecker := ok && healthchecker.isHealthchecker()
+
+		if isHealthchecker {
+			s.RootScope().opts.onBeforeHealthCheck(s, name)
+		}
+
 		// A timeout error is not triggered when the service is not a healthchecker.
 		// If the healthchecker does not support context.Timeout, the error will be triggered by raceWithTimeout().
-		return raceWithTimeout(
+		err := raceWithTimeout(
 			ctx,
 			service.healthcheck,
 		)
+
+		if isHealthchecker {
+			s.RootScope().opts.onAfterHealthCheck(s, name, err)
+		}
+
+		return err
 	}
 
 	// Should never happen.
