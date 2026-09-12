@@ -907,6 +907,35 @@ func TestInvokeStruct(t *testing.T) {
 	test11, err := InvokeStruct[****serviceWithInterface](i)
 	is.NoError(err)
 	is.NotNil((****test11).eagerTest) //nolint:gocritic
+
+	// assign a nil interface returned by a provider
+	i = New()
+	Provide(i, func(i Injector) (Healthchecker, error) {
+		return nil, nil
+	})
+	test12, err := InvokeStruct[serviceWithInterface](i)
+	is.NoError(err)
+	is.Nil(test12.eagerTest)
+
+	// assign a nil interface found through implicit aliasing
+	i = New()
+	Provide(i, func(i Injector) (iTestHeathchecker, error) {
+		return nil, nil
+	})
+	test13, err := InvokeStruct[serviceWithInterface](i)
+	is.NoError(err)
+	is.Nil(test13.eagerTest)
+
+	// reject a nil service whose declared type is not assignable to the field
+	type namedNilTypeMismatch struct {
+		EagerTest *eagerTest `do:"nil-healthchecker"`
+	}
+	ProvideNamed(i, "nil-healthchecker", func(i Injector) (Healthchecker, error) {
+		return nil, nil
+	})
+	test14, err := InvokeStruct[namedNilTypeMismatch](i)
+	is.Equal("DI: `nil-healthchecker` is not assignable to field `github.com/samber/do/v2.namedNilTypeMismatch.EagerTest`", err.Error())
+	is.Empty(test14)
 }
 
 func TestMustInvokeStruct(t *testing.T) {

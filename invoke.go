@@ -253,6 +253,7 @@ func invokeByTags(i Injector, structName string, structValue reflect.Value, impl
 		if serviceName == "" {
 			serviceName = typetostring.GetReflectValueType(fieldValue)
 		}
+		resolvedServiceName := serviceName
 
 		dependency, err := invokeAnyByName(injector, serviceName)
 		// @TODO: This fallback may pick an arbitrary matching service; selection order is not stable.
@@ -275,6 +276,7 @@ func invokeByTags(i Injector, structName string, structValue reflect.Value, impl
 			})
 
 			if found {
+				resolvedServiceName = resolvedName
 				dependency, err = invokeAnyByName(injector, resolvedName)
 			}
 		}
@@ -283,6 +285,15 @@ func invokeByTags(i Injector, structName string, structValue reflect.Value, impl
 		}
 
 		dependencyValue := reflect.ValueOf(dependency)
+		if !dependencyValue.IsValid() {
+			service, _, found := injector.serviceGetRec(resolvedServiceName)
+			if !found || !service.(serviceWrapperGetReflectType).getReflectType().AssignableTo(fieldValue.Type()) { //nolint:errcheck,forcetypeassert
+				return fmt.Errorf("DI: `%s` is not assignable to field `%s.%s`", serviceName, structName, field.Name)
+			}
+
+			fieldValue.Set(reflect.Zero(fieldValue.Type()))
+			continue
+		}
 
 		// Should be checked before invocation, because we just built something that is not assignable to the field.
 		if !dependencyValue.Type().AssignableTo(fieldValue.Type()) {
