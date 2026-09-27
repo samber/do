@@ -329,7 +329,12 @@ func (s *Scope) asyncHealthCheckWithContext(ctx context.Context) map[string]<-ch
 	asyncResults := map[string]<-chan error{}
 
 	s.mu.RLock()
-	for name := range s.services {
+	for name, service := range s.services {
+		// Transient instances are not retained, so they cannot be health-checked.
+		// Skipping them avoids reporting a false "healthy" (nil) result.
+		if getter, ok := service.(serviceWrapperGetServiceType); ok && getter.getServiceType() == ServiceTypeTransient {
+			continue
+		}
 		asyncResults[name] = s.rootScope.queueServiceHealthcheck(ctx, s, name)
 	}
 	s.mu.RUnlock()
